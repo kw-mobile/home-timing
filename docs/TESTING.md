@@ -10,6 +10,7 @@
 | Repository·저장 구조·권한 | 기본 검증, 실패·동시 변경·권한 거부 등 관련 계약 테스트 |
 | 알림·권한·공유 | 기본 검증과 해당 실기기/두 기기 시나리오 |
 | 도구·SDK·의존성 | SETUP의 잠금 갱신 절차 후 일반 기본 검증 |
+| Notion 자동화 | `python -m unittest discover -s scripts/notion/tests -v`, 실제 API 검증은 [연결 안내](report/NOTION_SYNC.md) |
 | GitHub workflow | `actionlint`로 구문 확인, 변경한 동작은 해당 CI 결과 확인 |
 
 순수 문서 변경에 Android 빌드를 요구하지 않습니다. 구현을 그대로 반복하는 테스트보다 날짜 경계·동시 완료·권한 거부·네트워크 실패처럼 결과가 달라지는 조건을 확인합니다.
@@ -45,7 +46,7 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 - Lint: `app/build/reports/lint-results-debug.html`
 - JUnit: `app/build/reports/tests/testDebugUnitTest/index.html` (테스트가 있을 때 생성)
 - CI는 Wrapper·도구 설정 후 키 없는 빌드·단위 테스트 작업·Lint를 단일 작업에서 실행합니다. 자동 배포·에뮬레이터 행렬은 구성하지 않습니다.
-- 워크플로는 README·AGENTS·CLAUDE·CONTRIBUTING·`docs/`·이슈/PR 템플릿만 바뀐 이벤트를 제외합니다. `workflow_dispatch`로 수동 실행할 수 있습니다. 혼합 PR은 PR 전체 변경에 코드가 포함되므로 문서만 추가 push해도 다시 실행될 수 있습니다.
+- Android 워크플로는 앱·Gradle·JDK 설정·해당 워크플로 변경에 실행합니다. 문서와 독립된 Notion 스크립트 변경에는 Android 빌드를 실행하지 않고, Notion 전용 검증 작업에서 Python 계약 테스트를 확인합니다. `workflow_dispatch`로 수동 실행할 수 있습니다. 혼합 PR은 PR 전체 변경에 코드가 포함되므로 문서만 추가 push해도 다시 실행될 수 있습니다.
 - 이 워크플로를 추후 필수 검사로 지정한다면 경로 필터로 건너뛴 PR도 병합 가능한지 함께 검토합니다. 저장소 보호 설정은 이 문서로 변경되지 않습니다.
 
 실제 Firebase·기상청·알림·두 기기 검증은 관련 기능이 구현된 뒤 별도 기록합니다. 기능별 필수 시나리오는 [MVP 완료 기준](MVP.md#구현-순서와-완료-기준)을 따릅니다.
