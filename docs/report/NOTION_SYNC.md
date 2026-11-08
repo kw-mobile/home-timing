@@ -19,7 +19,7 @@ DB와 최근 작업·참여자별·보고서 확인 필요 보기는 준비되�
 
 ## 담당자 최초 연결
 
-1. [Notion 인증 안내](https://developers.notion.com/docs/authorization)에 따라 내부 연결 토큰 또는 개인 액세스 토큰을 준비합니다. Development History DB의 조회·페이지 생성·본문/속성 수정 권한을 허용합니다.
+1. 팀 자동화에는 **내부 연결(Internal connection)**을 사용합니다. 워크스페이스 소유자가 [Notion Developer portal](https://app.notion.com/developers/connections)에서 `Home Timing GitHub` 등의 이름으로 프로젝트 워크스페이스에 연결을 만듭니다. **Configuration** 탭에서 API 토큰을 복사하고 콘텐츠 읽기·생성·수정 권한을 설정합니다. Development History DB에서 우측 상단 **••• → Add connections**로 이 연결을 추가합니다. 토큰 발급만으로 DB 접근 권한이 생기지 않습니다. [공식 인증 안내](https://developers.notion.com/guides/authorization/overview)를 참고합니다.
 2. [GitHub Actions Secrets](https://github.com/kw-mobile/home-timing/settings/secrets/actions)에 **`NOTION_TOKEN`**으로 등록합니다. 토큰을 PR·이슈·Notion 본문·대화에 적지 않습니다.
 3. GitHub Repository Variables를 확인합니다. 현재 값은 아래와 같습니다.
 

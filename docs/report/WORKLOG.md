@@ -13,6 +13,8 @@
 
 | 2026-11-08 | Codex 스킬·협업 절차 작성 및 검증; 사람별 역할 확인 필요 | 최신 main·이슈 기반 시작, 기존 변경 보존과 재개, 기여·검증·PR 마무리 스킬 준비 | [작업 스킬 이슈 #5](https://github.com/kw-mobile/home-timing/issues/5), [PR #6](https://github.com/kw-mobile/home-timing/pull/6) |
 
+| 2026-11-08 | Codex 완료 스킬·설정 안내 작성 및 검증; 사람별 역할 확인 필요 | 병합 후 작업 브랜치·worktree 정리와 개인 파일 보존, Notion 토큰 발급 경로 안내 | [정리 절차 이슈 #7](https://github.com/kw-mobile/home-timing/issues/7), [PR #8](https://github.com/kw-mobile/home-timing/pull/8) |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.

@@ -34,6 +34,7 @@ Codex와 Claude Code가 함께 따르는 프로젝트 지침입니다. `CLAUDE.m
 
 ## 기여 기록과 PR
 
+- 병합 후 해당 작업 브랜치·전용 worktree 정리까지 [완료 스킬](.agents/skills/team-task-finish/SKILL.md#병합-후-정리)을 따릅니다.
 - 작업 완료·PR 작성·인계에는 [team-task-finish](.agents/skills/team-task-finish/SKILL.md)를 적용합니다.
 - [팀 작업 규칙](CONTRIBUTING.md)과 [기여·보고서 기록 기준](docs/report/README.md)을 따릅니다.
 - 모든 작업 PR에 **실제 참여자별 역할·구현 내용·근거**를 남깁니다. 구현·설계·검증·리뷰를 구분하고 공동 작업은 사람별로 행을 나눕니다.
