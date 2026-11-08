@@ -6,6 +6,7 @@
 
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
+| 화면 시안을 어떻게 확인하는가 | [HTML 프로토타입](prototype/README.md) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |
@@ -27,6 +28,7 @@ docs/
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
 ├─ TESTING.md            변경별 검증·결과 기록
 ├─ SKILLS.md             최초 환경 설정·작업 시작·완료 스킬
+├─ prototype/           브라우저에서 여는 모바일 화면 시안
 └─ report/
    ├─ README.md          참여자 기록·PR/댓글 기준·최종 보고서 목차
    ├─ WORKLOG.md         작업별 참여자·결과·근거 색인

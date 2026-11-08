@@ -18,6 +18,8 @@
 
 | 2026-11-08 | 조민제: clone 후 에이전트 setup 흐름 요청; Codex (도구): 공통 스킬·안내 작성 및 검증 | 개인 설정을 보존하는 JDK·SDK·본인 Firebase 연결·기본 빌드 온보딩 절차 | [온보딩 이슈 #14](https://github.com/kw-mobile/home-timing/issues/14), [PR #15](https://github.com/kw-mobile/home-timing/pull/15) |
 
+| 2026-11-08 | 조민제: PRD 화면 시안·디자인 스킬·홈 하단 내비게이션 요청; Codex (도구): 디자인·HTML 구현 및 브라우저 검증 | MVP 7개 화면과 P1 캘린더 참고 시안, 홈·용품·설정 고정 내비게이션, 예시 데이터 상호작용 | [화면 시안 이슈 #16](https://github.com/kw-mobile/home-timing/issues/16), [PR #17](https://github.com/kw-mobile/home-timing/pull/17) |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.
