@@ -16,7 +16,7 @@
 
 | 2026-11-08 | 조민제: 팀원 접근 검증·기존 기여 기록 보완 요청; Codex (도구): 권한 보완·원격 검증·문서 작성 | Firebase CLI 조회 권한 보완, 팀원 연결·규칙 배포 절차 정리, 기존 PR 역할 확정 및 Notion 재동기화 | [환경·기여 기록 이슈 #12](https://github.com/kw-mobile/home-timing/issues/12), [PR #13](https://github.com/kw-mobile/home-timing/pull/13) |
 
-| 2026-11-08 | 조민제: clone 후 에이전트 setup 흐름 요청; Codex (도구): 공통 스킬·안내 작성 및 검증 | 개인 설정을 보존하는 JDK·SDK·본인 Firebase 연결·기본 빌드 온보딩 절차 | [온보딩 이슈 #14](https://github.com/kw-mobile/home-timing/issues/14) |
+| 2026-11-08 | 조민제: clone 후 에이전트 setup 흐름 요청; Codex (도구): 공통 스킬·안내 작성 및 검증 | 개인 설정을 보존하는 JDK·SDK·본인 Firebase 연결·기본 빌드 온보딩 절차 | [온보딩 이슈 #14](https://github.com/kw-mobile/home-timing/issues/14), [PR #15](https://github.com/kw-mobile/home-timing/pull/15) |
 
 ## 기록 예시
 
