@@ -3,8 +3,24 @@ name: Android verification
 on:
   pull_request:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+      - CLAUDE.md
+      - CONTRIBUTING.md
+      - 'docs/**'
+      - .github/pull_request_template.md
+      - '.github/ISSUE_TEMPLATE/**'
   push:
     branches: [main]
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+      - CLAUDE.md
+      - CONTRIBUTING.md
+      - 'docs/**'
+      - .github/pull_request_template.md
+      - '.github/ISSUE_TEMPLATE/**'
   workflow_dispatch:
 
 permissions:

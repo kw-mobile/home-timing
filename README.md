@@ -17,9 +17,12 @@ Firebase 설정과 기상청 키 없이도 기본 화면을 빌드할 수 있습
 
 ## 작업 기준
 
+- [전체 문서 안내](docs/README.md)
 - [제출 MVP 범위와 구현 순서](docs/MVP.md)
 - [브랜치·PR·버전 변경 규칙](CONTRIBUTING.md)
-- [자동화 도구 작업 지침](AGENTS.md)
+- [코드 구조](docs/ARCHITECTURE.md) · [검증 기준](docs/TESTING.md)
+- [참여자별 기여·보고서 기록](docs/report/README.md) · [개발 기록](docs/report/WORKLOG.md)
+- [자동화 도구 작업 지침](AGENTS.md) (Claude Code는 `CLAUDE.md`에서 같은 지침을 참조)
 - [기존 Notion 기획](https://app.notion.com/p/40f8bac3963f80298786d02fdf27da79)
 
 합의한 범위 조정은 `docs/MVP.md`를 기준으로 구현합니다. 기존 Notion PRD·TRD와 충돌하면 `docs/MVP.md`의 결정을 따릅니다. Notion 원문은 아직 갱신하지 않았습니다.

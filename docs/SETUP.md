@@ -60,13 +60,9 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 
 키는 `BuildConfig.KMA_SERVICE_KEY`로 제공됩니다. Git에서 제외해도 APK에 넣은 키는 비밀 저장소처럼 보호되지 않습니다. HTTP 로그에는 키가 포함된 URL을 남기지 않아야 합니다. 실제 API 호출·키 유효성 검증은 후속 날씨 기능 범위입니다.
 
-## 확인 결과 읽기
+## 검증 안내
 
-- APK: `app/build/outputs/apk/debug/app-debug.apk`
-- Lint: `app/build/reports/lint-results-debug.html`
-- 단위 테스트: `app/build/reports/tests/testDebugUnitTest/index.html` (테스트가 있을 때 생성)
-- 초기 프로젝트에는 제품 단위 테스트가 없어 `testDebugUnitTest`가 `NO-SOURCE`일 수 있습니다. 이를 테스트 통과 개수로 세지 않습니다.
-- CI는 카탈로그의 `cmdlineTools` 버전으로 SDK 설치 도구를 준비한 뒤 키 없는 빌드·단위 테스트·Lint와 Wrapper 검증을 수행합니다. 실기기 알림, 두 기기 공유, Firebase 권한, 실제 기상청 연동은 별도 검증합니다.
+최초 설정 후에는 기본 빌드를 확인합니다. 이후에는 [변경별 검증·결과 기록·산출물 안내](TESTING.md)를 따릅니다. 문서만 바꾸는 작업에는 Android 빌드를 요구하지 않습니다.
 
 ## 의존성·버전 변경
 

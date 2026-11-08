@@ -1,10 +1,43 @@
-# Team working agreements
+# 공통 에이전트 작업 지침
 
-- Read [README.md](README.md), [docs/SETUP.md](docs/SETUP.md), and [docs/MVP.md](docs/MVP.md) before changing the project.
-- Build understanding: this repository contains a Java + XML Android app. Implement only the scope agreed in docs/MVP.md; this bootstrap does not implement Firebase rules or product flows.
-- Use the checked-in Gradle wrapper with JDK 17. Never commit local SDK/JDK paths, credentials, signing files, or IDE state.
-- Keep dependency/plugin/SDK versions in gradle/libs.versions.toml. Gradle's version/checksum live in gradle/wrapper/gradle-wrapper.properties. Do not accept IDE upgrade prompts on feature branches.
-- When changing dependencies, update the catalog and regenerate app/gradle.lockfile with the command in docs/SETUP.md; never hand-edit lock entries.
-- Keep Activity/Fragment rendering and input separate from ViewModel, repositories, and pure Java domain rules. No direct Firebase or Retrofit calls in UI classes.
-- Build and lint with `./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug`. Report NO-SOURCE honestly; a bootstrap build does not prove feature behavior or Firebase security.
-- Follow [CONTRIBUTING.md](CONTRIBUTING.md) for branches and PRs. Never merge or change repository protections without explicit authorization.
+Codex와 Claude Code가 함께 따르는 프로젝트 지침입니다. `CLAUDE.md`에는 이 파일의 import만 둡니다.
+
+## 작업 시작
+
+1. [README](README.md)와 [문서 안내](docs/README.md)를 읽고, 요청에 해당하는 기준 문서를 확인합니다.
+2. `git status`와 현재 브랜치를 확인하고 기존 변경을 보존합니다. 다른 사람의 작업을 덮어쓰거나 공용 브랜치를 강제 push하지 않습니다.
+3. 구현 전 [MVP](docs/MVP.md)의 범위·완료 기준과 관련 이슈를 확인합니다. 요청 범위를 벗어난 기능·의존성·자동화를 추가하지 않습니다.
+4. 계획과 실제 구현을 구분합니다. 구현 여부는 코드와 검증 결과로 확인하고, 기존 Notion과 충돌하는 범위는 MVP 문서를 따릅니다. 모호한 제품 결정은 임의로 확정하지 말고 이슈에 남깁니다.
+
+## 코드와 문서 배치
+
+- 구조와 의존 방향은 [아키텍처](docs/ARCHITECTURE.md)를 따릅니다. UI는 렌더링·입력, ViewModel은 화면 상태, Repository는 외부 데이터, domain은 순수 Java 규칙을 담당합니다.
+- Activity/Fragment에서 Firebase·Retrofit을 직접 호출하지 않습니다. domain에 Android·Firebase 타입을 넣지 않습니다.
+- 화면 간에는 항목 종류와 문서 ID를 전달합니다. 날짜·회차·권한 규칙은 MVP의 계약을 따르고 화면마다 다르게 구현하지 않습니다.
+- 새 패키지·추상화·문서는 실제 사용처가 생길 때 만듭니다. 빈 디렉터리나 미구현 클래스 목록만 미리 늘리지 않습니다.
+- 제품 범위는 MVP, 구조는 아키텍처, 환경은 SETUP, 검증은 TESTING, 작업 내역은 개발 기록에 둡니다. 동일한 설명을 여러 문서에 복사하지 않고 링크합니다.
+
+## 버전과 설정
+
+- [환경 설정](docs/SETUP.md)에 따라 JDK 17과 저장소의 Gradle Wrapper를 사용합니다. 개인 SDK/JDK 경로를 공용 Gradle 설정에 넣지 않습니다.
+- 의존성·플러그인·SDK 버전은 `gradle/libs.versions.toml`, Gradle 버전·체크섬은 `gradle/wrapper/gradle-wrapper.properties`에서 관리합니다. IDE의 자동 업그레이드를 수락하지 않습니다.
+- 의존성을 바꿀 때만 SETUP의 절차로 잠금 파일을 재생성하고 함께 검토합니다. 잠금 파일을 직접 편집하거나 기능 PR에 도구 업그레이드를 섞지 않습니다.
+- 키·서명·개인 설정·`local.properties`·`app/google-services.json`을 커밋하지 않습니다. 요청 URL·로그·화면 캡처에도 키와 개인 정보를 남기지 않습니다.
+- Firestore 권한을 UI 검사만으로 대신하거나 공용 규칙을 모두 허용으로 바꾸지 않습니다. 공용 Firebase 데이터와 타인의 테스트 데이터를 무단 초기화하지 않습니다.
+
+## 검증
+
+- [변경 유형별 검증](docs/TESTING.md)을 적용합니다. 문서만 바꾸면 링크·지침 정합성·diff를 확인하고 Android 빌드를 요구하지 않습니다.
+- 코드·리소스·빌드 설정은 필요한 빌드·Lint·테스트를 실행합니다. 날짜·회차·동시성·권한 등 동작 계약에는 의미 있는 경계·실패 테스트를 추가합니다.
+- `NO-SOURCE`, 건너뜀, 미검증을 통과로 바꾸어 쓰지 않습니다. 테스트 예보로 실제 API 성공을, APK 빌드로 실기기 알림·두 기기 공유 성공을 주장하지 않습니다.
+- 결과에는 검증한 커밋, 명령/시나리오, 환경, 실제 결과와 남은 한계를 적습니다. 코드 변경 뒤의 오래된 성공 결과를 현재 커밋 검증으로 재사용하지 않습니다.
+
+## 기여 기록과 PR
+
+- [팀 작업 규칙](CONTRIBUTING.md)과 [기여·보고서 기록 기준](docs/report/README.md)을 따릅니다.
+- 모든 작업 PR에 **실제 참여자별 역할·구현 내용·근거**를 남깁니다. 구현·설계·검증·리뷰를 구분하고 공동 작업은 사람별로 행을 나눕니다.
+- GitHub PR 작성자·커밋 개수·에이전트 실행 계정만으로 사람의 기여를 추정하지 않습니다. 참여자를 모르면 확인 필요로 남기고, 도구가 작성한 작업을 임의의 팀원이 직접 구현했다고 기록하지 않습니다.
+- 작업 완료 시 [개발 기록](docs/report/WORKLOG.md)에 날짜·참여자·작업 요약·PR 링크를 남깁니다. 행 작성·갱신 기준은 기여 기록 문서를 따릅니다.
+- PR 본문은 최종 변경 내용으로 갱신합니다. 댓글은 중요한 결정 변경·새 검증 결과·리뷰 수정에 사용하고, 결과 없는 진행 알림을 반복하지 않습니다.
+- 최종 보고에는 변경 이유·구현 내용·수행한 검증·미검증 사항과 이슈/PR 링크를 포함합니다. 팀원의 리뷰·승인·실기기 확인을 대신했다고 쓰지 않습니다.
+- 사용자 지시 없이 main에 병합하거나 저장소 보호·결제·외부 서비스 권한을 변경하지 않습니다.
