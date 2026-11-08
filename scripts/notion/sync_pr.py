@@ -18,6 +18,9 @@ TEAM_MEMBERS = json.loads(Path(__file__).with_name("team_members.json").read_tex
 def display_name(value):
     """Resolve only an exact, user-confirmed GitHub login or profile link."""
     name = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", value).replace("`", "").replace("**", "").strip()
+    labeled = re.fullmatch(r"(.+?)\s*\(@([A-Za-z0-9-]+)\)", name)
+    if labeled and TEAM_MEMBERS.get(labeled[2].lower()) == labeled[1].strip():
+        return labeled[1].strip()
     login = re.fullmatch(r"(?:https://github\.com/|@)?([A-Za-z0-9-]+)/*", name)
     return TEAM_MEMBERS.get(login[1].lower(), name) if login else name
 

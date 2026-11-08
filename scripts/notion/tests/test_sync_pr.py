@@ -52,6 +52,11 @@ class QueueApi:
 
 
 class RecordTests(unittest.TestCase):
+    def test_author_and_declared_name_with_handle_are_one_participant(self):
+        value = pr(BODY.replace("@alice", "조민제 (@minestero00)").replace("@bob", "https://github.com/minestero00"))
+        value["user"]["login"] = "minestero00"
+        self.assertEqual(build_record(value, [], REPO)["properties"]["참여자"]["multi_select"], [{"name": "조민제"}])
+
     def test_confirmed_accounts_resolve_to_names_and_deduplicate(self):
         value = pr(BODY.replace("@alice", "@Jeon-juyong").replace("@bob", "전주용"))
         value["user"]["login"] = "SHOUNGLI415"
