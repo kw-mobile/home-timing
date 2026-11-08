@@ -1,0 +1,17 @@
+plugins {
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.google.services) apply false
+}
+
+tasks.register('teamDoctor') {
+    group = 'verification'
+    description = 'Prints the shared toolchain and local service configuration status (no secrets).'
+    doLast {
+        println "Gradle: ${gradle.gradleVersion}"
+        println "Java: ${System.getProperty('java.version')} (${System.getProperty('java.vendor')})"
+        println "Android: min=${libs.versions.minSdk.get()}, compile=${libs.versions.compileSdk.get()}, target=${libs.versions.targetSdk.get()}"
+        println "Build Tools: ${libs.versions.buildTools.get()}"
+        println "Firebase config: ${file('app/google-services.json').exists() ? 'present' : 'absent (bootstrap build only)'}"
+        println 'Next: ./gradlew :app:assembleDebug :app:testDebugUnitTest :app:lintDebug'
+    }
+}

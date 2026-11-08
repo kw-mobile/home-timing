@@ -1,0 +1,69 @@
+name: Android verification
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+      - CLAUDE.md
+      - CONTRIBUTING.md
+      - 'docs/**'
+      - .github/pull_request_template.md
+      - '.github/ISSUE_TEMPLATE/**'
+  push:
+    branches: [main]
+    paths-ignore:
+      - README.md
+      - AGENTS.md
+      - CLAUDE.md
+      - CONTRIBUTING.md
+      - 'docs/**'
+      - .github/pull_request_template.md
+      - '.github/ISSUE_TEMPLATE/**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, unit tests, lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle and validate wrapper
+        uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Read SDK versions from catalog
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          import tomllib
+          with open('gradle/libs.versions.toml', 'rb') as catalog:
+              versions = tomllib.load(catalog)['versions']
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f"COMPILE_SDK={versions['compileSdk']}\n")
+              output.write(f"BUILD_TOOLS={versions['buildTools']}\n")
+              output.write(f"CMDLINE_TOOLS={versions['cmdlineTools']}\n")
+          PYTHON
+      - name: Set up Android SDK and install pinned packages
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          cmdline-tools-version: ${{ env.CMDLINE_TOOLS }}
+          packages: platform-tools platforms;android-${{ env.COMPILE_SDK }} build-tools;${{ env.BUILD_TOOLS }}
+          log-accepted-android-sdk-licenses: false
+      - name: Verify bootstrap build
+        run: ./gradlew --no-daemon --console=plain teamDoctor :app:assembleDebug :app:testDebugUnitTest :app:lintDebug

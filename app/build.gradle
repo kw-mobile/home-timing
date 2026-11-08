@@ -1,0 +1,84 @@
+import groovy.json.JsonOutput
+
+plugins {
+    alias(libs.plugins.android.application)
+}
+
+// A fresh clone must build without access to the team's Firebase project.
+// Feature verification uses -PrequireFirebase=true and the real team config.
+def firebaseConfigured = file('google-services.json').exists()
+if (firebaseConfigured) {
+    apply plugin: 'com.google.gms.google-services'
+}
+if (providers.gradleProperty('requireFirebase').orNull == 'true' && !firebaseConfigured) {
+    throw new GradleException('Missing app/google-services.json. Follow docs/SETUP.md before Firebase feature verification.')
+}
+
+def localConfig = new Properties()
+def localConfigFile = rootProject.file('local.properties')
+if (localConfigFile.exists()) {
+    localConfigFile.withInputStream { localConfig.load(it) }
+}
+def kmaServiceKey = providers.environmentVariable('KMA_SERVICE_KEY')
+        .orElse(localConfig.getProperty('KMA_SERVICE_KEY', '')).get()
+
+android {
+    namespace 'com.kwmobile.hometiming'
+    compileSdk libs.versions.compileSdk.get().toInteger()
+    buildToolsVersion libs.versions.buildTools.get()
+
+    defaultConfig {
+        applicationId 'com.kwmobile.hometiming'
+        minSdk libs.versions.minSdk.get().toInteger()
+        targetSdk libs.versions.targetSdk.get().toInteger()
+        versionCode 1
+        versionName '0.1.0'
+
+        buildConfigField 'String', 'KMA_SERVICE_KEY', JsonOutput.toJson(kmaServiceKey)
+        buildConfigField 'boolean', 'FIREBASE_CONFIGURED', firebaseConfigured.toString()
+    }
+
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    lint {
+        abortOnError true
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.STRICT
+}
+
+dependencies {
+    implementation libs.androidx.core
+    implementation libs.androidx.appcompat
+    implementation libs.material
+    implementation libs.androidx.constraintlayout
+    implementation libs.androidx.fragment
+    implementation libs.androidx.lifecycle.viewmodel
+    implementation libs.androidx.lifecycle.livedata
+    implementation libs.androidx.recyclerview
+    implementation libs.androidx.work.runtime
+    implementation platform(libs.firebase.bom)
+    implementation libs.firebase.auth
+    implementation libs.firebase.firestore
+    implementation libs.retrofit
+    implementation libs.retrofit.gson
+    implementation libs.okhttp.logging
+    testImplementation libs.junit
+}

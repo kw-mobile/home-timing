@@ -1,0 +1,32 @@
+name: 구현 작업
+description: 합의한 MVP 범위와 담당을 정하고 완료 근거를 남깁니다.
+title: "[기능] "
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 목적과 범위
+      description: docs/MVP.md의 기능·화면·규칙과 연결하고 이번 작업에서 제외할 내용도 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: participants
+    attributes:
+      label: 담당·참여 예정자
+      description: 누가 설계·구현·검증할지 이름 또는 GitHub 계정으로 적어주세요. 실제 수행 내역은 PR에 기록합니다.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      placeholder: "- [ ] 사용자가 확인할 수 있는 동작"
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: 검증 방법
+      description: 필요한 명령·기기/두 기기 시나리오와, 보고서에 남길 화면·로그 등 근거를 적어주세요.
+    validations:
+      required: true
