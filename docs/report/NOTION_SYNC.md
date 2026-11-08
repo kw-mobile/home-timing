@@ -4,13 +4,13 @@ main에 병합된 PR을 [Notion Development History](https://app.notion.com/p/48
 
 ## 현재 상태
 
-**자동 실행이 활성화되어 있습니다.** 2026-11-08 사용자가 `NOTION_TOKEN`을 등록한 뒤 실제 GitHub Actions → Notion 쓰기를 확인했습니다. 대화에서 사용하는 Notion 연결과 Actions의 인증은 별개입니다.
+**동기화 설정이 활성화되어 있습니다.** 2026-11-08 사용자가 `NOTION_TOKEN`을 등록한 뒤 실제 GitHub Actions → Notion 쓰기를 확인했습니다. 대화에서 사용하는 Notion 연결과 Actions의 인증은 별개입니다.
 
 - [기존 PR #2 갱신](https://github.com/kw-mobile/home-timing/actions/runs/42472633912): 수동 초기 행을 같은 페이지에서 갱신했습니다.
 - [PR #2 재실행](https://github.com/kw-mobile/home-timing/actions/runs/42472665340): 같은 페이지 ID를 유지했고 DB 조회에서 해당 PR 행이 하나임을 확인했습니다.
 - [PR #4 신규 생성](https://github.com/kw-mobile/home-timing/actions/runs/42472667632): 새 개발 기록 행을 생성했습니다.
 
-이는 실제 API 인증·생성·갱신의 근거입니다. 병합 이벤트 실행은 해당 PR의 Actions 결과로 따로 확인합니다.
+이는 실제 API 인증·생성·갱신의 근거입니다. 위 세 실행은 수동 실행입니다. 병합 이벤트 자동 실행 결과는 [활성화 PR #9](https://github.com/kw-mobile/home-timing/pull/9)의 Actions와 검증 댓글에서 별도 확인합니다.
 
 ## 기록 내용
 
