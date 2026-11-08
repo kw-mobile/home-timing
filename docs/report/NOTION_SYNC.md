@@ -4,7 +4,13 @@ main에 병합된 PR을 [Notion Development History](https://app.notion.com/p/48
 
 ## 현재 상태
 
-DB와 최근 작업·참여자별·보고서 확인 필요 보기는 준비되어 있습니다. **자동 실행은 아직 비활성**이며 GitHub Secret `NOTION_TOKEN` 등록과 실제 API 검증이 필요합니다. 대화에서 사용하는 Notion 연결은 GitHub Actions의 인증을 대신하지 않습니다.
+**자동 실행이 활성화되어 있습니다.** 2026-11-08 사용자가 `NOTION_TOKEN`을 등록한 뒤 실제 GitHub Actions → Notion 쓰기를 확인했습니다. 대화에서 사용하는 Notion 연결과 Actions의 인증은 별개입니다.
+
+- [기존 PR #2 갱신](https://github.com/kw-mobile/home-timing/actions/runs/42472633912): 수동 초기 행을 같은 페이지에서 갱신했습니다.
+- [PR #2 재실행](https://github.com/kw-mobile/home-timing/actions/runs/42472665340): 같은 페이지 ID를 유지했고 DB 조회에서 해당 PR 행이 하나임을 확인했습니다.
+- [PR #4 신규 생성](https://github.com/kw-mobile/home-timing/actions/runs/42472667632): 새 개발 기록 행을 생성했습니다.
+
+이는 실제 API 인증·생성·갱신의 근거입니다. 병합 이벤트 실행은 해당 PR의 Actions 결과로 따로 확인합니다.
 
 ## 기록 내용
 
@@ -26,7 +32,7 @@ DB와 최근 작업·참여자별·보고서 확인 필요 보기는 준비되�
 | Variable | 값 |
 | --- | --- |
 | `NOTION_WORKLOG_DATA_SOURCE` | `700b01cb-ba6f-41b6-8c80-8735092f1af9` |
-| `NOTION_SYNC_ENABLED` | `false` — 인증 후 `true`로 변경 |
+| `NOTION_SYNC_ENABLED` | `true` — 현재 활성, 중지 시 `false` |
 
 4. 자동화 코드가 main에 반영된 후 `NOTION_SYNC_ENABLED=true`로 설정합니다.
 5. Actions의 **Notion development record → Run workflow**에서 `pr_number=2`로 실행합니다. CLI를 쓰면 아래와 같습니다.
@@ -37,7 +43,7 @@ gh workflow run notion-sync.yml --ref main -f pr_number=2
 
 6. [PR #2 수동 초기 스냅샷](https://app.notion.com/p/4128bac3963f819bbcb0cdc7155d3ccf)을 자동 관리 대상으로 등록해두었습니다. 같은 행의 본문·근거 댓글이 갱신되는지 확인합니다. 같은 번호로 다시 실행해 행이 늘지 않고 갱신되는지 확인한 뒤 [이슈 #3](https://github.com/kw-mobile/home-timing/issues/3)에 결과를 남깁니다.
 
-새 행 생성 경로는 인증 후 다음 실제 병합 PR에서도 확인합니다. 토큰 권한 확인·첫 GitHub Actions 쓰기·재실행 확인 전에는 연결 완료라고 기록하지 않습니다. 문제가 있으면 실행 여부 Variable을 `false`로 돌려 기록 작업만 중지할 수 있습니다.
+새 연결이나 토큰 교체 시에도 생성·갱신·재실행을 확인합니다. 문제가 있으면 실행 여부 Variable을 `false`로 돌려 기록 작업만 중지할 수 있습니다.
 
 ## 동작과 한계
 
