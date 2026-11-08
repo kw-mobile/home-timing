@@ -12,6 +12,17 @@ from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 NOTION_VERSION = "2026-03-11"
+TEAM_MEMBERS = json.loads(Path(__file__).with_name("team_members.json").read_text(encoding="utf-8"))
+
+
+def display_name(value):
+    """Resolve only an exact, user-confirmed GitHub login or profile link."""
+    name = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", value).replace("`", "").replace("**", "").strip()
+    labeled = re.fullmatch(r"(.+?)\s*\(@([A-Za-z0-9-]+)\)", name)
+    if labeled and TEAM_MEMBERS.get(labeled[2].lower()) == labeled[1].strip():
+        return labeled[1].strip()
+    login = re.fullmatch(r"(?:https://github\.com/|@)?([A-Za-z0-9-]+)/*", name)
+    return TEAM_MEMBERS.get(login[1].lower(), name) if login else name
 
 
 class SyncError(RuntimeError):
@@ -76,7 +87,7 @@ def participants(body):
         ):
             incomplete = True
             continue
-        name = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", name).replace("`", "").replace("**", "").strip()
+        name = display_name(name)
         if len(name) > 100 or "," in name:
             incomplete = True
             continue
@@ -118,6 +129,11 @@ def build_record(pr, comments, repository, now=None):
         raise SyncError("PR repository does not match the configured repository")
     body = pr.get("body") or ""
     people, incomplete = participants(body)
+    author_login = pr["user"]["login"]
+    author_name = TEAM_MEMBERS.get(author_login.lower())
+    # Confirmed account ownership identifies a PR participant, not an implementation role.
+    if author_name and author_name not in people:
+        people.insert(0, author_name)
     purpose = section(body, "목적과 연결", "목적과 결과", "변경 내용") or pr["title"]
     first_paragraph = purpose.split("\n\n")[0]
     summary = re.sub(r"\[([^]]+)\]\([^)]+\)", r"\1", first_paragraph)
@@ -135,7 +151,7 @@ def build_record(pr, comments, repository, now=None):
         "요구사항": {"multi_select": [{"name": name} for name in requirements]},
         "기여 확인": {"select": {"name": "확인 필요" if incomplete else "기록됨"}},
         "PR": {"url": url},
-        "PR 작성자": {"rich_text": rich_text(pr["user"]["login"])},
+        "PR 작성자": {"rich_text": rich_text(f"{author_name} (@{author_login})" if author_name else author_login)},
         "PR 번호": {"number": number},
         "병합 커밋": {"rich_text": rich_text(pr["merge_commit_sha"])},
         "저장소": {"rich_text": rich_text(repository)},
@@ -145,6 +161,7 @@ def build_record(pr, comments, repository, now=None):
     markdown = (
         "> GitHub PR에서 가져온 자동 기록입니다. 재동기화 시 본문이 교체됩니다. 보존할 팀 메모는 별도 페이지에 남겨주세요.\n\n"
         f"[원본 PR]({url}) · 병합 커밋: `{pr['merge_commit_sha']}`\n\n"
+        + (f"PR 작성자: {author_name} (@{author_login}). 실제 수행 역할은 아래 기여 기록을 따릅니다.\n\n" if author_name else "")
         + literal_html(body[:50000] or "PR 본문이 없습니다. 원본 PR에서 내용을 보완해주세요.")
     )
     if len(body) > 50000:

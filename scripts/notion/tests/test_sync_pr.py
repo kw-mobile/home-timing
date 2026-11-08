@@ -52,6 +52,33 @@ class QueueApi:
 
 
 class RecordTests(unittest.TestCase):
+    def test_author_and_declared_name_with_handle_are_one_participant(self):
+        value = pr(BODY.replace("@alice", "조민제 (@minestero00)").replace("@bob", "https://github.com/minestero00"))
+        value["user"]["login"] = "minestero00"
+        self.assertEqual(build_record(value, [], REPO)["properties"]["참여자"]["multi_select"], [{"name": "조민제"}])
+
+    def test_confirmed_accounts_resolve_to_names_and_deduplicate(self):
+        value = pr(BODY.replace("@alice", "@Jeon-juyong").replace("@bob", "전주용"))
+        value["user"]["login"] = "SHOUNGLI415"
+        result = build_record(value, [], REPO)
+        self.assertEqual(result["properties"]["참여자"]["multi_select"], [{"name": "이은송"}, {"name": "전주용"}])
+        self.assertEqual(result["properties"]["PR 작성자"]["rich_text"][0]["text"]["content"], "이은송 (@SHOUNGLI415)")
+
+    def test_known_author_identifies_participant_without_inventing_contributions(self):
+        value = pr("")
+        value["user"]["login"] = "minestero00"
+        result = build_record(value, [], REPO)
+        self.assertEqual(result["properties"]["참여자"]["multi_select"], [{"name": "조민제"}])
+        self.assertEqual(result["properties"]["기여 확인"]["select"]["name"], "확인 필요")
+        self.assertIn("PR 작성자: 조민제 (@minestero00)", result["markdown"])
+
+    def test_mapping_does_not_hide_incomplete_roles_or_guess_similar_accounts(self):
+        value = pr(BODY.replace("@alice", "확인 필요").replace("@bob", "@minestero00-extra"))
+        value["user"]["login"] = "minestero00"
+        properties = build_record(value, [], REPO)["properties"]
+        self.assertEqual(properties["참여자"]["multi_select"], [{"name": "조민제"}, {"name": "@minestero00-extra"}])
+        self.assertEqual(properties["기여 확인"]["select"]["name"], "확인 필요")
+
     def test_contributors_are_declared_people_not_pr_author_or_tool(self):
         properties = record()["properties"]
         self.assertEqual(properties["참여자"]["multi_select"], [{"name": "@alice"}, {"name": "@bob"}])
