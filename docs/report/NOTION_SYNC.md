@@ -35,7 +35,7 @@ DB와 최근 작업·참여자별·보고서 확인 필요 보기는 준비되�
 gh workflow run notion-sync.yml --ref main -f pr_number=2
 ```
 
-6. PR #2는 수동 초기 스냅샷을 자동 관리 대상으로 등록해두었습니다. 같은 행의 본문·근거 댓글이 갱신되는지 확인합니다. 같은 번호로 다시 실행해 행이 늘지 않고 갱신되는지 확인한 뒤 [이슈 #3](https://github.com/kw-mobile/home-timing/issues/3)에 결과를 남깁니다.
+6. [PR #2 수동 초기 스냅샷](https://app.notion.com/p/4128bac3963f819bbcb0cdc7155d3ccf)을 자동 관리 대상으로 등록해두었습니다. 같은 행의 본문·근거 댓글이 갱신되는지 확인합니다. 같은 번호로 다시 실행해 행이 늘지 않고 갱신되는지 확인한 뒤 [이슈 #3](https://github.com/kw-mobile/home-timing/issues/3)에 결과를 남깁니다.
 
 새 행 생성 경로는 인증 후 다음 실제 병합 PR에서도 확인합니다. 토큰 권한 확인·첫 GitHub Actions 쓰기·재실행 확인 전에는 연결 완료라고 기록하지 않습니다. 문제가 있으면 실행 여부 Variable을 `false`로 돌려 기록 작업만 중지할 수 있습니다.
 
