@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">때맞춤</string>
+    <string name="bootstrap_message">팀 공통 개발 환경이 준비됐어요.\n기능은 순서대로 추가합니다.</string>
+</resources>

@@ -1,0 +1,7 @@
+# Copy to local.properties (ignored by Git).
+# Let Android Studio generate sdk.dir, or set your own absolute Android SDK path.
+# Windows paths: use C:/Users/your-name/AppData/Local/Android/Sdk (forward slashes).
+# sdk.dir=/absolute/path/to/Android/sdk
+
+# Public Data Portal service key, decoded form. Empty is OK for bootstrap builds.
+KMA_SERVICE_KEY=

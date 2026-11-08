@@ -1,0 +1,48 @@
+name: Android verification
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, unit tests, lint
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Set up JDK
+        uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle and validate wrapper
+        uses: gradle/actions/setup-gradle@0b6dd653ba04f4f93bf581ec31e66cbd7dcb644d # v4
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Read SDK versions from catalog
+        shell: bash
+        run: |
+          python3 - <<'PYTHON'
+          import os
+          import tomllib
+          with open('gradle/libs.versions.toml', 'rb') as catalog:
+              versions = tomllib.load(catalog)['versions']
+          with open(os.environ['GITHUB_ENV'], 'a') as output:
+              output.write(f"COMPILE_SDK={versions['compileSdk']}\n")
+              output.write(f"BUILD_TOOLS={versions['buildTools']}\n")
+          PYTHON
+      - name: Install pinned Android SDK packages
+        run: sdkmanager "platforms;android-${COMPILE_SDK}" "build-tools;${BUILD_TOOLS}" "platform-tools"
+      - name: Verify bootstrap build
+        run: ./gradlew --no-daemon --console=plain teamDoctor :app:assembleDebug :app:testDebugUnitTest :app:lintDebug

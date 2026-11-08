@@ -1,0 +1,23 @@
+pluginManagement {
+    repositories {
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+dependencyResolutionManagement {
+    repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+// Both Android Studio's Gradle JDK and terminal JAVA_HOME must select JDK 17.
+if (JavaVersion.current() != JavaVersion.VERSION_17) {
+    throw new GradleException("JDK 17 is required. Current Gradle JVM: ${JavaVersion.current()}. See docs/SETUP.md.")
+}
+
+rootProject.name = 'HomeTiming'
+include ':app'
