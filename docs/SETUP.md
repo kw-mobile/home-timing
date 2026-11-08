@@ -45,23 +45,58 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 
 ### Firebase
 
-공용 프로젝트는 **[Home Timing (`kw-mobile-home-timing`)](https://console.firebase.google.com/project/kw-mobile-home-timing/overview)**입니다. Spark 요금제이며 결제 계정은 연결하지 않았습니다. 새 프로젝트를 만들지 말고 이 프로젝트를 사용합니다.
+공용 프로젝트는 **[Home Timing (`kw-mobile-home-timing`)](https://console.firebase.google.com/project/kw-mobile-home-timing/overview)**입니다. Spark 요금제이며 결제 계정은 연결하지 않았습니다. 팀원은 이 프로젝트를 함께 사용합니다.
 
-- Android 앱: `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`).
-- Authentication: 이메일/비밀번호 로그인을 활성화했습니다. 앱의 실제 가입·로그인은 후속 기능 검증 대상입니다.
-- Firestore: `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB로 생성했습니다.
-- 팀원 권한: 프로젝트 전용 `homeTimingTeamAdmin` 역할. Firebase Admin 기반에서 결제 변경·IAM 정책 변경과 커스텀 역할에 사용할 수 없는 권한을 제외했습니다. Owner 초대는 취소했으며 팀원에게 결제 연결·요금제 변경·자체 권한 확대 권한을 부여하지 않습니다. 실제 계정별 할당은 콘솔에서 확인합니다.
-- `.firebaserc`와 `firebase.json`에 프로젝트·규칙 배포 대상을 기록합니다. `firestore.rules`는 **초기 전체 거부 상태**입니다. 집별 권한과 거부 테스트를 구현하기 전에는 앱 데이터 읽기·쓰기를 허용하지 않습니다.
+| 설정 | 현재 상태 |
+| --- | --- |
+| Android 앱 | `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`) |
+| Authentication | 이메일/비밀번호 로그인 활성화 |
+| Firestore | `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB |
+| 앱 데이터 접근 | `firestore.rules`의 초기 전체 거부 상태. 집별 권한·거부 테스트는 기능 구현 시 작성 |
 
-**신규 팀원은 프로젝트 설정 → 일반 → Android 앱에서 `google-services.json`을 내려받아 배치합니다.** 개인 SDK 경로·기상청 키가 있는 `local.properties` 전체를 공유하지 않습니다.
+#### 팀원 관리 권한
 
-- 팀이 함께 사용하는 Spark 프로젝트 **하나**에 Android 앱 `com.kwmobile.hometiming`을 등록합니다. 팀원마다 별도 프로젝트를 만들지 않습니다.
-- Firebase Console에서 받은 `google-services.json`을 각자 `app/google-services.json`에 둡니다. 파일은 Git에서 제외됩니다. 파일명을 `.example`에서 바꾸는 식의 가짜 설정은 제공하지 않습니다.
-- 파일이 있으면 Google Services 플러그인이 적용됩니다. 없으면 기본 화면 빌드만 가능합니다. `BuildConfig.FIREBASE_CONFIGURED`로 기능 진입을 막고 설정 안내를 제공하는 것은 후속 기능 구현의 책임입니다.
-- Firebase 기능을 검증할 때는 `./gradlew -PrequireFirebase=true :app:assembleDebug`를 사용합니다. 설정 파일이 없으면 즉시 실패합니다. 이 옵션은 설정 존재 확인이며 인증·규칙·연결 성공을 보장하지 않습니다.
-- 이메일/비밀번호 로그인을 활성화하고 Firestore를 준비합니다. 공용 프로젝트의 허용 규칙을 임시로 열지 않습니다. 규칙과 거부 테스트를 구현한 뒤 공유 데이터를 사용합니다.
-- 프로젝트·앱·DB 생성과 초기 전체 거부 규칙 배포는 확인했습니다. 실제 앱 로그인·집별 규칙·두 기기 공유는 기능 구현 후 별도로 검증합니다. 결제 계정은 연결하지 않습니다.
-- 초기 규칙 배포 명령: `firebase deploy --only firestore:rules --project kw-mobile-home-timing`. 담당자는 규칙을 먼저 검토하고 전체 허용 상태로 바꾸지 않습니다.
+지정된 두 팀원은 프로젝트 전용 `homeTimingTeamAdmin`과 `roles/firebase.viewer`를 함께 사용합니다. 전용 역할은 Firebase Admin 기반에서 결제 변경·IAM 정책 변경과 커스텀 역할에 사용할 수 없는 권한을 제외한 것입니다. Firebase Viewer는 아래 CLI 명령이 사용하는 프로젝트·API 작업 조회 권한을 제공합니다. Owner 초대는 취소했습니다.
+
+| 작업 | 권한 목록으로 확인한 범위 |
+| --- | --- |
+| DB | DB 설정·문서 읽기/쓰기·삭제·인덱스 관리 |
+| 보안 규칙 | 규칙 조회·작성·릴리스 생성/수정 |
+| Authentication | 인증 설정·사용자 관리 |
+| CLI | 프로젝트·앱·API 키·서비스·API 작업 조회 |
+| 제외 | 결제 연결·요금제 변경·IAM 역할 변경·서비스 계정으로 권한 확대 |
+
+2026-11-08 원격 정책에서 두 계정의 직접 역할 할당을 읽고, 두 역할의 합집합에 대상 작업의 권한 41개가 포함됨을 확인했습니다. 인덱스 권한의 현재 이름은 `datastore.schemas.*`이며 `datastore.indexes.*`는 이전 이름/별칭입니다. [Firestore 권한 기준](https://docs.cloud.google.com/firestore/native/docs/security/iam), [Firebase CLI 필수 권한](https://firebase.google.com/docs/projects/iam/permissions)을 참고합니다. 팀원 계정으로 직접 로그인한 CLI/콘솔 동작은 아래 순서로 각자 확인합니다. 권한 목록 확인을 실제 팀원 작업 성공으로 기록하지 않습니다.
+
+콘솔·관리 API의 팀원 권한과 Android 앱 사용자의 Security Rules는 별개입니다. 팀원은 콘솔에서 DB를 관리할 수 있어도 앱 데이터 요청은 현재 거부됩니다. 개발 중에는 기존 공용 DB의 규칙을 전체 허용으로 바꾸지 않습니다.
+
+#### 팀원 최초 연결과 확인
+
+1. [Firebase CLI](https://firebase.google.com/docs/cli)를 설치합니다. 이 PC의 Firebase CLI에 로그인된 계정이 없으면 `firebase login`, 이미 다른 프로젝트용 계정이 있으면 `firebase login:add 팀원Gmail`로 팀 계정을 추가합니다. 다른 작업의 로그인을 지우지 않습니다.
+2. 아래 명령의 `팀원Gmail`을 실제 초대받은 Google 계정으로 바꿔 실행합니다. 프로젝트·DB·인덱스 조회 성공 또는 오류를 작업 이슈에 남깁니다. 키·토큰을 출력하거나 `login:list --json` 결과를 공유하지 않습니다.
+
+```sh
+firebase projects:list --account 팀원Gmail
+firebase firestore:databases:list --project kw-mobile-home-timing --account 팀원Gmail
+firebase firestore:indexes --project kw-mobile-home-timing --account 팀원Gmail
+```
+
+3. Firebase Console의 프로젝트 설정 → 일반 → Android 앱에서 `google-services.json`을 내려받아 **`app/google-services.json`**에 둡니다. 파일은 Git에서 제외됩니다. `local.properties` 전체는 개인 SDK 경로·기상청 키가 있으므로 공유하지 않습니다.
+4. `./gradlew -PrequireFirebase=true :app:assembleDebug`로 실제 설정이 있는 기본 빌드를 확인합니다. 이 옵션은 파일 존재를 검사하며 실제 가입·로그인·규칙·두 기기 공유 성공을 보장하지 않습니다.
+
+설정 파일이 있으면 Google Services 플러그인이 적용됩니다. 없으면 기본 화면 빌드만 가능합니다. `BuildConfig.FIREBASE_CONFIGURED`로 기능 진입을 막고 설정을 안내하는 것은 후속 기능 구현의 책임입니다.
+
+#### 규칙 수정과 배포
+
+`.firebaserc`·`firebase.json`이 프로젝트와 규칙 파일을 지정합니다. 담당자는 저장소의 `firestore.rules`를 수정하고 허용·거부 테스트와 함께 PR로 남깁니다. 승인된 변경을 main에 병합한 뒤 최신 main에서 아래 명령으로 **규칙만** 배포합니다. 콘솔에서 먼저 수정했다면 같은 내용을 저장소에도 반영해 서버와 Git을 일치시킵니다.
+
+```sh
+git switch main
+git pull --ff-only origin main
+firebase deploy --only firestore:rules --project kw-mobile-home-timing --account 팀원Gmail
+```
+
+이 명령은 로컬의 `firestore.rules`를 실제 프로젝트에 게시합니다. 미커밋 변경이 있으면 [작업 시작 절차](../.agents/skills/team-task-start/SKILL.md)에 따라 보존하고, `git diff 검토·병합한커밋SHA -- firestore.rules`로 검토된 정확한 커밋과 규칙 파일의 차이가 없는지 확인한 뒤 실행합니다. main 갱신이 실패하면 배포를 진행하지 않습니다. 결과는 이슈/PR에 배포 커밋·계정·시간·성공/실패로 남깁니다. 인덱스가 필요하면 먼저 인덱스 정의 파일을 추가하고 `firebase.json`에 연결해 같은 방식으로 관리합니다. 현재 MVP 쿼리는 [TRD 기반 범위](MVP.md)를 따라 필요한 인덱스만 추가합니다.
 
 ### 기상청
 
