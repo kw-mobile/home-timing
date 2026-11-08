@@ -45,14 +45,23 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 
 ### Firebase
 
-공용 Firebase 프로젝트의 준비 여부와 담당자는 아직 확인되지 않았습니다. MVP 추적 이슈에서 팀이 담당자를 지정합니다. **신규 팀원은 담당자에게 설정 파일을 받아 배치하고**, 아래 프로젝트 생성·앱 등록·Auth 활성화·규칙 배포는 지정 담당자가 수행합니다.
+공용 프로젝트는 **[Home Timing (`kw-mobile-home-timing`)](https://console.firebase.google.com/project/kw-mobile-home-timing/overview)**입니다. Spark 요금제이며 결제 계정은 연결하지 않았습니다. 새 프로젝트를 만들지 말고 이 프로젝트를 사용합니다.
+
+- Android 앱: `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`).
+- Authentication: 이메일/비밀번호 로그인을 활성화했습니다. 앱의 실제 가입·로그인은 후속 기능 검증 대상입니다.
+- Firestore: `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB로 생성했습니다.
+- 팀원 권한: 프로젝트 전용 `homeTimingTeamAdmin` 역할. Firebase Admin 기반에서 결제 변경·IAM 정책 변경과 커스텀 역할에 사용할 수 없는 권한을 제외했습니다. Owner 초대는 취소했으며 팀원에게 결제 연결·요금제 변경·자체 권한 확대 권한을 부여하지 않습니다. 실제 계정별 할당은 콘솔에서 확인합니다.
+- `.firebaserc`와 `firebase.json`에 프로젝트·규칙 배포 대상을 기록합니다. `firestore.rules`는 **초기 전체 거부 상태**입니다. 집별 권한과 거부 테스트를 구현하기 전에는 앱 데이터 읽기·쓰기를 허용하지 않습니다.
+
+**신규 팀원은 프로젝트 설정 → 일반 → Android 앱에서 `google-services.json`을 내려받아 배치합니다.** 개인 SDK 경로·기상청 키가 있는 `local.properties` 전체를 공유하지 않습니다.
 
 - 팀이 함께 사용하는 Spark 프로젝트 **하나**에 Android 앱 `com.kwmobile.hometiming`을 등록합니다. 팀원마다 별도 프로젝트를 만들지 않습니다.
-- 담당자가 Firebase Console에서 받은 `google-services.json`을 팀원에게 전달하고 각자 `app/google-services.json`에 둡니다. 파일은 Git에서 제외됩니다. 파일명을 `.example`에서 바꾸는 식의 가짜 설정은 제공하지 않습니다.
+- Firebase Console에서 받은 `google-services.json`을 각자 `app/google-services.json`에 둡니다. 파일은 Git에서 제외됩니다. 파일명을 `.example`에서 바꾸는 식의 가짜 설정은 제공하지 않습니다.
 - 파일이 있으면 Google Services 플러그인이 적용됩니다. 없으면 기본 화면 빌드만 가능합니다. `BuildConfig.FIREBASE_CONFIGURED`로 기능 진입을 막고 설정 안내를 제공하는 것은 후속 기능 구현의 책임입니다.
 - Firebase 기능을 검증할 때는 `./gradlew -PrequireFirebase=true :app:assembleDebug`를 사용합니다. 설정 파일이 없으면 즉시 실패합니다. 이 옵션은 설정 존재 확인이며 인증·규칙·연결 성공을 보장하지 않습니다.
 - 이메일/비밀번호 로그인을 활성화하고 Firestore를 준비합니다. 공용 프로젝트의 허용 규칙을 임시로 열지 않습니다. 규칙과 거부 테스트를 구현한 뒤 공유 데이터를 사용합니다.
-- 이번 레포 초기화에서는 Firebase 앱 등록·Auth 활성화·보안 규칙 배포·기기 검증을 수행하지 않았습니다. 결제 계정은 연결하지 않습니다.
+- 프로젝트·앱·DB 생성과 초기 전체 거부 규칙 배포는 확인했습니다. 실제 앱 로그인·집별 규칙·두 기기 공유는 기능 구현 후 별도로 검증합니다. 결제 계정은 연결하지 않습니다.
+- 초기 규칙 배포 명령: `firebase deploy --only firestore:rules --project kw-mobile-home-timing`. 담당자는 규칙을 먼저 검토하고 전체 허용 상태로 바꾸지 않습니다.
 
 ### 기상청
 
