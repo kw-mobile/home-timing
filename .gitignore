@@ -18,3 +18,8 @@ key.properties
 .externalNativeBuild/
 .cxx/
 captures/
+
+# Notion automation tooling
+__pycache__/
+*.py[cod]
+.venv/

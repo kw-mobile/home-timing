@@ -1,0 +1,42 @@
+name: Notion development record
+
+on:
+  pull_request_target:
+    branches: [main]
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Merged PR number to sync or refresh
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: notion-${{ github.repository }}-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    if: vars.NOTION_SYNC_ENABLED == 'true' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      # Only trusted main code is executed. PR bodies/comments are API data.
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: main
+          persist-credentials: false
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version-file: .python-version
+      - name: Publish merged PR record
+        run: python scripts/notion/sync_pr.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          NOTION_WORKLOG_DATA_SOURCE: ${{ vars.NOTION_WORKLOG_DATA_SOURCE }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}

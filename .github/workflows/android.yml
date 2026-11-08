@@ -3,24 +3,26 @@ name: Android verification
 on:
   pull_request:
     branches: [main]
-    paths-ignore:
-      - README.md
-      - AGENTS.md
-      - CLAUDE.md
-      - CONTRIBUTING.md
-      - 'docs/**'
-      - .github/pull_request_template.md
-      - '.github/ISSUE_TEMPLATE/**'
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - '*.gradle'
+      - gradle.properties
+      - gradlew
+      - gradlew.bat
+      - .java-version
+      - .github/workflows/android.yml
   push:
     branches: [main]
-    paths-ignore:
-      - README.md
-      - AGENTS.md
-      - CLAUDE.md
-      - CONTRIBUTING.md
-      - 'docs/**'
-      - .github/pull_request_template.md
-      - '.github/ISSUE_TEMPLATE/**'
+    paths:
+      - 'app/**'
+      - 'gradle/**'
+      - '*.gradle'
+      - gradle.properties
+      - gradlew
+      - gradlew.bat
+      - .java-version
+      - .github/workflows/android.yml
   workflow_dispatch:
 
 permissions:
