@@ -4,6 +4,8 @@ Codex와 Claude Code가 함께 따르는 프로젝트 지침입니다. `CLAUDE.m
 
 ## 작업 시작
 
+clone 후 최초 환경 설정·setup·온보딩 요청에는 [team-setup](.agents/skills/team-setup/SKILL.md)을 적용합니다. 로컬 설정만으로 작업 이슈·브랜치·PR을 만들지 않습니다.
+
 1. 새 구현 작업 또는 재개 시 [team-task-start](.agents/skills/team-task-start/SKILL.md)를 적용합니다. [README](README.md)와 [문서 안내](docs/README.md)를 읽고, 요청에 해당하는 기준 문서를 확인합니다.
 2. `git status`와 현재 브랜치를 확인하고 기존 변경을 보존합니다. 다른 사람의 작업을 덮어쓰거나 공용 브랜치를 강제 push하지 않습니다.
 3. 구현 전 [MVP](docs/MVP.md)의 범위·완료 기준과 관련 이슈를 확인합니다. 요청 범위를 벗어난 기능·의존성·자동화를 추가하지 않습니다.

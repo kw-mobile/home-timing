@@ -17,6 +17,8 @@ Android Studio는 AGP 8.11을 지원하는 Narwhal 2025.1.1 이상 안정 버전
 
 ## 최초 설정
 
+에이전트에게 “이 프로젝트 개발 환경 설정해줘”라고 요청하면 [team-setup](../.agents/skills/team-setup/SKILL.md)이 아래 절차를 수행합니다. 기존 로컬 파일·계정을 보존하며 인증·키 입력과 실제 미완료 항목을 구분합니다. 직접 설정하려면 아래 순서로 진행합니다.
+
 1. JDK 17을 설치합니다. 가능하면 팀 전체가 Eclipse Temurin 배포판을 사용합니다.
 2. Android Studio에서 레포 루트를 엽니다. 새 프로젝트를 만들거나 중첩 폴더를 열지 않습니다.
 3. Settings → Build, Execution, Deployment → Build Tools → Gradle에서 Gradle JDK를 JDK 17 경로로 지정합니다. JDK 21인 내장 JBR을 그대로 선택하지 않습니다.
@@ -73,7 +75,7 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 #### 팀원 최초 연결과 확인
 
 1. [Firebase CLI](https://firebase.google.com/docs/cli)를 설치합니다. 이 PC의 Firebase CLI에 로그인된 계정이 없으면 `firebase login`, 이미 다른 프로젝트용 계정이 있으면 `firebase login:add 팀원Gmail`로 팀 계정을 추가합니다. 다른 작업의 로그인을 지우지 않습니다.
-2. 아래 명령의 `팀원Gmail`을 실제 초대받은 Google 계정으로 바꿔 실행합니다. 프로젝트·DB·인덱스 조회 성공 또는 오류를 작업 이슈에 남깁니다. 키·토큰을 출력하거나 `login:list --json` 결과를 공유하지 않습니다.
+2. 아래 명령의 `팀원Gmail`을 실제 초대받은 Google 계정으로 바꿔 실행합니다. 프로젝트·DB·인덱스 조회 성공 또는 오류는 기존 작업 이슈가 있으면 연결하고, 최초 로컬 setup이면 에이전트의 완료/미완료 보고로 남깁니다. 키·토큰을 출력하거나 `login:list --json` 결과를 공유하지 않습니다.
 
 ```sh
 firebase projects:list --account 팀원Gmail

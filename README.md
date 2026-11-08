@@ -6,6 +6,8 @@
 
 ## 시작하기
 
+clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정해줘”**라고 요청하면 [team-setup](.agents/skills/team-setup/SKILL.md)을 따릅니다. JDK·SDK 확인, 본인 Firebase 연결·설정 파일 배치, 기본 빌드를 진행하며 Google 로그인과 기상청 키는 본인이 준비합니다. 명시적으로 호출하려면 Codex는 `$team-setup`, Claude Code는 `/team-setup`을 사용합니다.
+
 1. [환경 설정](docs/SETUP.md)에 따라 JDK 17과 Android SDK를 준비합니다.
 2. Android Studio에서 레포 루트를 열고 Gradle JDK를 JDK 17로 선택합니다.
 3. 아래 명령으로 환경과 기본 빌드를 확인합니다.

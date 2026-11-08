@@ -13,7 +13,7 @@
 | 누가 무엇을 했는지, 보고서 근거를 어떻게 모으는가 | [report/README.md](report/README.md) |
 | Notion 자동 개발 기록 | [report/NOTION_SYNC.md](report/NOTION_SYNC.md) |
 | 실제 작업과 참여자 기록 | [report/WORKLOG.md](report/WORKLOG.md) |
-| 공통 작업 시작·완료 스킬 | [SKILLS.md](SKILLS.md) |
+| 최초 환경 설정·작업 시작·완료 스킬 | [SKILLS.md](SKILLS.md) |
 | 브랜치·리뷰·PR 절차 | [CONTRIBUTING.md](../CONTRIBUTING.md) |
 | AI 도구가 반드시 지킬 지침 | [AGENTS.md](../AGENTS.md) |
 
@@ -26,7 +26,7 @@ docs/
 ├─ ARCHITECTURE.md       패키지 책임·의존 방향·구조 변경 기준
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
 ├─ TESTING.md            변경별 검증·결과 기록
-├─ SKILLS.md             공통 작업 시작·완료 스킬
+├─ SKILLS.md             최초 환경 설정·작업 시작·완료 스킬
 └─ report/
    ├─ README.md          참여자 기록·PR/댓글 기준·최종 보고서 목차
    ├─ WORKLOG.md         작업별 참여자·결과·근거 색인
