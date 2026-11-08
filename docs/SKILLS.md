@@ -5,7 +5,7 @@ home-timing의 로컬 Codex·Claude Code 세션에서 같은 시작·완료 절�
 | 단계 | 스킬 | 하는 일 |
 | --- | --- | --- |
 | 시작·재개 | [team-task-start](../.agents/skills/team-task-start/SKILL.md) | 기존 변경 확인, 최신 main, 이슈·담당·범위·완료 기준, 작업 브랜치 |
-| 완료·인계 | [team-task-finish](../.agents/skills/team-task-finish/SKILL.md) | 변경별 검증, 실제 참여자 기록, 개발 기록·PR, 승인 범위 안의 병합/인계 |
+| 완료·인계 | [team-task-finish](../.agents/skills/team-task-finish/SKILL.md) | 변경별 검증, 실제 참여자 기록, 개발 기록·PR, 승인 범위 안의 병합/인계, 병합 후 작업 브랜치·worktree 정리 |
 
 ## 호출
 
