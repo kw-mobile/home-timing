@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | JDK | [`.java-version`](../.java-version) | 17 major 고정. 보안 패치는 허용하며 CI는 Temurin을 사용 |
 | Gradle | [`gradle-wrapper.properties`](../gradle/wrapper/gradle-wrapper.properties) | Wrapper와 배포 ZIP SHA-256을 함께 고정 |
-| AGP·SDK·Build Tools·라이브러리 | [`libs.versions.toml`](../gradle/libs.versions.toml) | 버전은 이 파일에서만 변경 |
+| AGP·SDK·Build Tools·CI 설치 도구·라이브러리 | [`libs.versions.toml`](../gradle/libs.versions.toml) | 버전은 이 파일에서만 변경 |
 | 전이 의존성 | [`app/gradle.lockfile`](../app/gradle.lockfile) | 생성된 해석 결과를 커밋하고 엄격한 잠금 적용 |
 
 `settings-gradle.lockfile`도 카탈로그 해석 과정에서 생성되므로 함께 커밋합니다.
@@ -66,7 +66,7 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 - Lint: `app/build/reports/lint-results-debug.html`
 - 단위 테스트: `app/build/reports/tests/testDebugUnitTest/index.html` (테스트가 있을 때 생성)
 - 초기 프로젝트에는 제품 단위 테스트가 없어 `testDebugUnitTest`가 `NO-SOURCE`일 수 있습니다. 이를 테스트 통과 개수로 세지 않습니다.
-- CI는 키 없는 빌드·단위 테스트·Lint와 Wrapper 검증을 수행합니다. 실기기 알림, 두 기기 공유, Firebase 권한, 실제 기상청 연동은 별도 검증합니다.
+- CI는 카탈로그의 `cmdlineTools` 버전으로 SDK 설치 도구를 준비한 뒤 키 없는 빌드·단위 테스트·Lint와 Wrapper 검증을 수행합니다. 실기기 알림, 두 기기 공유, Firebase 권한, 실제 기상청 연동은 별도 검증합니다.
 
 ## 의존성·버전 변경
 
