@@ -1,0 +1,3 @@
+interface:
+  display_name: "작업 완료"
+  short_description: "변경을 검증하고 참여자별 기여와 PR·인계 기록을 정리"
