@@ -1,15 +1,16 @@
 # 공통 작업 스킬
 
-home-timing의 로컬 Codex·Claude Code 세션에서 같은 시작·완료 절차를 사용합니다. 팀이 레포를 받으면 스킬 파일도 함께 받습니다. 개인 전역 스킬이나 권한 설정은 변경하지 않습니다.
+home-timing의 로컬 Codex·Claude Code 세션에서 같은 환경 설정·시작·완료 절차를 사용합니다. 팀이 레포를 받으면 스킬 파일도 함께 받습니다. 개인 전역 스킬이나 권한 설정은 변경하지 않습니다.
 
 | 단계 | 스킬 | 하는 일 |
 | --- | --- | --- |
+| 최초 설정 | [team-setup](../.agents/skills/team-setup/SKILL.md) | 기존 개인 설정 보존, JDK·SDK, 본인 Firebase 연결, 키 유무와 기본 빌드 |
 | 시작·재개 | [team-task-start](../.agents/skills/team-task-start/SKILL.md) | 기존 변경 확인, 최신 main, 이슈·담당·범위·완료 기준, 작업 브랜치 |
 | 완료·인계 | [team-task-finish](../.agents/skills/team-task-finish/SKILL.md) | 변경별 검증, 실제 참여자 기록, 개발 기록·PR, 승인 범위 안의 병합/인계, 병합 후 작업 브랜치·worktree 정리 |
 
 ## 호출
 
-Codex에서는 `$team-task-start`, `$team-task-finish`를 작업 요청과 함께 사용합니다. Claude Code에서는 `/team-task-start`, `/team-task-finish`를 사용합니다. 자동 선택 여부와 관계없이 [AGENTS](../AGENTS.md)의 단계별 연결을 따릅니다.
+Codex에서는 `$team-setup`, `$team-task-start`, `$team-task-finish`를 작업 요청과 함께 사용합니다. Claude Code에서는 `/team-setup`, `/team-task-start`, `/team-task-finish`를 사용합니다. 자동 선택 여부와 관계없이 [AGENTS](../AGENTS.md)의 단계별 연결을 따릅니다.
 
 ```text
 $team-task-start
@@ -27,10 +28,12 @@ $team-task-finish
 
 ```text
 .agents/skills/
+├─ team-setup/SKILL.md            공통 최초 환경 설정 절차
 ├─ team-task-start/SKILL.md       공통 시작 절차
 └─ team-task-finish/SKILL.md      공통 완료 절차
 
 .claude/skills/
+├─ team-setup/SKILL.md            공통 setup 본문을 읽는 진입점
 ├─ team-task-start/SKILL.md       공통 시작 본문을 읽는 진입점
 └─ team-task-finish/SKILL.md      공통 완료 본문을 읽는 진입점
 ```
@@ -38,6 +41,8 @@ $team-task-finish
 Codex는 `.agents/skills`에서 발견하고 Claude Code는 `.claude/skills`에서 발견합니다. 상세 작업 절차는 공통 본문에서만 고칩니다. Claude 진입점에는 중복 절차나 별도 규칙을 추가하지 않습니다. 파일 링크를 사용하므로 symlink 설정을 요구하지 않습니다.
 
 ## 작업 기준
+
+로컬 최초 설정은 team-setup으로 수행하며 이슈·브랜치·PR 없이 개인 파일만 준비합니다. 자연어 setup 요청도 AGENTS의 연결을 따릅니다. 로그인·키·미설치 도구 때문에 중단된 단계는 미완료로 남기고 독립 준비를 계속합니다.
 
 깨끗한 새 작업은 `git switch main` → `git pull --ff-only origin main` → 이슈 확인/작성 → 이슈 번호 브랜치 순서입니다. 진행 중 작업을 재개할 때는 기존 브랜치와 변경을 보존합니다. main의 미게시 커밋·divergence·다른 worktree 사용을 강제 초기화로 해결하지 않습니다.
 
