@@ -4,7 +4,7 @@ Codex와 Claude Code가 함께 따르는 프로젝트 지침입니다. `CLAUDE.m
 
 ## 작업 시작
 
-1. [README](README.md)와 [문서 안내](docs/README.md)를 읽고, 요청에 해당하는 기준 문서를 확인합니다.
+1. 새 구현 작업 또는 재개 시 [team-task-start](.agents/skills/team-task-start/SKILL.md)를 적용합니다. [README](README.md)와 [문서 안내](docs/README.md)를 읽고, 요청에 해당하는 기준 문서를 확인합니다.
 2. `git status`와 현재 브랜치를 확인하고 기존 변경을 보존합니다. 다른 사람의 작업을 덮어쓰거나 공용 브랜치를 강제 push하지 않습니다.
 3. 구현 전 [MVP](docs/MVP.md)의 범위·완료 기준과 관련 이슈를 확인합니다. 요청 범위를 벗어난 기능·의존성·자동화를 추가하지 않습니다.
 4. 계획과 실제 구현을 구분합니다. 구현 여부는 코드와 검증 결과로 확인하고, 기존 Notion과 충돌하는 범위는 MVP 문서를 따릅니다. 모호한 제품 결정은 임의로 확정하지 말고 이슈에 남깁니다.
@@ -34,6 +34,7 @@ Codex와 Claude Code가 함께 따르는 프로젝트 지침입니다. `CLAUDE.m
 
 ## 기여 기록과 PR
 
+- 작업 완료·PR 작성·인계에는 [team-task-finish](.agents/skills/team-task-finish/SKILL.md)를 적용합니다.
 - [팀 작업 규칙](CONTRIBUTING.md)과 [기여·보고서 기록 기준](docs/report/README.md)을 따릅니다.
 - 모든 작업 PR에 **실제 참여자별 역할·구현 내용·근거**를 남깁니다. 구현·설계·검증·리뷰를 구분하고 공동 작업은 사람별로 행을 나눕니다.
 - GitHub PR 작성자·커밋 개수·에이전트 실행 계정만으로 사람의 기여를 추정하지 않습니다. 참여자를 모르면 확인 필요로 남기고, 도구가 작성한 작업을 임의의 팀원이 직접 구현했다고 기록하지 않습니다.

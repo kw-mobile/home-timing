@@ -2,15 +2,39 @@
 
 ## 작업 시작
 
-[환경 설정](docs/SETUP.md)과 [MVP 기준](docs/MVP.md)을 먼저 읽습니다. 최신 main에서 한 작업당 한 브랜치를 만듭니다.
+[환경 설정](docs/SETUP.md)과 [MVP 기준](docs/MVP.md)을 읽습니다. 깨끗한 새 작업은 main을 최신화한 뒤 이슈와 작업 브랜치를 준비합니다.
 
 ```sh
+git status --short --branch
 git switch main
 git pull --ff-only origin main
-git switch -c feature/issue-number-short-name
+git rev-parse HEAD
+git rev-parse origin/main
 ```
 
-`feature/`, `fix/`, `docs/`, `chore/` 접두어를 사용합니다. 현재 공용 기준 브랜치는 main입니다. 별도 develop 브랜치는 만들지 않습니다. 공용 브랜치에 강제 push하지 않습니다.
+마지막 두 SHA가 같은지 확인하고 기준 SHA를 이슈/PR에 남깁니다. pull 실패·로컬 main의 미게시 커밋·미커밋 변경이 있으면 강제로 초기화하지 않습니다. 진행 중 작업을 재개하거나, 별도 worktree의 최신 `origin/main`에서 새 작업을 시작합니다. 같은 main을 다른 worktree가 쓰고 있어도 원본 작업을 보존합니다.
+
+이슈 번호가 정해지면 `feature/5-short-name`, `fix/5-short-name`, `docs/5-short-name`, `chore/5-short-name`처럼 **종류/이슈번호-짧은이름** 브랜치를 만듭니다. 실제 번호와 작업명으로 대체하세요. 공용 기준은 main이며 별도 develop 브랜치는 만들지 않습니다.
+
+진행 중 작업은 같은 이슈·브랜치에서 이어갑니다. 이 경우 새 이슈/브랜치를 만들거나 무조건 main으로 이동하지 않고 `git fetch origin main`으로 최신 기준을 확인합니다. 필요한 base 갱신은 작업을 보존하며 리뷰 요청 전에 처리합니다.
+
+## 태스크 기준
+
+태스크 하나는 **따로 리뷰하고 완료 여부를 판단할 수 있는 결과 하나**입니다. 기능과 그 테스트·필요 문서는 함께 묶고, 파일별·사람별로 기계적으로 쪼개지 않습니다. 관련 없는 버전 업그레이드·리팩터링은 별도 작업으로 둡니다.
+
+| 이슈에 적을 것 | 기준 |
+| --- | --- |
+| 목적 | 사용자에게 생기는 변화 또는 환경/문서 개선 결과 |
+| 범위 | 포함할 기능·화면·규칙과 제외할 것. 해당하면 MVP 기능 ID |
+| 예정 담당 | 확인된 이름/계정과 설계·구현·검증 역할. 모르면 미정 |
+| 완료 기준 | 사용자가 확인할 수 있는 동작·오류/경계 조건 |
+| 검증 방법 | 필요한 명령·기기 시나리오·남길 화면/로그 등 근거 |
+
+기존 이슈·PR을 먼저 검색하고 같은 작업이면 재사용합니다. 읽기 전용 질문·아이디어 논의에는 작업 이슈와 브랜치를 자동 생성하지 않습니다. 전체 MVP처럼 큰 요청은 실행 기준 이슈 아래에 독립적으로 완료할 작업을 나눕니다.
+
+## 공통 스킬
+
+[스킬 안내](docs/SKILLS.md)를 따릅니다. Codex는 `$team-task-start` / `$team-task-finish`, Claude Code는 `/team-task-start` / `/team-task-finish`로 호출합니다. 자동 선택 여부와 관계없이 에이전트는 새 구현 작업과 완료 단계에서 해당 절차를 확인합니다.
 
 ## 충돌 줄이기
 
