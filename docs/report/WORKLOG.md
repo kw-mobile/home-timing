@@ -14,7 +14,7 @@
 | 2026-11-08 | 조민제: Notion 연결·DB 접근·토큰 직접 등록; Codex (도구): 활성화·실제 API 검증 및 문서 작성 | Notion 기록 활성화, PR #2 갱신·재실행 중복 방지, PR #4 새 행 생성 확인 | [자동화 이슈 #3](https://github.com/kw-mobile/home-timing/issues/3), [실제 생성 실행](https://github.com/kw-mobile/home-timing/actions/runs/42472667632), [활성화 PR #9](https://github.com/kw-mobile/home-timing/pull/9) |
 | 2026-11-08 | 조민제: 계정·이름 연결 및 팀 권한 조건 지정; Codex (도구): 설정·구현·검증 | 공용 Firebase·Android 앱·서울 DB와 초기 거부 규칙, 결제 제외 팀 관리 권한, GitHub 계정 실명 표시 및 기존 기록 보정 | [팀 환경 이슈 #10](https://github.com/kw-mobile/home-timing/issues/10), [PR #11](https://github.com/kw-mobile/home-timing/pull/11) |
 
-| 2026-11-08 | 조민제: 팀원 접근 검증·기존 기여 기록 보완 요청; Codex (도구): 권한 보완·원격 검증·문서 작성 | Firebase CLI 조회 권한 보완, 팀원 연결·규칙 배포 절차 정리, 기존 PR 역할 확정 및 Notion 재동기화 | [환경·기여 기록 이슈 #12](https://github.com/kw-mobile/home-timing/issues/12) |
+| 2026-11-08 | 조민제: 팀원 접근 검증·기존 기여 기록 보완 요청; Codex (도구): 권한 보완·원격 검증·문서 작성 | Firebase CLI 조회 권한 보완, 팀원 연결·규칙 배포 절차 정리, 기존 PR 역할 확정 및 Notion 재동기화 | [환경·기여 기록 이슈 #12](https://github.com/kw-mobile/home-timing/issues/12), [PR #13](https://github.com/kw-mobile/home-timing/pull/13) |
 
 ## 기록 예시
 
