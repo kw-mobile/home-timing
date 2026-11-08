@@ -19,6 +19,8 @@ clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정�
 
 Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상청 키 없이도 기본 빌드가 가능하며, 실제 연동 준비는 [외부 서비스 설정](docs/SETUP.md#외부-서비스)을 따릅니다.
 
+화면 구성은 [HTML 프로토타입](docs/prototype/README.md)에서 확인할 수 있습니다.
+
 ## 팀 작업 안내
 
 | 주제 | 문서 |
