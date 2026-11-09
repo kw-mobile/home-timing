@@ -12,6 +12,7 @@ import android.widget.FrameLayout;
 import androidx.annotation.NonNull;
 import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.graphics.Insets;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.ViewCompat;
@@ -228,11 +229,19 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void showPreviewNotice(int message) {
-        new MaterialAlertDialogBuilder(this)
+        AlertDialog notice = new MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.preview_dialog_title)
                 .setMessage(message)
                 .setPositiveButton(R.string.preview_dialog_close, null)
                 .show();
+        if (notice.getWindow() != null) {
+            WindowCompat.getInsetsController(notice.getWindow(), notice.getWindow().getDecorView())
+                    .setAppearanceLightNavigationBars(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                notice.getWindow().setNavigationBarColor(
+                        ContextCompat.getColor(this, R.color.ht_surface));
+            }
+        }
     }
 
     @Override

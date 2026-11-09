@@ -5,18 +5,19 @@
     <color name="ht_secondary">#6D9773</color>
     <color name="ht_on_primary">#FFFFFF</color>
     <color name="ht_on_primary_muted">#CBDDD0</color>
-    <color name="ht_background">#F7F9F6</color>
+    <color name="ht_background">#F2F2F7</color>
     <color name="ht_surface">#FFFFFF</color>
     <color name="ht_container">#EAF1EB</color>
-    <color name="ht_text">#172B24</color>
-    <color name="ht_text_secondary">#58685F</color>
-    <color name="ht_divider">#DDE5DE</color>
+    <color name="ht_text">#1C1C1E</color>
+    <color name="ht_text_secondary">#63636B</color>
+    <color name="ht_divider">#DCDCE0</color>
     <color name="ht_accent">#FFBA00</color>
     <color name="ht_warning">#8A4B10</color>
     <color name="ht_error">#B3261E</color>
     <color name="launcher_background">@color/ht_primary</color>
-    <color name="ht_glass_surface">#D10C3B2E</color>
-    <color name="ht_glass_border">#66FFFFFF</color>
-    <color name="ht_glass_ripple">#14FFFFFF</color>
-    <color name="ht_glass_unselected">#DDE9E0</color>
+    <color name="ht_glass_surface">#B8FFFFFF</color>
+    <color name="ht_glass_border">#1A000000</color>
+    <color name="ht_glass_ripple">#0F000000</color>
+    <color name="ht_glass_unselected">#3C3C43</color>
+    <color name="ht_glass_selected">#1C1C1E</color>
 </resources>

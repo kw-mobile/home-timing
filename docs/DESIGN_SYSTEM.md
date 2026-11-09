@@ -2,7 +2,7 @@
 
 [컬러·구조 레퍼런스](https://www.pinterest.com/pin/336714509701738505/)의 딥 그린 면과 밝은 하단 영역을 기준으로 합니다. 화면 전체를 밝은 카드로 채우지 않고, 짙은 상단의 큰 글자와 밝은 하단의 간결한 목록을 대비시킵니다. 호텔 사진·로고는 가져오지 않습니다.
 
-이 문서는 Android XML 화면을 기준으로 한 v0.3 규격입니다. 실제 적용은 홈·용품·설정 3개 탭의 **디자인 미리보기**입니다. 제품 데이터·계정·날씨·알림은 연결하지 않았으며 화면에 예시임을 표시합니다. 제품 범위·권한·날짜 규칙은 [MVP](MVP.md)를 따릅니다. [기존 HTML](prototype/index.html)은 이전 구조를 기록한 참고 시안이며 새 구조의 기준이 아닙니다.
+이 문서는 Android XML 화면을 기준으로 한 v0.4 규격입니다. [Apple HIG Typography](https://developer.apple.com/design/human-interface-guidelines/typography)의 글자 위계·가독성과 [Materials](https://developer.apple.com/design/human-interface-guidelines/materials)의 콘텐츠·조작 레이어 구분을 참고합니다. 실제 적용은 홈·용품·설정 3개 탭의 **디자인 미리보기**입니다. 제품 데이터·계정·날씨·알림은 연결하지 않았으며 화면에 예시임을 표시합니다. 제품 범위·권한·날짜 규칙은 [MVP](MVP.md)를 따릅니다. [기존 HTML](prototype/index.html)은 이전 구조를 기록한 참고 시안이며 새 구조의 기준이 아닙니다.
 
 ## 화면 구조
 
@@ -10,10 +10,10 @@
 
 1. 상단: 딥 그린 바탕에 흰 심볼·워드마크, 디자인 미리보기 표시.
 2. 스크롤 영역 상단: 별도 카드 없이 딥 그린 면에 제목과 핵심 정보를 배치.
-3. 하단 패널: 상단 모서리 28dp의 밝은 BottomSheet에 목록·보조 설명을 배치. 드래그·핸들 클릭으로 펼치고 접음.
-4. 고정 하단: 반투명 딥 그린 유리 바에 홈·용품·설정. 본문 위에 겹쳐 배치.
+3. 하단 패널: 상단 모서리 24dp의 밝은 BottomSheet에 목록·보조 설명을 배치. 드래그·핸들 클릭으로 펼치고 접음.
+4. 고정 하단: 밝은 중성 유리 바에 홈·용품·설정. 본문 위에 겹쳐 배치.
 
-홈은 32sp의 제목, 48sp의 온도, 두 개의 요약 수치로 시작합니다. 태양은 중심을 채운 원과 길이가 같은 8개 광선의 단색 벡터를 사용하며, 선 굵기는 24 viewBox 기준 1.4입니다. 그 아래 ‘오늘 챙길 일’과 ‘다가오는 일정’을 배치합니다. 용품·설정도 같은 상단과 하단의 대비를 유지합니다. 위쪽 사진 자리나 큰 장식 이미지를 억지로 추가하지 않습니다.
+홈은 34sp의 제목, 48sp의 온도, 두 개의 요약 수치로 시작합니다. 태양은 중심을 채운 원과 길이가 같은 8개 광선의 단색 벡터를 사용하며, 선 굵기는 24 viewBox 기준 1.4입니다. 그 아래 ‘오늘 챙길 일’과 ‘다가오는 일정’을 배치합니다. 용품·설정도 같은 상단과 하단의 대비를 유지합니다. 위쪽 사진 자리나 큰 장식 이미지를 억지로 추가하지 않습니다.
 
 단색 면·선명한 글자·일정한 여백을 원칙으로 합니다. 본문에는 번지는 빛, 그라데이션, 글로우, 블러, 장식용 그림자, 반투명 유리 효과를 사용하지 않습니다. 사용자 지정에 따라 하단 내비게이션에만 유리 표면과 배경 블러를 적용합니다. 둥근 형태는 콘텐츠 전환 영역과 필요한 컨트롤에 제한하고, 목록마다 캡슐·카드를 반복하지 않습니다.
 
@@ -31,17 +31,17 @@
 
 | 역할 | 리소스 | 값 | 적용 |
 | --- | --- | --- | --- |
-| Primary | `ht_primary` | `#0C3B2E` | 상단 전체, 로고, 선택 탭 |
+| Primary | `ht_primary` | `#0C3B2E` | 상단 전체, 로고, 주요 행동 |
 | Primary soft | `ht_primary_soft` | `#1A4B3D` | 짙은 배경 위 미리보기 표시 |
 | On primary | `ht_on_primary` | `#FFFFFF` | 짙은 면의 제목·숫자 |
 | On primary muted | `ht_on_primary_muted` | `#CBDDD0` | 짙은 면의 보조 설명 |
 | Secondary | `ht_secondary` | `#6D9773` | 브랜드 보조 색·테마 |
-| Background | `ht_background` | `#F7F9F6` | 밝은 콘텐츠 영역 |
+| Background | `ht_background` | `#F2F2F7` | 밝은 콘텐츠 영역 |
 | Surface | `ht_surface` | `#FFFFFF` | 다이얼로그·공용 표면 |
 | Container | `ht_container` | `#EAF1EB` | 항목 아이콘 배경 |
-| Text | `ht_text` | `#172B24` | 밝은 면의 제목·본문 |
-| Text secondary | `ht_text_secondary` | `#58685F` | 메타 정보·비선택 탭 |
-| Divider | `ht_divider` | `#DDE5DE` | 목록 사이 구분선 |
+| Text | `ht_text` | `#1C1C1E` | 밝은 면의 제목·본문 |
+| Text secondary | `ht_text_secondary` | `#63636B` | 메타 정보·비선택 탭 |
+| Divider | `ht_divider` | `#DCDCE0` | 목록 사이 구분선 |
 | Accent | `ht_accent` | `#FFBA00` | 작은 날씨 그래픽 |
 | Warning | `ht_warning` | `#8A4B10` | 오늘 챙길 항목의 상태 |
 | Error | `ht_error` | `#B3261E` | 기한 초과·오류 |
@@ -50,20 +50,24 @@
 
 ## 타이포그래피
 
-[themes.xml](../app/src/main/res/values/themes.xml)의 `TextAppearance.HomeTiming.*`를 사용합니다. Android 시스템 sans-serif를 사용하고, medium은 `sans-serif-medium`, bold는 `sans-serif`의 bold로 지정합니다. 폰트 파일·외부 다운로드 의존성은 추가하지 않습니다.
+**Pretendard v1.3.9**를 한글·영문·숫자 공통 폰트로 지정합니다. [공식 릴리스](https://github.com/orioncactus/pretendard/releases/tag/v1.3.9)의 수정하지 않은 Regular 400·Medium 500·Semibold 600·Bold 700 OTF를 [font 리소스](../app/src/main/res/font/pretendard.xml)로 앱에 포함합니다. 실행 중 폰트를 다운로드하지 않습니다. [SIL OFL 라이선스·저작권 고지](../app/src/main/assets/licenses/pretendard-OFL.txt)도 APK에 포함합니다.
+
+[themes.xml](../app/src/main/res/values/themes.xml)의 `TextAppearance.HomeTiming.*`가 실제 폰트 파일·크기·행간을 연결합니다. 네 가지 굵기의 정적 파일을 직접 사용하며 합성 Bold에 의존하지 않습니다. 안내창 제목·본문·확인 버튼에도 같은 패밀리를 적용합니다. 아래 수치는 Android sp 기준입니다.
 
 | 역할 | 스타일 이름 | 크기 / 행간 | 굵기 | 사용 |
 | --- | --- | --- | --- | --- |
-| Display | `Display` | 32 / 40sp | Bold | 짙은 영역의 핵심 제목 |
-| Number | `Number` | 48 / 56sp | Medium | 온도 |
-| Brand | `Brand` | 20 / 28sp | Bold | 때맞춤 워드마크 |
-| Title | `Title` | 20 / 28sp | Medium | 섹션 제목·요약 수치 |
-| Body strong | `BodyStrong` | 16 / 24sp | Medium | 항목명·설정명 |
-| Label | `Label` | 14 / 20sp | Regular | 주기·장소·설명 |
-| Caption | `Caption` | 12 / 16sp | Regular | 짧은 보조 정보 |
-| Navigation | `Navigation` | 12 / 16sp | Medium, 선택 Bold | 하단 탭 |
+| Large title | `Display` | 34 / 41sp | 600 | 짙은 영역의 핵심 제목 |
+| Number | `Number` | 48 / 56sp | 400 | 온도 |
+| Brand | `Brand` | 20 / 26sp | 700 | 때맞춤 워드마크 |
+| Title | `Title` | 22 / 28sp | 600 | 섹션·안내창 제목, 요약 수치 |
+| Body | `Body` | 17 / 24sp | 400 | 안내창 본문 |
+| Body strong | `BodyStrong` | 17 / 24sp | 500 | 항목명·설정명·버튼 |
+| Secondary | `Label` | 15 / 21sp | 400 | 주기·장소·설명 |
+| Footnote | `Caption` | 13 / 18sp | 400 | 짧은 보조 정보 |
+| Status | `CaptionStrong` | 13 / 18sp | 600 | 오늘·기한 초과 상태 |
+| Navigation | `Navigation` / `NavigationSelected` | 12 / 16sp | 500 / 600 | 하단 탭 |
 
-자간은 -0.01, 기본 폰트 패딩은 제거합니다. 글자 크기는 sp, 높이는 wrap_content와 최소 높이로 설정합니다. 이름·보조 설명은 여러 줄을 허용하며 중요 정보를 고정 높이로 자르지 않습니다. 200% 확대에서도 스크롤로 내용에 접근하도록 합니다. 실제 TalkBack 읽기·실기기 확대 확인 여부는 검증 기록을 따릅니다.
+본문·보조 정보·탭의 자간은 기본값 0입니다. 큰 제목은 -0.015, 섹션 제목·숫자·워드마크는 -0.01을 사용합니다. 기본 폰트 패딩을 제거하고 wrap_content와 최소 높이로 글자를 담습니다. 이름·설명은 여러 줄을 허용하며, 150% 이상에서 일정 상태를 설명 아래로 내려 가로 공간을 확보합니다. 200% 확대 시 스크롤로 내용에 접근하도록 합니다.
 
 ## 간격·형태
 
@@ -72,11 +76,11 @@
 | 항목 | 규격 |
 | --- | --- |
 | 기본 간격 단계 | 4, 8, 12, 16, 20, 24, 32, 40dp |
-| 화면 좌우 | 24dp, 600dp 이상 폭에서 40dp |
+| 화면 좌우 | 20dp, 600dp 이상 폭에서 40dp |
 | 상단 공통 바 | 최소 64dp, 안쪽 상하 12dp |
 | 제목 앞뒤 | 위쪽 24dp, 보조 문구와 12dp |
 | 큰 정보 구분 | 28~32dp |
-| 밝은 패널 | 상단 모서리 28dp, 핸들 영역 48dp, 콘텐츠 아래 32dp |
+| 밝은 패널 | 상단 모서리 24dp, 핸들 영역 48dp, 콘텐츠 아래 32dp |
 | 항목 행 | 최소 88dp, 세로 패딩 16dp |
 | 아이콘 영역 | 48 × 48dp, Radius 12dp |
 | 기본 아이콘 | 24 × 24dp, 선 1.75 |
@@ -84,7 +88,7 @@
 | 항목명과 메타 정보 | 4dp |
 | 구분선 | 1dp |
 | 목록 그림자 | 없음 |
-| 일정 상태 | 행 오른쪽, 12sp, Bold, 색상과 문구 |
+| 일정 상태 | 행 오른쪽, 13sp, 600, 색상과 문구 |
 
 기본 글자 크기에서는 오른쪽 상태의 고유 폭을 확보하고 항목명·메타 정보를 여러 줄로 표시합니다. 글자 배율 150% 이상에서는 상태를 메타 정보 아래로 내려 이름과 설명의 가로 공간을 확보하며, 상태 위 간격은 8dp입니다. 현재 예시 범위에서 360dp·200%를 확인하며, 실제 긴 이름·상태 문구는 제품 목록 구현 시 추가 검증합니다.
 
@@ -92,25 +96,25 @@
 
 ## 하단 내비게이션
 
-Material `BottomNavigationView`를 XML에서 사용하며 [메뉴](../app/src/main/res/menu/bottom_navigation.xml)와 [색상 selector](../app/src/main/res/color/navigation_item.xml)를 연결합니다. 본문과 구분되는 딥 그린 틴트의 유리 표면을 사용합니다.
+Material `BottomNavigationView`를 XML에서 사용하며 [메뉴](../app/src/main/res/menu/bottom_navigation.xml)와 [색상 selector](../app/src/main/res/color/navigation_item.xml)를 연결합니다. 본문과 구분되는 색 틴트가 없는 중성 유리 표면을 사용합니다.
 
 | 항목 | 규격 |
 | --- | --- |
-| 표면 | Primary 약 82% 불투명도 (`#D10C3B2E`) |
-| 경계 | 흰색 40% (`#66FFFFFF`), 1dp, 그림자·글로우 없음 |
+| 표면 | 색 틴트 없는 흰색 약 72% (`#B8FFFFFF`) |
+| 경계 | 중성 검정 약 10% (`#1A000000`), 0.75dp, 그림자·글로우 없음 |
 | 모서리 | 24dp |
 | 위치 | 화면 하단 오버레이, 좌우 16dp, 하단 16dp + 시스템 inset |
 | 높이 | 안쪽 최소 72dp + 표면 패딩 상하 4dp, 글자 확대 시 증가 |
 | 탭 | 홈·용품·설정, 같은 폭 |
 | 아이콘 | 24dp, 공통 선형 스타일 |
 | 라벨 | 항상 표시, 12 / 16sp |
-| 선택 | 흰색, 라벨 Bold |
-| 비선택 | `#DDE9E0`, 라벨 Medium |
+| 선택 | 중성 검정 `#1C1C1E`, 채운 아이콘, 라벨 600 |
+| 비선택 | 중성 회색 `#3C3C43`, 선형 아이콘, 라벨 500 |
 | 선택 배경 | 없음, active indicator 비활성화 |
-| 눌림 | 흰색 약 8% ripple (`#14FFFFFF`), 눌림 중에도 글자 대비 유지 |
+| 눌림 | 중성 검정 약 6% ripple (`#0F000000`), 눌림 중에도 글자 대비 유지 |
 | 탭 이동 | 아이콘 크기·위치 이동 없음, horizontal translation 비활성화 |
 
-Android 12(API 31) 이상에서는 [GlassBackdropView](../app/src/main/java/com/kwmobile/hometiming/ui/component/GlassBackdropView.java)가 바 뒤의 본문만 1/4 크기로 샘플링하고 `RenderEffect`로 12dp 블러를 적용합니다. 화면 이동·패널 드래그·스크롤·레이아웃 변화 시 갱신하며, 한 프레임에 중복 캡처하지 않습니다. 아이콘·글자·ripple은 별도 네이티브 레이어라 흐려지지 않습니다. 이전 Android에서는 블러 없이 같은 반투명 틴트를 사용하며 실제 기기에서의 외관은 별도 검증합니다.
+Android 12(API 31) 이상에서는 [GlassBackdropView](../app/src/main/java/com/kwmobile/hometiming/ui/component/GlassBackdropView.java)가 바 뒤의 본문만 1/4 크기로 샘플링하고 `RenderEffect`로 12dp 블러를 적용합니다. 화면 이동·패널 드래그·스크롤·레이아웃 변화 시 갱신하며, 한 프레임에 중복 캡처하지 않습니다. 아이콘·글자·ripple은 별도 네이티브 레이어라 흐려지지 않습니다. 이전 Android에서는 블러 없이 같은 중성 반투명 표면을 사용하며 실제 기기에서의 외관은 별도 검증합니다.
 
 본문은 바 뒤까지 이어지되, 목록 내부의 하단 스크롤 여백은 `실제 바 높이 + 바 아래 여백·시스템 inset + 16dp`로 확보합니다. 마지막 항목을 유리 바 위로 올려 읽고 누를 수 있게 합니다. 시스템 내비게이션 영역에는 단색 배경을 두어 시스템 버튼 뒤로 글자가 비치지 않게 합니다.
 
@@ -131,11 +135,11 @@ Android 12(API 31) 이상에서는 [GlassBackdropView](../app/src/main/java/com/
 
 패널이 사용하는 좌표 영역은 공통 상단 바 아래부터 화면 하단까지입니다. 패널은 유리 바 뒤로 이어지며 공통 상단 바와 최상위 탭을 덮지 않습니다. 접힌 높이의 기본값은 `max(224dp + 유리 바용 하단 여백, 가용 높이 − 상단 정보 높이)`이며, `max(가용 높이 / 2, 가용 높이 − 96dp)`를 넘지 않게 제한합니다. 가로 화면처럼 높이가 짧은 경우에도 핸들과 상단 정보 일부를 남깁니다. 상단 정보는 별도로 스크롤할 수 있어 큰 글자에서도 패널 뒤에 가려진 내용을 확인할 수 있습니다. 펼친 패널 뒤의 상단 정보는 접근성 탐색에서 제외합니다.
 
-사용자가 누르거나 당길 수 있다고 이해하는 시각 요소는 실제 행동과 연결합니다. 조작할 수 없는 영역에 핸들·화살표·눌림 효과를 장식으로 붙이지 않습니다. 사용자 행동의 검증은 [패널·태양 아이콘 검증 기록](report/evidence/native-glass/verification.md)을 따릅니다.
+사용자가 누르거나 당길 수 있다고 이해하는 시각 요소는 실제 행동과 연결합니다. 조작할 수 없는 영역에 핸들·화살표·눌림 효과를 장식으로 붙이지 않습니다. 사용자 행동의 검증은 [패널·태양 아이콘 검증 기록](report/evidence/native-neutral/verification.md)을 따릅니다.
 
 ## 로고
 
-집 윤곽과 시계 바늘을 결합한 [ic_brand.xml](../app/src/main/res/drawable/ic_brand.xml)을 사용합니다. 딥 그린 바탕에는 흰색으로 표시하며 24dp 심볼과 20sp 워드마크 사이에 12dp를 둡니다. 심볼의 창문·눈금·식물 장식은 추가하지 않습니다. 런처·단색 아이콘에도 같은 집과 시계 심볼을 사용하고 Primary 배경으로 맞춥니다.
+집 윤곽과 시계 바늘을 결합한 [ic_brand.xml](../app/src/main/res/drawable/ic_brand.xml)을 사용합니다. 딥 그린 바탕에는 흰색으로 표시하며 24dp 심볼과 20sp·700 워드마크 사이에 12dp를 둡니다. 심볼의 창문·눈금·식물 장식은 추가하지 않습니다. 런처·단색 아이콘에도 같은 집과 시계 심볼을 사용하고 Primary 배경으로 맞춥니다.
 
 ## 상태와 후속 컴포넌트
 
@@ -145,14 +149,14 @@ Android 12(API 31) 이상에서는 [GlassBackdropView](../app/src/main/java/com/
 
 | 컴포넌트 | 설계 기준 |
 | --- | --- |
-| Primary button | 최소 48dp, Radius 12dp, 글자 16/24sp Medium, Primary와 흰 글자 |
+| Primary button | 최소 48dp, Radius 12dp, 글자 17/24sp·500, Primary와 흰 글자 |
 | Secondary button | 동일 치수, Container와 Primary 글자 |
 | Destructive button | 동일 치수, Error와 흰 글자 |
-| Text field | 최소 52dp, 패딩 12dp, Radius 12dp, 입력 16/24sp |
-| Label / error | 필드 위 라벨 14/20sp, 아래 오류 14/20sp, 입력값 유지 |
-| Filter chip | 최소 터치 높이 48dp, 글자 14/20sp, 선택 Primary |
+| Text field | 최소 52dp, 패딩 12dp, Radius 12dp, 입력 17/24sp |
+| Label / error | 필드 위 라벨 15/21sp, 아래 오류 15/21sp, 입력값 유지 |
+| Filter chip | 최소 터치 높이 48dp, 글자 15/21sp, 선택 Primary |
 | Disabled | 배경 `#E3E8E3`, 글자 `#647268`, 실제 비활성 속성과 이유 안내 |
 | Loading | 버튼 폭 유지, 진행 표시와 행동 문구 유지, 중복 제출 차단 |
 | Focus | Primary 포커스 표시, 키보드·TalkBack 탐색에서 초점이 가려지지 않게 함 |
 
-확인 완료: 로컬 빌드·Lint, 에뮬레이터의 탭 전환·안내창·가로 회전과 선택 탭 복원, 360dp·200% 예시 목록 접근. 미확인: 물리 기기·TalkBack·API 26·태블릿·제스처 내비게이션. [검증 기록과 실제 스크린샷](report/evidence/native-glass/verification.md)을 확인합니다. APK 빌드·미리보기 탭 동작을 실제 계정·날씨·알림·가족 공유 성공으로 기록하지 않습니다.
+확인 완료: 로컬 빌드·Lint, 에뮬레이터의 탭 전환·안내창·가로 회전과 선택 탭 복원, 360dp·200% 예시 목록 접근. 미확인: 물리 기기·TalkBack·API 26·태블릿·제스처 내비게이션. [검증 기록과 실제 스크린샷](report/evidence/native-neutral/verification.md)을 확인합니다. APK 빌드·미리보기 탭 동작을 실제 계정·날씨·알림·가족 공유 성공으로 기록하지 않습니다.
