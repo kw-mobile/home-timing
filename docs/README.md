@@ -6,6 +6,7 @@
 
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
+| 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
 | 화면 시안을 어떻게 확인하는가 | [HTML 프로토타입](prototype/README.md) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
@@ -23,6 +24,7 @@
 ```text
 docs/
 ├─ README.md             문서 안내와 관리 원칙
+├─ DESIGN_SYSTEM.md       컬러·로고·글자·컴포넌트 규격
 ├─ MVP.md                제출 범위·사용자 흐름·제품 규칙
 ├─ ARCHITECTURE.md       패키지 책임·의존 방향·구조 변경 기준
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
