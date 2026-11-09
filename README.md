@@ -19,7 +19,7 @@ clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정�
 
 Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상청 키 없이도 기본 빌드가 가능하며, 실제 연동 준비는 [외부 서비스 설정](docs/SETUP.md#외부-서비스)을 따릅니다.
 
-현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. Android Studio에서 앱을 실행하면 홈이 열립니다. 상단 **전체 화면**에서 로그인·회원가입·등록·상세·캘린더·날씨·가족 관리까지 확인할 수 있습니다. 에뮬레이터 실행 후 `./scripts/design/preview.sh`로 빌드·설치할 수도 있습니다. [미리보기 실행 안내](docs/DESIGN_SYSTEM.md#미리보기-실행)를 참고하세요. [HTML 프로토타입](docs/prototype/README.md)은 이전 구조의 참고 시안입니다.
+현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. Android Studio에서 앱을 실행하면 홈이 열립니다. 상단 **화면 모음**에서 로그인·회원가입·등록·상세·캘린더·날씨·가족 관리까지 확인할 수 있습니다. 에뮬레이터 실행 후 `./scripts/design/preview.sh`로 빌드·설치할 수도 있습니다. [미리보기 실행 안내](docs/DESIGN_SYSTEM.md#미리보기-실행)를 참고하세요. [HTML 프로토타입](docs/prototype/README.md)은 이전 구조의 참고 시안입니다.
 
 ## 팀 작업 안내
 
