@@ -1,69 +1,96 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<FrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/root"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:layout_height="match_parent">
     <LinearLayout
-        android:id="@+id/top_bar"
+        android:id="@+id/main_content"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="64dp"
-        android:paddingHorizontal="@dimen/ht_screen_gutter"
-        android:paddingVertical="@dimen/ht_space_12"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
-        android:baselineAligned="false">
-        <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="@dimen/ht_icon"
-            android:layout_height="@dimen/ht_icon"
-            app:srcCompat="@drawable/ic_brand"
-            android:importantForAccessibility="no"
-            app:tint="@color/ht_on_primary"
-            android:layout_marginEnd="@dimen/ht_space_12" />
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <LinearLayout
+            android:id="@+id/top_bar"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/app_name"
-            android:textAppearance="@style/TextAppearance.HomeTiming.Brand" />
-        <com.google.android.material.textview.MaterialTextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/design_preview"
-            android:maxWidth="136dp"
-            android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-            android:layout_marginStart="@dimen/ht_space_12"
-            android:background="@drawable/bg_hero_pill"
-            android:paddingHorizontal="@dimen/ht_space_12"
-            android:paddingVertical="@dimen/ht_space_8"
-            android:textColor="@color/ht_on_primary_muted" />
+            android:minHeight="64dp"
+            android:paddingHorizontal="@dimen/ht_screen_gutter"
+            android:paddingVertical="@dimen/ht_space_12"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:baselineAligned="false">
+            <androidx.appcompat.widget.AppCompatImageView
+                android:layout_width="@dimen/ht_icon"
+                android:layout_height="@dimen/ht_icon"
+                app:srcCompat="@drawable/ic_brand"
+                android:importantForAccessibility="no"
+                app:tint="@color/ht_on_primary"
+                android:layout_marginEnd="@dimen/ht_space_12" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/app_name"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Brand" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/design_preview"
+                android:maxWidth="136dp"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                android:layout_marginStart="@dimen/ht_space_12"
+                android:background="@drawable/bg_hero_pill"
+                android:paddingHorizontal="@dimen/ht_space_12"
+                android:paddingVertical="@dimen/ht_space_8"
+                android:textColor="@color/ht_on_primary_muted" />
+        </LinearLayout>
+        <FrameLayout
+            android:id="@+id/screen_container"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
     </LinearLayout>
-    <FrameLayout
-        android:id="@+id/screen_container"
+    <View
+        android:id="@+id/system_navigation_backdrop"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1" />
-    <LinearLayout
+        android:layout_gravity="bottom"
+        android:background="@color/ht_background"
+        android:importantForAccessibility="no" />
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/navigation_container"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/ht_surface">
+        android:layout_gravity="bottom"
+        android:layout_marginHorizontal="16dp"
+        android:layout_marginBottom="16dp"
+        android:padding="4dp">
+        <com.kwmobile.hometiming.ui.component.GlassBackdropView
+            android:id="@+id/glass_backdrop"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="@color/ht_divider" />
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="@drawable/bg_navigation_glass"
+            android:importantForAccessibility="no"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
         <com.google.android.material.bottomnavigation.BottomNavigationView
             android:id="@+id/bottom_navigation"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:minHeight="@dimen/ht_navigation_height"
-            android:background="@color/ht_surface"
+            android:background="@android:color/transparent"
             android:elevation="0dp"
-            app:backgroundTint="@color/ht_surface"
+            app:backgroundTint="@android:color/transparent"
             app:itemIconSize="@dimen/ht_space_24"
             app:itemIconTint="@color/navigation_item"
             app:itemTextColor="@color/navigation_item"
@@ -73,6 +100,11 @@
             app:itemPaddingTop="@dimen/ht_space_12"
             app:itemPaddingBottom="@dimen/ht_space_12"
             app:labelVisibilityMode="labeled"
-            app:menu="@menu/bottom_navigation" />
-    </LinearLayout>
-</LinearLayout>
+            app:menu="@menu/bottom_navigation"
+            app:itemRippleColor="@color/ht_glass_ripple"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</FrameLayout>

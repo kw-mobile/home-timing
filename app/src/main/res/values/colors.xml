@@ -15,4 +15,8 @@
     <color name="ht_warning">#8A4B10</color>
     <color name="ht_error">#B3261E</color>
     <color name="launcher_background">@color/ht_primary</color>
+    <color name="ht_glass_surface">#D10C3B2E</color>
+    <color name="ht_glass_border">#66FFFFFF</color>
+    <color name="ht_glass_ripple">#14FFFFFF</color>
+    <color name="ht_glass_unselected">#DDE9E0</color>
 </resources>

@@ -4,7 +4,10 @@ import android.os.Bundle;
 import android.os.Build;
 import android.util.SparseArray;
 import android.view.View;
+import android.view.ViewOutlineProvider;
+import android.graphics.Outline;
 import android.widget.LinearLayout;
+import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.activity.OnBackPressedCallback;
@@ -35,9 +38,20 @@ public final class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
         configureInsets();
+        binding.navigationContainer.setClipToOutline(true);
+        binding.navigationContainer.setOutlineProvider(new ViewOutlineProvider() {
+            @Override
+            public void getOutline(View view, Outline outline) {
+                float radius = 24 * getResources().getDisplayMetrics().density;
+                outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
+            }
+        });
+        binding.glassBackdrop.setSource(binding.mainContent);
+        binding.getRoot().getViewTreeObserver().addOnScrollChangedListener(
+                binding.glassBackdrop::refresh);
 
         binding.bottomNavigation.setItemActiveIndicatorEnabled(false);
-        binding.bottomNavigation.setBackgroundResource(R.color.ht_surface);
+        binding.bottomNavigation.setBackgroundResource(android.R.color.transparent);
         binding.bottomNavigation.setOnItemSelectedListener(item -> {
             showScreen(item.getItemId());
             return true;
@@ -71,12 +85,10 @@ public final class MainActivity extends AppCompatActivity {
         controller.setAppearanceLightNavigationBars(true);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             getWindow().setNavigationBarColor(ContextCompat.getColor(this, R.color.ht_surface));
-        } else {
-            // API 26 cannot display dark navigation icons on a light background.
-            binding.navigationContainer.setBackgroundColor(
-                    ContextCompat.getColor(this, R.color.ht_primary));
         }
         int topPadding = binding.topBar.getPaddingTop();
+        int navigationMargin = ((FrameLayout.LayoutParams)
+                binding.navigationContainer.getLayoutParams()).bottomMargin;
         ViewCompat.setOnApplyWindowInsetsListener(binding.getRoot(), (view, windowInsets) -> {
             Insets safeArea = windowInsets.getInsets(
                     WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
@@ -84,7 +96,14 @@ public final class MainActivity extends AppCompatActivity {
             binding.topBar.setPadding(binding.topBar.getPaddingLeft(),
                     topPadding + safeArea.top, binding.topBar.getPaddingRight(),
                     binding.topBar.getPaddingBottom());
-            binding.navigationContainer.setPadding(0, 0, 0, safeArea.bottom);
+            FrameLayout.LayoutParams navigationParams = (FrameLayout.LayoutParams)
+                    binding.navigationContainer.getLayoutParams();
+            navigationParams.bottomMargin = navigationMargin + safeArea.bottom;
+            binding.navigationContainer.setLayoutParams(navigationParams);
+            FrameLayout.LayoutParams systemBarParams = (FrameLayout.LayoutParams)
+                    binding.systemNavigationBackdrop.getLayoutParams();
+            systemBarParams.height = safeArea.bottom;
+            binding.systemNavigationBackdrop.setLayoutParams(systemBarParams);
             return WindowInsetsCompat.CONSUMED;
         });
         ViewCompat.requestApplyInsets(binding.getRoot());
@@ -102,6 +121,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         binding.screenContainer.removeAllViews();
         binding.screenContainer.addView(screen);
+        binding.glassBackdrop.refresh();
     }
 
     private BottomSheetBehavior<View> currentSheet() {
@@ -125,7 +145,7 @@ public final class MainActivity extends AppCompatActivity {
 
             @Override
             public void onSlide(@NonNull View bottomSheet, float slideOffset) {
-                // The panel moves as a solid surface; no scrim, blur, or decorative effects.
+                binding.glassBackdrop.refresh();
             }
         });
         ViewCompat.setStateDescription(handle, getString(R.string.sheet_collapsed));
@@ -133,16 +153,33 @@ public final class MainActivity extends AppCompatActivity {
                 oldLeft, oldTop, oldRight, oldBottom) -> {
             int height = bottom - top;
             if (height > 0 && height != oldBottom - oldTop) {
-                int minimumPeek = Math.round(224 * getResources().getDisplayMetrics().density);
+                int glassInset = navigationOverlayInset();
+                int minimumPeek = Math.round(224 * getResources().getDisplayMetrics().density)
+                        + glassInset;
                 int visibleHero = Math.round(96 * getResources().getDisplayMetrics().density);
                 int peek = Math.max(minimumPeek, height - hero.getMeasuredHeight());
+                View list = screen.findViewById(R.id.preview_scroll);
+                list.setPadding(0, 0, 0, glassInset);
                 peek = Math.min(peek, Math.max(height / 2, height - visibleHero));
                 behavior.setPeekHeight(peek);
                 heroScroll.setPadding(0, 0, 0, peek);
             }
             // CoordinatorLayout restores behavior state without dispatching a state callback.
             syncSheetAccessibility(handle, heroScroll, behavior.getState());
+            binding.glassBackdrop.refresh();
         });
+    }
+
+    private int navigationOverlayInset() {
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams)
+                binding.navigationContainer.getLayoutParams();
+        int barHeight = binding.navigationContainer.getMeasuredHeight();
+        if (barHeight == 0) {
+            barHeight = getResources().getDimensionPixelSize(R.dimen.ht_navigation_height)
+                    + Math.round(8 * getResources().getDisplayMetrics().density);
+        }
+        return barHeight + params.bottomMargin
+                + getResources().getDimensionPixelSize(R.dimen.ht_space_16);
     }
 
     private void syncSheetAccessibility(View handle, View heroScroll, int state) {
