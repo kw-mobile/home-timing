@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ht_primary">#9DD6BC</color>
+    <color name="ht_secondary">#9DD6BC</color>
+    <color name="ht_on_primary">#10261D</color>
+    <color name="ht_background">#101012</color>
+    <color name="ht_surface">#1C1C1F</color>
+    <color name="ht_container">#242427</color>
+    <color name="ht_text">#F5F5F7</color>
+    <color name="ht_text_secondary">#ACACB4</color>
+    <color name="ht_divider">#333337</color>
+    <color name="ht_accent">#91601C</color>
+    <color name="ht_error">#FF938A</color>
+    <color name="ht_due_soon">#FFBB72</color>
+    <color name="ht_icon_secondary">#A1A1AA</color>
+    <color name="ht_glass_surface">#D9252529</color>
+    <color name="ht_glass_border">#24FFFFFF</color>
+    <color name="ht_glass_ripple">#1AFFFFFF</color>
+    <color name="ht_glass_unselected">#C0C0C8</color>
+    <color name="ht_glass_selected">#FFFFFF</color>
+    <color name="ht_glass_highlight">#26FFFFFF</color>
+    <color name="ht_night">#142A35</color>
+    <color name="ht_photo_text">#FFFFFF</color>
+    <color name="ht_photo_muted">#FFFFFF</color>
+    <color name="ht_photo_scrim">#8C000000</color>
+    <color name="ht_field">#242427</color>
+    <color name="ht_disabled">#3A3A3F</color>
+    <color name="ht_on_disabled">#A2A2AB</color>
+    <color name="launcher_background">#0C3B2E</color>
+</resources>

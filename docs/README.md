@@ -7,7 +7,7 @@
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
 | 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
-| 화면 시안을 어떻게 확인하는가 | [HTML 프로토타입](prototype/README.md) |
+| 현재 화면 시안을 어떻게 확인하는가 | [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |

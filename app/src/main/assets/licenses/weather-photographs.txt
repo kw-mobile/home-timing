@@ -1,0 +1,31 @@
+Weather background photographs (downloaded 2026-11-10)
+
+Day: Diana, Clouds on Blue Sky
+https://www.pexels.com/photo/clouds-on-blue-sky-8175412/
+https://www.pexels.com/license/
+
+Evening: Ilya Klimenko, Clouds on Sky at Sunset
+https://www.pexels.com/photo/clouds-on-sky-at-sunset-5674495/
+https://www.pexels.com/license/
+
+Night: 于光 胡 (@yghu), A dark sky filled with countless bright stars
+https://unsplash.com/photos/a-dark-sky-filled-with-countless-bright-stars-7mdXlBXgBpI
+https://unsplash.com/license
+
+Cloudy / rain: Enrique, Rain Clouds on Sky
+https://www.pexels.com/photo/rain-clouds-on-sky-15938544/
+https://www.pexels.com/license/
+
+Downloaded from original image hosts at 1200px width; displayed with native
+centerCrop and a uniform scrim. No generative image assets, fabricated stars,
+animated particles or glow were added. These are representative stock skies,
+not photographs of the user's location or a live weather camera.
+
+Pexels License: photos may be downloaded, used and modified free for personal
+and commercial use. Attribution is appreciated. Restrictions include selling
+unaltered copies, implied endorsements and redistribution on stock platforms.
+See the linked license for the complete terms.
+
+Unsplash License: free download, copying, modification and use, including
+commercial use, without required attribution. Selling without significant
+modification and compiling a competing image service are excluded. See link.

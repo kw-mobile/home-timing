@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="preview_copy_001" formatted="false">입력을 그만둘까요?</string>
+    <string name="preview_copy_002" formatted="false">아직 저장하지 않은 내용이 있어요.</string>
+    <string name="preview_copy_003" formatted="false">그만두기</string>
+    <string name="preview_copy_004" formatted="false">때맞춤</string>
+    <string name="preview_copy_005" formatted="false">로그인</string>
+    <string name="preview_copy_006" formatted="false">회원가입</string>
+    <string name="preview_copy_007" formatted="false">비밀번호 재설정</string>
+    <string name="preview_copy_008" formatted="false">항목 등록</string>
+    <string name="preview_copy_009" formatted="false">항목 수정</string>
+    <string name="preview_copy_010" formatted="false">상세 정보</string>
+    <string name="preview_copy_011" formatted="false">날씨</string>
+    <string name="preview_copy_012" formatted="false">가족 관리</string>
+    <string name="preview_copy_013" formatted="false">설정</string>
+    <string name="preview_copy_014" formatted="false">디자인 미리보기</string>
+    <string name="preview_copy_015" formatted="false">용품</string>
+    <string name="preview_copy_016" formatted="false">캘린더</string>
+    <string name="preview_copy_017" formatted="false">오늘</string>
+    <string name="preview_copy_018" formatted="false">선택됨</string>
+    <string name="preview_copy_019" formatted="false">선택 안 됨</string>
+    <string name="preview_copy_020" formatted="false">M월 d일 (E)</string>
+    <string name="preview_copy_021" formatted="false">일 지남</string>
+    <string name="preview_copy_022" formatted="false">칫솔</string>
+    <string name="preview_copy_023" formatted="false">욕실</string>
+    <string name="preview_copy_024" formatted="false">매주</string>
+    <string name="preview_copy_026" formatted="false">오프라인 · 저장된 예시를 보고 있어요. 변경은 연결 후 가능해요.</string>
+    <string name="preview_copy_027" formatted="false">불러오는 중이에요.</string>
+    <string name="preview_copy_028" formatted="false">불러오기 완료 보기</string>
+    <string name="preview_copy_029" formatted="false">잠시 불러오지 못했어요</string>
+    <string name="preview_copy_030" formatted="false">연결을 확인하고 다시 시도해 주세요.</string>
+    <string name="preview_copy_031" formatted="false">다시 시도</string>
+    <string name="preview_copy_032" formatted="false">아직 예정된 일이 없어요</string>
+    <string name="preview_copy_033" formatted="false">항목을 등록하면 이곳에서 함께 챙길 수 있어요.</string>
+    <string name="preview_copy_034" formatted="false">M월 d일 EEEE</string>
+    <string name="preview_copy_035" formatted="false">날씨 자세히 보기</string>
+    <string name="preview_copy_036" formatted="false">챙길 일</string>
+    <string name="preview_copy_037" formatted="false">+ 등록</string>
+    <string name="preview_copy_038" formatted="false">오늘·지난 일정 </string>
+    <string name="preview_copy_039" formatted="false">개</string>
+    <string name="preview_copy_040" formatted="false">오늘 챙길 일을 모두 마쳤어요.</string>
+    <string name="preview_copy_041" formatted="false">알림을 켜고 제때 챙겨요</string>
+    <string name="preview_copy_042" formatted="false">알림 설정하기</string>
+    <string name="preview_copy_043" formatted="false">이번 주</string>
+    <string name="preview_copy_044" formatted="false">개의 다가오는 일정</string>
+    <string name="preview_copy_045" formatted="false">디자인 미리보기 · 일정과 날씨는 예시예요.</string>
+    <string name="preview_copy_046" formatted="false">목록 접기</string>
+    <string name="preview_copy_047" formatted="false">목록 펼치기</string>
+    <string name="preview_copy_048" formatted="false">펼쳐짐</string>
+    <string name="preview_copy_049" formatted="false">접힘</string>
+    <string name="preview_copy_050" formatted="false">교체할 물건을 모아봤어요.</string>
+    <string name="preview_copy_051" formatted="false">전체</string>
+    <string name="preview_copy_052" formatted="false">주방</string>
+    <string name="preview_copy_053" formatted="false">기타</string>
+    <string name="preview_copy_054" formatted="false">아직 등록한 용품이 없어요</string>
+    <string name="preview_copy_055" formatted="false">새 용품을 등록해 보세요.</string>
+    <string name="preview_copy_056" formatted="false">용품 등록</string>
+    <string name="preview_copy_057" formatted="false">왼쪽으로 밀어 교체 완료 · 항목을 눌러 상세 보기</string>
+    <string name="preview_copy_058" formatted="false">yyyy년 M월</string>
+    <string name="preview_copy_059" formatted="false">일</string>
+    <string name="preview_copy_060" formatted="false">월</string>
+    <string name="preview_copy_061" formatted="false">화</string>
+    <string name="preview_copy_062" formatted="false">수</string>
+    <string name="preview_copy_063" formatted="false">목</string>
+    <string name="preview_copy_064" formatted="false">금</string>
+    <string name="preview_copy_065" formatted="false">토</string>
+    <string name="preview_copy_066" formatted="false">, 선택됨</string>
+    <string name="preview_copy_067" formatted="false">, 예정 있음</string>
+    <string name="preview_copy_068" formatted="false">이날은 예정된 일이 없어요.</string>
+    <string name="preview_copy_069" formatted="false">다른 날짜를 선택해 일정을 확인해 보세요.</string>
+    <string name="preview_copy_070" formatted="false">비밀번호 숨기기</string>
+    <string name="preview_copy_071" formatted="false">비밀번호 보기</string>
+    <string name="preview_copy_072" formatted="false">비밀번호 찾기</string>
+    <string name="preview_copy_073" formatted="false">비밀번호를 6자 이상 입력해 주세요.</string>
+    <string name="preview_copy_074" formatted="false">이름을 입력해 주세요.</string>
+    <string name="preview_copy_075" formatted="false">비밀번호가 일치하지 않아요.</string>
+    <string name="preview_copy_076" formatted="false">확인 중…</string>
+    <string name="preview_copy_077" formatted="false">가입하기</string>
+    <string name="preview_copy_078" formatted="false">연결을 확인해 주세요. 입력한 내용은 유지했어요.</string>
+    <string name="preview_copy_079" formatted="false">다시 보내기</string>
+    <string name="preview_copy_080" formatted="false">재설정 안내를 확인해 주세요</string>
+    <string name="preview_copy_081" formatted="false">미리보기에서는 실제 이메일을 보내지 않아요.</string>
+    <string name="preview_copy_082" formatted="false">로그인으로 돌아가기</string>
+    <string name="preview_copy_083" formatted="false">가입 완료 화면 예시예요. 실제 계정은 생성되지 않았어요.</string>
+    <string name="preview_copy_084" formatted="false">디자인 미리보기를 시작했어요.</string>
+    <string name="preview_copy_085" formatted="false">올바른 이메일 주소를 입력해 주세요.</string>
+    <string name="preview_copy_086" formatted="false">새 항목</string>
+    <string name="preview_copy_087" formatted="false">생활용품</string>
+    <string name="preview_copy_088" formatted="false">집안일</string>
+    <string name="preview_copy_089" formatted="false">세탁</string>
+    <string name="preview_copy_090" formatted="false">분류</string>
+    <string name="preview_copy_091" formatted="false">분류 선택</string>
+    <string name="preview_copy_092" formatted="false">청소</string>
+    <string name="preview_copy_093" formatted="false">최근 완료일</string>
+    <string name="preview_copy_094" formatted="false">시작일</string>
+    <string name="preview_copy_095" formatted="false">반복 요일</string>
+    <string name="preview_copy_096" formatted="false">날씨에 맞춰 일정 제안받기</string>
+    <string name="preview_copy_097" formatted="false">등록하기</string>
+    <string name="preview_copy_098" formatted="false">변경 저장</string>
+    <string name="preview_copy_099" formatted="false">연결 후 저장할 수 있어요. 입력 내용은 유지됩니다.</string>
+    <string name="preview_copy_100" formatted="false">이름을 1~60자로 입력해 주세요.</string>
+    <string name="preview_copy_101" formatted="false">주기는 1~730일로 입력해 주세요.</string>
+    <string name="preview_copy_102" formatted="false">저장하지 못했어요. 입력한 내용은 유지했어요.</string>
+    <string name="preview_copy_103" formatted="false">미리보기에 저장했어요.</string>
+    <string name="preview_copy_104" formatted="false">항목을 찾을 수 없어요</string>
+    <string name="preview_copy_105" formatted="false">목록으로 돌아가 다시 선택해 주세요.</string>
+    <string name="preview_copy_106" formatted="false">용품 목록</string>
+    <string name="preview_copy_107" formatted="false">반복 요일 기준 예상일</string>
+    <string name="preview_copy_108" formatted="false">권장 주기 기준 예상일</string>
+    <string name="preview_copy_109" formatted="false">집안일 완료</string>
+    <string name="preview_copy_110" formatted="false">교체 완료</string>
+    <string name="preview_copy_111" formatted="false">오늘 완료했어요. 다음 일정을 확인해 주세요.</string>
+    <string name="preview_copy_112" formatted="false">오프라인에서는 완료할 수 없어요.</string>
+    <string name="preview_copy_113" formatted="false">관리 정보</string>
+    <string name="preview_copy_114" formatted="false">장소</string>
+    <string name="preview_copy_115" formatted="false">지정하지 않음</string>
+    <string name="preview_copy_116" formatted="false">관리 주기</string>
+    <string name="preview_copy_117" formatted="false">매주 </string>
+    <string name="preview_copy_118" formatted="false">일마다</string>
+    <string name="preview_copy_119" formatted="false">완료 이력</string>
+    <string name="preview_copy_120" formatted="false">교체 이력</string>
+    <string name="preview_copy_121" formatted="false">번의 기록</string>
+    <string name="preview_copy_122" formatted="false">아직 완료한 기록이 없어요.</string>
+    <string name="preview_copy_123" formatted="false"> · 완료</string>
+    <string name="preview_copy_124" formatted="false">수정</string>
+    <string name="preview_copy_125" formatted="false">삭제</string>
+    <string name="preview_copy_126" formatted="false">항목을 삭제할까요?</string>
+    <string name="preview_copy_127" formatted="false">이 미리보기의 항목과 이력이 함께 지워져요.</string>
+    <string name="preview_copy_128" formatted="false">미리보기에서 삭제했어요.</string>
+    <string name="preview_copy_129" formatted="false">디자인 미리보기 · 실제 데이터는 변경되지 않아요.</string>
+    <string name="preview_copy_130" formatted="false">연결 후 완료할 수 있어요.</string>
+    <string name="preview_copy_131" formatted="false">집안일을 마쳤나요?</string>
+    <string name="preview_copy_132" formatted="false">새것으로 교체했나요?</string>
+    <string name="preview_copy_133" formatted="false"> · 오늘 완료한 것으로 기록해요.</string>
+    <string name="preview_copy_134" formatted="false">완료 기록</string>
+    <string name="preview_copy_135" formatted="false">기록하지 못했어요. 다시 시도해 주세요.</string>
+    <string name="preview_copy_136" formatted="false">완료했어요. 다음 일정을 준비했어요.</string>
+    <string name="preview_copy_137" formatted="false">오늘 이미 완료한 항목이에요.</string>
+    <string name="preview_copy_138" formatted="false">비</string>
+    <string name="preview_copy_139" formatted="false">흐림</string>
+    <string name="preview_copy_140" formatted="false">청명함</string>
+    <string name="preview_copy_141" formatted="false">맑음</string>
+    <string name="preview_copy_144" formatted="false">3일 예보</string>
+    <string name="preview_copy_145" formatted="false">서울 마포구 · 예시 데이터</string>
+    <string name="preview_copy_146" formatted="false">내일</string>
+    <string name="preview_copy_147" formatted="false">모레</string>
+    <string name="preview_copy_148" formatted="false">, 흐림</string>
+    <string name="preview_copy_149" formatted="false">세탁하기 </string>
+    <string name="preview_copy_150" formatted="false">확인 필요</string>
+    <string name="preview_copy_151" formatted="false">어려워요</string>
+    <string name="preview_copy_152" formatted="false">좋아요</string>
+    <string name="preview_copy_153" formatted="false">09–18시 예보 기준 · 예시 판정</string>
+    <string name="preview_copy_154" formatted="false">최신 예보를 확인할 수 없어 적합도를 판단하지 않았어요.</string>
+    <string name="preview_copy_155" formatted="false">비가 예상돼요. 실내 건조하거나 다른 날을 살펴보세요.</string>
+    <string name="preview_copy_156" formatted="false">낮 동안 비 소식이 적고 습도가 낮아요.</string>
+    <string name="preview_copy_157" formatted="false">집안일 제안</string>
+    <string name="preview_copy_158" formatted="false">날씨는 용품의 교체일을 바꾸지 않아요.</string>
+    <string name="preview_copy_159" formatted="false"> 예정</string>
+    <string name="preview_copy_160" formatted="false">내일로 변경</string>
+    <string name="preview_copy_161" formatted="false">일정을 옮길까요?</string>
+    <string name="preview_copy_162" formatted="false"> 일정을 </string>
+    <string name="preview_copy_163" formatted="false">로 옮겨요.</string>
+    <string name="preview_copy_164" formatted="false">변경</string>
+    <string name="preview_copy_165" formatted="false">예시 일정을 변경했어요.</string>
+    <string name="preview_copy_166" formatted="false">조회 시각 </string>
+    <string name="preview_copy_167" formatted="false"> · 실제 예보 미연결</string>
+    <string name="preview_copy_168" formatted="false">우리 집</string>
+    <string name="preview_copy_169" formatted="false">햇살 드는 집</string>
+    <string name="preview_copy_172" formatted="false">지역</string>
+    <string name="preview_copy_173" formatted="false"> · 집장만 변경</string>
+    <string name="preview_copy_174" formatted="false">알림</string>
+    <string name="preview_copy_175" formatted="false">알림 설정</string>
+    <string name="preview_copy_176" formatted="false">일 전</string>
+    <string name="preview_copy_177" formatted="false">알림 꺼짐</string>
+    <string name="preview_copy_178" formatted="false">권한 상태</string>
+    <string name="preview_copy_179" formatted="false">허용 예시</string>
+    <string name="preview_copy_180" formatted="false">허용하지 않음 · 예시</string>
+    <string name="preview_copy_181" formatted="false">계정과 앱</string>
+    <string name="preview_copy_182" formatted="false">테스트 날씨 모드</string>
+    <string name="preview_copy_183" formatted="false">로그아웃</string>
+    <string name="preview_copy_184" formatted="false">미리보기 로그인 화면으로 이동</string>
+    <string name="preview_copy_185" formatted="false">로그아웃할까요?</string>
+    <string name="preview_copy_186" formatted="false">디자인 미리보기의 로그인 화면으로 돌아가요.</string>
+    <string name="preview_copy_187" formatted="false">때맞춤 0.1 · 디자인 미리보기\n계정·날씨·알림은 실제 서비스에 연결되지 않아요.</string>
+    <string name="preview_copy_188" formatted="false">내가 집장이에요</string>
+    <string name="preview_copy_189" formatted="false">가족 구성원으로 참여 중이에요</string>
+    <string name="preview_copy_190" formatted="false">나</string>
+    <string name="preview_copy_191" formatted="false">집장</string>
+    <string name="preview_copy_192" formatted="false">구성원</string>
+    <string name="preview_copy_193" formatted="false">가족</string>
+    <string name="preview_copy_194" formatted="false">가족 초대</string>
+    <string name="preview_copy_195" formatted="false">초대 코드는 24시간 동안 사용할 수 있어요.</string>
+    <string name="preview_copy_196" formatted="false">집장에게 초대 코드 발급을 요청해 주세요.</string>
+    <string name="preview_copy_197" formatted="false">발급 후 24시간 · 예시 코드</string>
+    <string name="preview_copy_198" formatted="false">초대 코드 복사</string>
+    <string name="preview_copy_199" formatted="false">때맞춤 예시 초대 코드</string>
+    <string name="preview_copy_200" formatted="false">예시 코드를 복사했어요.</string>
+    <string name="preview_copy_201" formatted="false">새 코드 발급</string>
+    <string name="preview_copy_202" formatted="false">새 코드를 발급할까요?</string>
+    <string name="preview_copy_203" formatted="false">이전에 발급한 코드는 사용할 수 없게 돼요.</string>
+    <string name="preview_copy_204" formatted="false">재발급</string>
+    <string name="preview_copy_205" formatted="false">새 예시 코드를 만들었어요.</string>
+    <string name="preview_copy_206" formatted="false">다른 집에 참여</string>
+    <string name="preview_copy_207" formatted="false">초대 코드 입력</string>
+    <string name="preview_copy_208" formatted="false">새 1인 집에서만 참여할 수 있어요.</string>
+    <string name="preview_copy_209" formatted="false">집에서 나가기</string>
+    <string name="preview_copy_210" formatted="false">다른 가족이 남아 있으면 나갈 수 없어요.</string>
+    <string name="preview_copy_211" formatted="false">나가면 빈 1인 집이 만들어져요.</string>
+    <string name="preview_copy_212" formatted="false">아직 나갈 수 없어요</string>
+    <string name="preview_copy_213" formatted="false">집장은 다른 구성원이 남아 있으면 나갈 수 없어요.</string>
+    <string name="preview_copy_214" formatted="false">확인</string>
+    <string name="preview_copy_215" formatted="false">이 집에서 나갈까요?</string>
+    <string name="preview_copy_216" formatted="false">기존 집의 일정은 더 이상 볼 수 없어요. 실제 집은 변경되지 않는 미리보기예요.</string>
+    <string name="preview_copy_217" formatted="false">나가기</string>
+    <string name="preview_copy_218" formatted="false">나가기 완료 상태 예시예요.</string>
+    <string name="preview_copy_219" formatted="false">예시 구성원과 코드입니다. 실제 초대·참여는 수행하지 않아요.</string>
+    <string name="preview_copy_220" formatted="false">우리 집 지역</string>
+    <string name="preview_copy_221" formatted="false">날씨와 집안일 제안에 사용할 지역이에요.</string>
+    <string name="preview_copy_222" formatted="false">집장만 바꿀 수 있어요</string>
+    <string name="preview_copy_223" formatted="false">서울 마포구</string>
+    <string name="preview_copy_224" formatted="false">서울 노원구</string>
+    <string name="preview_copy_225" formatted="false">경기 성남시</string>
+    <string name="preview_copy_226" formatted="false">부산 해운대구</string>
+    <string name="preview_copy_227" formatted="false">예시 지역을 변경했어요.</string>
+    <string name="preview_copy_228" formatted="false">하루를 시작할 때, 챙길 일을 알려드려요.</string>
+    <string name="preview_copy_229" formatted="false">일정 알림</string>
+    <string name="preview_copy_230" formatted="false">알림 허용 상태 예시예요. 실제 예약은 하지 않아요.</string>
+    <string name="preview_copy_231" formatted="false">알림 꺼짐 상태 예시예요.</string>
+    <string name="preview_copy_232" formatted="false">알림 시각</string>
+    <string name="preview_copy_233" formatted="false">미리 알려주기</string>
+    <string name="preview_copy_234" formatted="false">사전 알림</string>
+    <string name="preview_copy_235" formatted="false">당일</string>
+    <string name="preview_copy_236" formatted="false">1일 전</string>
+    <string name="preview_copy_237" formatted="false">3일 전</string>
+    <string name="preview_copy_238" formatted="false">7일 전</string>
+    <string name="preview_copy_239" formatted="false">권한과 설정 화면의 디자인 예시입니다. 시스템 권한을 요청하거나 알림을 예약하지 않아요.</string>
+    <string name="preview_copy_240" formatted="false">가족에게 받은 6자리 코드를 입력해 주세요.</string>
+    <string name="preview_copy_241" formatted="false">6자리 초대 코드</string>
+    <string name="preview_copy_242" formatted="false">참여하기</string>
+    <string name="preview_copy_243" formatted="false">6자리 숫자를 입력해 주세요.</string>
+    <string name="preview_copy_244" formatted="false">만료되었거나 올바르지 않은 코드예요.</string>
+    <string name="preview_copy_245" formatted="false">가족의 집에 참여할까요?</string>
+    <string name="preview_copy_246" formatted="false">미리보기에서는 실제 데이터나 집 소속을 변경하지 않아요.</string>
+    <string name="preview_copy_247" formatted="false">참여</string>
+    <string name="preview_copy_248" formatted="false">참여 완료 상태 예시예요.</string>
+    <string name="preview_copy_249" formatted="false">디자인 확인용 코드: 123456\n실제 참여는 항목과 이력이 없는 1인 집에서만 가능해요.</string>
+    <string name="preview_copy_250" formatted="false">테스트 날씨</string>
+    <string name="preview_copy_251" formatted="false">예시 날씨와 시간대별 배경을 확인해 보세요.</string>
+    <string name="preview_copy_252" formatted="false">시간대</string>
+    <string name="preview_copy_253" formatted="false">기기 시각</string>
+    <string name="preview_copy_254" formatted="false">아침</string>
+    <string name="preview_copy_255" formatted="false">낮</string>
+    <string name="preview_copy_256" formatted="false">저녁</string>
+    <string name="preview_copy_257" formatted="false">밤</string>
+    <string name="preview_copy_258" formatted="false">날씨 화면 보기</string>
+    <string name="preview_copy_259" formatted="false">시간대는 기기 시각 기준의 고정 구간입니다. 실제 일출·일몰이나 예보를 계산하지 않아요.</string>
+    <string name="preview_copy_260" formatted="false">화면 둘러보기</string>
+    <string name="preview_copy_261" formatted="false">모든 화면을 실제 Android XML로 구성했어요.</string>
+    <string name="preview_copy_262" formatted="false">S1 로그인</string>
+    <string name="preview_copy_263" formatted="false">S2 홈</string>
+    <string name="preview_copy_264" formatted="false">S3 용품 목록</string>
+    <string name="preview_copy_265" formatted="false">S4 등록</string>
+    <string name="preview_copy_266" formatted="false">S5 상세·교체 이력</string>
+    <string name="preview_copy_267" formatted="false">S6 관리 캘린더</string>
+    <string name="preview_copy_268" formatted="false">S7 날씨·작업 제안</string>
+    <string name="preview_copy_269" formatted="false">S8 설정</string>
+    <string name="preview_copy_270" formatted="false">지역 설정</string>
+    <string name="preview_copy_271" formatted="false">상태 미리보기</string>
+    <string name="preview_copy_272" formatted="false">목록·날씨·폼의 성공과 실패를 확인해요.</string>
+    <string name="preview_copy_273" formatted="false">기본</string>
+    <string name="preview_copy_274" formatted="false">빈 상태</string>
+    <string name="preview_copy_275" formatted="false">오류</string>
+    <string name="preview_copy_276" formatted="false">로딩</string>
+    <string name="preview_copy_277" formatted="false">오프라인</string>
+    <string name="preview_copy_278" formatted="false">선택한 상태로 홈 보기</string>
+    <string name="preview_copy_279" formatted="false">시간대와 권한</string>
+    <string name="preview_copy_280" formatted="false">날씨 배경 선택</string>
+    <string name="preview_copy_281" formatted="false">기기 시각 · 아침 · 낮 · 저녁 · 밤</string>
+    <string name="preview_copy_282" formatted="false">집장으로 미리보기</string>
+    <string name="preview_copy_283" formatted="false">예시 데이터 초기화</string>
+    <string name="preview_copy_284" formatted="false">예시를 처음으로 돌릴까요?</string>
+    <string name="preview_copy_285" formatted="false">미리보기에서 변경한 항목과 설정을 초기화해요.</string>
+    <string name="preview_copy_286" formatted="false">초기화</string>
+    <string name="preview_copy_287" formatted="false">시스템 설정을 따라 라이트·다크 모드가 바뀝니다.\n실제 계정·저장·예보·알림·초대·사진 인식은 연결하지 않았어요.</string>
+    <string name="preview_copy_288" formatted="false">취소</string>
+    <string name="preview_item_meta">%1$s · %2$s</string>
+    <string name="preview_cycle_days">%1$d일 주기</string>
+    <string name="preview_weather_clock">예시 날씨 · %1$s 기기 시각</string>
+    <string name="preview_start_help">최근 교체했거나 사용을 시작한 날이에요.</string>
+    <string name="preview_next_due">다음 예정일: %1$s</string>
+    <string name="preview_complete_item_help">실제 교체한 오늘부터 주기를 다시 계산해요.</string>
+    <string name="preview_complete_chore_help">완료일 이후의 다음 반복 요일로 일정을 갱신해요.</string>
+    <string name="preview_previous_month">이전 달</string>
+    <string name="preview_next_month">다음 달</string>
+    <string name="preview_chore_start_help">마지막으로 이 집안일을 마친 날이에요.</string>
+    <string name="preview_chore_cycle_label">반복 주기 · 일</string>
+    <string name="preview_chore_cycle_help">주간 집안일은 선택한 요일을 기준으로 반복돼요.</string>
+    <string name="preview_solo_house">나 혼자 관리 중 · 1명</string>
+    <string name="preview_house_members">가족과 함께 관리 중 · %1$d명</string>
+    <string name="preview_forecast_empty">아직 예보가 없어요</string>
+    <string name="preview_forecast_empty_help">예보가 준비되면 세탁 적합도와 제안을 확인할 수 있어요.</string>
+</resources>
