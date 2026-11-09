@@ -199,6 +199,20 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void bindPreviewActions(View screen) {
+        int[] headingIds = {R.id.page_title, R.id.section_primary, R.id.section_secondary};
+        for (int id : headingIds) {
+            View heading = screen.findViewById(id);
+            if (heading != null) {
+                ViewCompat.setAccessibilityHeading(heading, true);
+            }
+        }
+        int[] groupIds = {R.id.house_group, R.id.notification_group};
+        for (int id : groupIds) {
+            View group = screen.findViewById(id);
+            if (group != null) {
+                group.setClipToOutline(true);
+            }
+        }
         int[] scheduleIds = {R.id.schedule_filter, R.id.schedule_brush, R.id.schedule_bedding};
         for (int id : scheduleIds) {
             View row = screen.findViewById(id);

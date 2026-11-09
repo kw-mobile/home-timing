@@ -14,9 +14,9 @@
             android:id="@+id/top_bar"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:minHeight="64dp"
+            android:minHeight="56dp"
             android:paddingHorizontal="@dimen/ht_screen_gutter"
-            android:paddingVertical="@dimen/ht_space_12"
+            android:paddingVertical="@dimen/ht_space_8"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:baselineAligned="false">
@@ -40,9 +40,6 @@
                 android:maxWidth="136dp"
                 android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
                 android:layout_marginStart="@dimen/ht_space_12"
-                android:background="@drawable/bg_hero_pill"
-                android:paddingHorizontal="@dimen/ht_space_12"
-                android:paddingVertical="@dimen/ht_space_8"
                 android:textColor="@color/ht_on_primary_muted" />
         </LinearLayout>
         <FrameLayout
@@ -60,9 +57,10 @@
         android:importantForAccessibility="no" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/navigation_container"
+        android:maxWidth="480dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
+        android:layout_gravity="bottom|center_horizontal"
         android:layout_marginHorizontal="16dp"
         android:layout_marginBottom="16dp"
         android:padding="4dp">
@@ -98,8 +96,8 @@
             app:itemTextAppearanceActiveBoldEnabled="false"
             app:itemTextAppearanceInactive="@style/TextAppearance.HomeTiming.Navigation"
             app:itemHorizontalTranslationEnabled="false"
-            app:itemPaddingTop="@dimen/ht_space_12"
-            app:itemPaddingBottom="@dimen/ht_space_12"
+            app:itemPaddingTop="10dp"
+            app:itemPaddingBottom="8dp"
             app:labelVisibilityMode="labeled"
             app:menu="@menu/bottom_navigation"
             app:itemRippleColor="@color/ht_glass_ripple"

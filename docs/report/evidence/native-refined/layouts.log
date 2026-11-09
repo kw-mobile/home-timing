@@ -1,0 +1,12 @@
+PASS 411dp all tasks visible and reference date upfront
+PASS final setting cell and dialog
+PASS panel and handle with animation scale zero
+PASS 375dp layout
+PASS 360dp font200 last item reachable
+PASS 600dp glass bar capped at 480dp
+Traceback (most recent call last):
+  File "/tmp/check-home-timing-refined-layouts.py", line 22, in <module>
+    adb('shell','wm','size','reset');adb('shell','settings','put','system','user_rotation','1');root=dump();state(root,True);tap(root,'sheet_handle');root=dump();state(root,False);tap(root,'sheet_handle');root=dump();state(root,True);shot('home-landscape');log('landscape handle reachable and state preserved')
+                                                                                                                                                                  ~~~~~^^^^^^^^^^^^
+  File "<string>", line 12, in state
+AssertionError

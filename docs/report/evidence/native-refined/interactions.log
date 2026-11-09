@@ -1,0 +1,14 @@
+PASS overdue-first priority and three items visible at baseline
+PASS handle click expands actual panel
+PASS handle click collapses actual panel
+PASS scrolling collapsed list upward expands panel first
+PASS handle upward drag expands
+PASS Back collapses before leaving home
+PASS items panel handle works
+PASS tab switch retains panel state
+PASS rotation restores expanded state
+PASS settings panel and preview dialog work
+PASS Back from collapsed secondary tab returns home
+PASS 360dp font200 expanded list reaches last item
+PASS handle downward drag collapses even after list scroll
+PASS restored baseline

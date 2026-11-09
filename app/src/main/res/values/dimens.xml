@@ -9,15 +9,14 @@
     <dimen name="ht_screen_gutter">20dp</dimen>
     <dimen name="ht_touch_target">48dp</dimen>
     <dimen name="ht_icon">24dp</dimen>
-    <dimen name="ht_radius_control">12dp</dimen>
     <dimen name="ht_radius_surface">24dp</dimen>
-    <dimen name="ht_navigation_height">72dp</dimen>
+    <dimen name="ht_navigation_height">64dp</dimen>
     <dimen name="ht_type_caption">13sp</dimen>
     <dimen name="ht_type_label">15sp</dimen>
     <dimen name="ht_type_body">17sp</dimen>
     <dimen name="ht_type_title">22sp</dimen>
     <dimen name="ht_type_display">34sp</dimen>
-    <dimen name="ht_type_number">48sp</dimen>
+    <dimen name="ht_type_number">40sp</dimen>
     <dimen name="ht_type_navigation">12sp</dimen>
-    <dimen name="ht_type_brand">20sp</dimen>
+    <dimen name="ht_type_brand">18sp</dimen>
 </resources>

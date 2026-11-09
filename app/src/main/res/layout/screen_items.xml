@@ -11,31 +11,32 @@
         android:layout_height="match_parent"
         android:clipToPadding="false">
         <LinearLayout
+            android:id="@+id/hero_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/ht_screen_gutter"
-            android:paddingTop="@dimen/ht_space_24"
-            android:paddingBottom="@dimen/ht_space_32"
-            android:id="@+id/hero_content">
+            android:paddingTop="16dp"
+            android:paddingBottom="24dp">
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/items_eyebrow"
-                android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
                 android:textColor="@color/ht_on_primary_muted" />
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/items_title"
                 android:textAppearance="@style/TextAppearance.HomeTiming.Display"
-                android:layout_marginTop="@dimen/ht_space_12" />
+                android:id="@+id/page_title"
+                android:layout_marginTop="4dp" />
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/items_hint"
                 android:textAppearance="@style/TextAppearance.HomeTiming.Label"
-                android:layout_marginTop="@dimen/ht_space_16"
+                android:layout_marginTop="8dp"
                 android:textColor="@color/ht_on_primary_muted" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
@@ -71,31 +72,32 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="@dimen/ht_screen_gutter"
-                android:paddingTop="0dp"
                 android:paddingBottom="@dimen/ht_space_32">
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/items_section"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.Title" />
+                    android:textAppearance="@style/TextAppearance.HomeTiming.Title"
+                    android:id="@+id/section_primary" />
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/items_section_count"
                     android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="@dimen/ht_space_4" />
-                <include layout="@layout/component_schedule_filter" />
+                    android:layout_marginTop="4dp" />
+                <include layout="@layout/component_schedule_brush" />
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="@color/ht_divider" />
-                <include layout="@layout/component_schedule_brush" />
+                    android:background="@color/ht_divider"
+                    android:layout_marginStart="52dp" />
+                <include layout="@layout/component_schedule_filter" />
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/preview_notice"
                     android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="@dimen/ht_space_24" />
+                    android:layout_marginTop="24dp" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

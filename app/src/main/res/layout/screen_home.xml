@@ -11,32 +11,33 @@
         android:layout_height="match_parent"
         android:clipToPadding="false">
         <LinearLayout
+            android:id="@+id/hero_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:paddingHorizontal="@dimen/ht_screen_gutter"
-            android:paddingTop="@dimen/ht_space_24"
-            android:paddingBottom="@dimen/ht_space_32"
-            android:id="@+id/hero_content">
+            android:paddingTop="16dp"
+            android:paddingBottom="24dp">
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/home_eyebrow"
-                android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
                 android:textColor="@color/ht_on_primary_muted" />
             <com.google.android.material.textview.MaterialTextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/home_title"
                 android:textAppearance="@style/TextAppearance.HomeTiming.Display"
-                android:layout_marginTop="@dimen/ht_space_12" />
+                android:id="@+id/page_title"
+                android:layout_marginTop="4dp" />
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginTop="@dimen/ht_space_32"
-                android:baselineAligned="false">
+                android:baselineAligned="false"
+                android:layout_marginTop="20dp">
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
@@ -52,34 +53,51 @@
                         android:layout_height="wrap_content"
                         android:text="@string/weather_location"
                         android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                        android:layout_marginTop="@dimen/ht_space_8"
+                        android:layout_marginTop="4dp"
                         android:textColor="@color/ht_on_primary_muted" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical"
+                    android:gravity="end">
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:importantForAccessibility="no"
+                        app:srcCompat="@drawable/ic_sun"
+                        app:tint="@color/ht_accent" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/weather_condition"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+                        android:layout_marginTop="8dp"
+                        android:textColor="@color/ht_on_primary" />
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/weather_summary"
-                        android:textAppearance="@style/TextAppearance.HomeTiming.Label"
-                        android:layout_marginTop="@dimen/ht_space_4"
-                        android:textColor="@color/ht_on_primary" />
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:layout_marginTop="4dp"
+                        android:textColor="@color/ht_on_primary_muted" />
                 </LinearLayout>
-                <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="64dp"
-                    android:layout_height="64dp"
-                    app:srcCompat="@drawable/ic_sun"
-                    app:tint="@color/ht_accent"
-                    android:importantForAccessibility="no" />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="28dp"
-                android:baselineAligned="false">
+                android:gravity="center_vertical"
+                android:baselineAligned="false"
+                android:layout_marginTop="20dp">
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:baselineAligned="false">
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -92,13 +110,15 @@
                         android:text="@string/summary_items_count"
                         android:textAppearance="@style/TextAppearance.HomeTiming.Title"
                         android:textColor="@color/ht_on_primary"
-                        android:layout_marginTop="@dimen/ht_space_8" />
+                        android:layout_marginStart="8dp" />
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:orientation="vertical">
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:baselineAligned="false">
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -111,7 +131,7 @@
                         android:text="@string/summary_chores_count"
                         android:textAppearance="@style/TextAppearance.HomeTiming.Title"
                         android:textColor="@color/ht_on_primary"
-                        android:layout_marginTop="@dimen/ht_space_8" />
+                        android:layout_marginStart="8dp" />
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
@@ -148,44 +168,40 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:paddingHorizontal="@dimen/ht_screen_gutter"
-                android:paddingTop="0dp"
                 android:paddingBottom="@dimen/ht_space_32">
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/today_heading"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.Title" />
+                    android:textAppearance="@style/TextAppearance.HomeTiming.Title"
+                    android:id="@+id/section_primary" />
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/today_count"
                     android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="@dimen/ht_space_4" />
-                <include layout="@layout/component_schedule_filter" />
+                    android:layout_marginTop="4dp" />
+                <include layout="@layout/component_schedule_brush" />
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
-                    android:background="@color/ht_divider" />
-                <include layout="@layout/component_schedule_brush" />
+                    android:background="@color/ht_divider"
+                    android:layout_marginStart="52dp" />
+                <include layout="@layout/component_schedule_filter" />
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/next_heading"
                     android:textAppearance="@style/TextAppearance.HomeTiming.Title"
-                    android:layout_marginTop="@dimen/ht_space_24" />
+                    android:id="@+id/section_secondary"
+                    android:layout_marginTop="24dp" />
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/next_hint"
                     android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="@dimen/ht_space_4" />
+                    android:layout_marginTop="4dp" />
                 <include layout="@layout/component_schedule_bedding" />
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/preview_notice"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="@dimen/ht_space_16" />
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>
     </LinearLayout>

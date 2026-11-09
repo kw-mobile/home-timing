@@ -1,0 +1,3 @@
+PASS landscape handle reachable and state preserved
+PASS fixed light presentation under system dark setting
+PASS restored baseline

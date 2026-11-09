@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources xmlns:android="http://schemas.android.com/apk/res/android">
+<resources>
     <style name="Theme.HomeTiming" parent="Theme.Material3.Light.NoActionBar">
         <item name="colorPrimary">@color/ht_primary</item>
         <item name="colorOnPrimary">@color/ht_on_primary</item>
@@ -96,7 +96,7 @@
     </style>
     <style name="TextAppearance.HomeTiming.Number" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textSize">@dimen/ht_type_number</item>
-        <item name="lineHeight">56sp</item>
+        <item name="lineHeight">48sp</item>
         <item name="fontFamily">@font/pretendard_regular</item>
         <item name="android:fontFamily">@font/pretendard_regular</item>
         <item name="android:textStyle">normal</item>
@@ -106,9 +106,9 @@
     </style>
     <style name="TextAppearance.HomeTiming.Brand" parent="TextAppearance.MaterialComponents.Body1">
         <item name="android:textSize">@dimen/ht_type_brand</item>
-        <item name="lineHeight">26sp</item>
-        <item name="fontFamily">@font/pretendard_bold</item>
-        <item name="android:fontFamily">@font/pretendard_bold</item>
+        <item name="lineHeight">24sp</item>
+        <item name="fontFamily">@font/pretendard_semibold</item>
+        <item name="android:fontFamily">@font/pretendard_semibold</item>
         <item name="android:textStyle">normal</item>
         <item name="android:textColor">@color/ht_on_primary</item>
         <item name="android:includeFontPadding">false</item>
@@ -137,7 +137,7 @@
     <style name="Widget.HomeTiming.ScheduleRow" parent="">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:minHeight">88dp</item>
+        <item name="android:minHeight">80dp</item>
         <item name="android:paddingVertical">16dp</item>
         <item name="android:background">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
@@ -166,5 +166,9 @@
         <item name="android:textAppearance">@style/TextAppearance.HomeTiming.Body</item>
         <item name="fontFamily">@font/pretendard_regular</item>
         <item name="android:fontFamily">@font/pretendard_regular</item>
+    </style>
+    <style name="Widget.HomeTiming.SettingsRow" parent="Widget.HomeTiming.ScheduleRow">
+        <item name="android:minHeight">72dp</item>
+        <item name="android:paddingVertical">12dp</item>
     </style>
 </resources>

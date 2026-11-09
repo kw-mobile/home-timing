@@ -8,13 +8,13 @@
     android:gravity="center_vertical"
     android:baselineAligned="false">
     <FrameLayout
-        android:layout_width="@dimen/ht_touch_target"
-        android:layout_height="@dimen/ht_touch_target"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:layout_marginEnd="@dimen/ht_space_12"
         android:background="@drawable/bg_icon_container">
         <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="@dimen/ht_icon"
-            android:layout_height="@dimen/ht_icon"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
             app:srcCompat="@drawable/ic_brush"
             android:importantForAccessibility="no"
             android:layout_gravity="center"
@@ -34,7 +34,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/item_brush_meta"
-            android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+            android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
             android:layout_marginTop="@dimen/ht_space_4" />
     </LinearLayout>
     <com.google.android.material.textview.MaterialTextView
@@ -43,5 +43,7 @@
         android:text="@string/status_overdue"
         android:textAppearance="@style/TextAppearance.HomeTiming.CaptionStrong"
         android:layout_marginStart="@dimen/ht_space_8"
+        android:layout_gravity="top"
+        android:layout_marginTop="3dp"
         android:textColor="@color/ht_error" />
 </LinearLayout>
