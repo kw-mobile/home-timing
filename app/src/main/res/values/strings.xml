@@ -6,11 +6,16 @@
     <string name="nav_home">홈</string>
     <string name="nav_items">용품</string>
     <string name="nav_settings">설정</string>
-    <string name="home_eyebrow">햇살 드는 집 · 11월 6일 금요일</string>
+    <string name="home_eyebrow">햇살 드는 집 · 일정 예시 11월 6일</string>
     <string name="home_title">오늘</string>
     <string name="weather_location">서울 마포구 · 예시</string>
     <string name="weather_temperature">18°</string>
-    <string name="weather_summary">세탁하기 좋은 날</string>
+    <string name="weather_time_placeholder">기기 시간</string>
+    <string name="weather_time">%1$s · 기기 %2$s</string>
+    <string name="time_morning">아침</string>
+    <string name="time_day">낮</string>
+    <string name="time_evening">저녁</string>
+    <string name="time_night">밤</string>
     <string name="summary_items">교체할 용품</string>
     <string name="summary_items_count">2개</string>
     <string name="summary_chores">집안일</string>
@@ -50,7 +55,7 @@
     <string name="sheet_collapse">목록 접기</string>
     <string name="sheet_expanded">펼쳐짐</string>
     <string name="sheet_collapsed">접힘</string>
-    <string name="weather_condition">맑음</string>
+    <string name="weather_condition">맑음 · 예시</string>
     <string name="settings_house_section">우리 집</string>
     <string name="settings_notification_section">알림</string>
 </resources>

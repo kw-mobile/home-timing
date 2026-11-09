@@ -14,9 +14,14 @@
     <color name="ht_error">#B3261E</color>
     <color name="launcher_background">@color/ht_primary</color>
     <color name="ht_glass_surface">#B8FFFFFF</color>
-    <color name="ht_glass_border">#1A000000</color>
+    <color name="ht_glass_border">#14000000</color>
     <color name="ht_glass_ripple">#0F000000</color>
     <color name="ht_glass_unselected">#3C3C43</color>
     <color name="ht_glass_selected">#1C1C1E</color>
     <color name="ht_icon_secondary">#777C80</color>
+    <color name="ht_glass_highlight">#99FFFFFF</color>
+    <color name="ht_morning">#18483C</color>
+    <color name="ht_evening">#293E3D</color>
+    <color name="ht_night">#142A35</color>
+    <color name="ht_moon">#DBE6E9</color>
 </resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.kwmobile.hometiming.ui.main.HomeTimeOfDayTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2026-11-09T12:34:46.816Z" hostname="Riacoui-MacBookPro.local" time="0.01">
+  <properties/>
+  <testcase name="sameInstantUsesTheProvidedLocalZone" classname="com.kwmobile.hometiming.ui.main.HomeTimeOfDayTest" time="0.007"/>
+  <testcase name="transitionsAtExactLocalBoundaries" classname="com.kwmobile.hometiming.ui.main.HomeTimeOfDayTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- True backdrop blur supports a clearer surface; older APIs retain readable frosting. -->
+    <color name="ht_glass_surface">#47FFFFFF</color>
+</resources>

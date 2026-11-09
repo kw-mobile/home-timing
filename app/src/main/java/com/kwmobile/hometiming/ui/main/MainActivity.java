@@ -1,6 +1,15 @@
 package com.kwmobile.hometiming.ui.main;
 
 import android.os.Bundle;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.widget.ImageView;
+import android.widget.TextView;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 import android.os.Build;
 import android.util.SparseArray;
 import android.view.View;
@@ -31,6 +40,12 @@ public final class MainActivity extends AppCompatActivity {
     private static final String SHEET_STATE = "sheet_state";
     private final SparseArray<View> previewScreens = new SparseArray<>();
     private ActivityMainBinding binding;
+    private final BroadcastReceiver clockReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            updateHomeTime();
+        }
+    };
     private int homeSheetState = BottomSheetBehavior.STATE_COLLAPSED;
 
     @Override
@@ -130,6 +145,73 @@ public final class MainActivity extends AppCompatActivity {
         }
         binding.screenContainer.removeAllViews();
         binding.screenContainer.addView(screen);
+        updateHomeTime();
+        binding.glassBackdrop.refresh();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        IntentFilter clock = new IntentFilter(Intent.ACTION_TIME_TICK);
+        clock.addAction(Intent.ACTION_TIME_CHANGED);
+        clock.addAction(Intent.ACTION_TIMEZONE_CHANGED);
+        ContextCompat.registerReceiver(this, clockReceiver, clock, ContextCompat.RECEIVER_NOT_EXPORTED);
+        updateHomeTime();
+    }
+
+    @Override
+    protected void onStop() {
+        unregisterReceiver(clockReceiver);
+        super.onStop();
+    }
+
+    private void updateHomeTime() {
+        ZonedDateTime now = ZonedDateTime.now();
+        HomeTimeOfDay period = HomeTimeOfDay.at(now);
+        int background;
+        int label;
+        int icon;
+        int iconColor;
+        switch (period) {
+            case MORNING:
+                background = R.color.ht_morning;
+                label = R.string.time_morning;
+                icon = R.drawable.ic_sun;
+                iconColor = R.color.ht_accent;
+                break;
+            case DAY:
+                background = R.color.ht_primary;
+                label = R.string.time_day;
+                icon = R.drawable.ic_sun;
+                iconColor = R.color.ht_accent;
+                break;
+            case EVENING:
+                background = R.color.ht_evening;
+                label = R.string.time_evening;
+                icon = R.drawable.ic_sunset;
+                iconColor = R.color.ht_accent;
+                break;
+            default:
+                background = R.color.ht_night;
+                label = R.string.time_night;
+                icon = R.drawable.ic_moon;
+                iconColor = R.color.ht_moon;
+                break;
+        }
+        boolean homeSelected = binding.screenContainer.findViewById(R.id.preview_sheet) != null;
+        int backdropColor = ContextCompat.getColor(this,
+                homeSelected ? background : R.color.ht_primary);
+        binding.getRoot().setBackgroundColor(backdropColor);
+        getWindow().setStatusBarColor(backdropColor);
+        View home = previewScreens.get(R.id.nav_home);
+        if (home != null) {
+            ImageView weatherIcon = home.findViewById(R.id.weather_icon);
+            weatherIcon.setImageResource(icon);
+            weatherIcon.setImageTintList(ContextCompat.getColorStateList(this, iconColor));
+            TextView time = home.findViewById(R.id.weather_time);
+            time.setText(getString(R.string.weather_time, getString(label),
+                    now.format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))));
+        }
         binding.glassBackdrop.refresh();
     }
 

@@ -63,6 +63,7 @@
                     android:orientation="vertical"
                     android:gravity="end">
                     <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/weather_icon"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:importantForAccessibility="no"
@@ -78,7 +79,8 @@
                     <com.google.android.material.textview.MaterialTextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/weather_summary"
+                        android:id="@+id/weather_time"
+                        android:text="@string/weather_time_placeholder"
                         android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
                         android:layout_marginTop="4dp"
                         android:textColor="@color/ht_on_primary_muted" />

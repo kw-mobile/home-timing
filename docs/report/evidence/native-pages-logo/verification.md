@@ -1,5 +1,7 @@
 # 홈 전용 패널·앱 아이콘 검증
 
+이 기록은 `ebe1ba8` 시점입니다. 후속 시간대 표현·칫솔·유리 표면 조정은 [현재 검증](../native-time-glass/verification.md)을 확인합니다.
+
 2026-11-09. 기준 커밋 `c5b3aa5` 이후 변경입니다. 검증 app/ Git tree는 `d92e8769c4ba15744354b924a12ebc18c9d1a191`, APK SHA-256은 `c06eb467c9df244fac9ac4d3784835e7afe5133fbbc4b20f1819df2f725566af`입니다. 구현 규격은 [디자인 시스템](../../../DESIGN_SYSTEM.md)을 따릅니다.
 
 ## 구현

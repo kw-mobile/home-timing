@@ -1,0 +1,10 @@
+ERROR: null root node returned by UiTestAutomationBridge.
+PASS morning updates from system timezone while activity is open
+PASS day updates from system timezone while activity is open
+PASS evening updates from system timezone while activity is open
+PASS night updates from system timezone while activity is open
+PASS home sheet actions retained
+PASS glass sampled with real settings content behind bar in landscape
+PASS new brush in shared item layout
+PASS glass over real list content at default font size on compact height
+PASS original timezone, viewport, font and rotation settings restored

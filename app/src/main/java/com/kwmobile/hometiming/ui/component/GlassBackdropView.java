@@ -28,7 +28,7 @@ public final class GlassBackdropView extends View {
         super(context, attrs);
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            float radius = 12 * getResources().getDisplayMetrics().density;
+            float radius = 16 * getResources().getDisplayMetrics().density;
             setRenderEffect(RenderEffect.createBlurEffect(radius, radius, Shader.TileMode.CLAMP));
         }
     }
