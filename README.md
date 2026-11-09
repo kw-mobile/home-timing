@@ -2,7 +2,7 @@
 
 생활용품 교체일과 날씨에 맞춘 집안일을 관리하는 Android 앱입니다. Java + XML, Firebase, 기상청 API를 사용하며 가족이 목록과 완료 이력을 공유합니다.
 
-> 현재 공통 개발 환경과 기본 화면을 준비한 단계입니다. 제품 기능과 Firestore 보안 규칙은 후속 작업으로 구현합니다.
+> 현재 공통 개발 환경과 Android XML 기반 홈·용품·설정 디자인 미리보기를 준비한 단계입니다. 화면은 예시 데이터이며 제품 기능과 Firestore 보안 규칙은 후속 작업으로 구현합니다.
 
 ## 시작하기
 
@@ -19,7 +19,7 @@ clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정�
 
 Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상청 키 없이도 기본 빌드가 가능하며, 실제 연동 준비는 [외부 서비스 설정](docs/SETUP.md#외부-서비스)을 따릅니다.
 
-화면 구성은 [HTML 프로토타입](docs/prototype/README.md)에서 확인할 수 있습니다.
+현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. Android Studio에서 앱을 실행하면 네이티브 미리보기를 확인할 수 있습니다. [HTML 프로토타입](docs/prototype/README.md)은 이전 구조의 참고 시안입니다.
 
 ## 팀 작업 안내
 

@@ -20,7 +20,7 @@
 
 | 2026-11-08 | 조민제: PRD 화면 시안·디자인 스킬·홈 하단 내비게이션 요청; Codex (도구): 디자인·HTML 구현 및 브라우저 검증 | MVP 7개 화면과 P1 캘린더 참고 시안, 홈·용품·설정 고정 내비게이션, 예시 데이터 상호작용 | [화면 시안 이슈 #16](https://github.com/kw-mobile/home-timing/issues/16), [PR #17](https://github.com/kw-mobile/home-timing/pull/17) |
 
-| 2026-11-09 | 사용자(성명 확인 필요): 레퍼런스·컬러 방향 승인, 하단 내비게이션·세부 규격 요청; Codex (도구): 규격·시안 작성 및 정적 검증 | 딥 그린 컬러·집/시간 로고·타이포·간격·컴포넌트·상태 규격과 3탭 내비게이션 적용. CSS 236개 규칙·토큰 참조·상대 링크·대비 12쌍, 모의 DOM 경로 12개·세탁일 변경 확인. 실제 렌더링·Android 기기 미검증 | [디자인 규격](../DESIGN_SYSTEM.md), [HTML 시안](../prototype/index.html). 로컬 `feature/design-system-foundations`, 기준 `8511eb9`. 원격 Repository not found로 이슈·PR 미생성 |
+| 2026-11-09 | 사용자(성명 확인 필요): 레퍼런스·단색 평면 디자인 방향·Android XML 제작 지정; Codex (도구): XML·Java·규격 작성, 빌드·에뮬레이터 검증 | 딥 그린 상단·밝은 목록 구조의 홈·용품·설정 네이티브 미리보기, 공통 색상·글자·치수·로고와 3탭 전환. 실제 제품 데이터 미연결 | [디자인 규격](../DESIGN_SYSTEM.md), [검증·스크린샷](evidence/native-design/verification.md). 로컬 `feature/design-system-foundations`, 원격 접근 실패로 이슈·PR 미생성 |
 
 ## 기록 예시
 

@@ -1,4 +1,100 @@
 <?xml version="1.0" encoding="utf-8"?>
-<resources>
-    <style name="Theme.HomeTiming" parent="Theme.Material3.DayNight.NoActionBar" />
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+    <style name="Theme.HomeTiming" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/ht_primary</item>
+        <item name="colorOnPrimary">@color/ht_on_primary</item>
+        <item name="colorPrimaryContainer">@color/ht_container</item>
+        <item name="colorOnPrimaryContainer">@color/ht_primary</item>
+        <item name="colorSecondary">@color/ht_secondary</item>
+        <item name="colorSurface">@color/ht_surface</item>
+        <item name="colorOnSurface">@color/ht_text</item>
+        <item name="colorError">@color/ht_error</item>
+        <item name="android:colorBackground">@color/ht_primary</item>
+        <item name="android:windowBackground">@color/ht_primary</item>
+        <item name="android:fontFamily">sans</item>
+        <item name="android:statusBarColor">@color/ht_primary</item>
+        <item name="android:navigationBarColor">@color/ht_primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.BodyStrong" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_body</item>
+        <item name="lineHeight">24sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_text</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Label" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_label</item>
+        <item name="lineHeight">20sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_text_secondary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Caption" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_caption</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_text_secondary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Title" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_title</item>
+        <item name="lineHeight">28sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_text</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Display" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_display</item>
+        <item name="lineHeight">40sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ht_on_primary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Number" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_number</item>
+        <item name="lineHeight">56sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_on_primary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Brand" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_title</item>
+        <item name="lineHeight">28sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/ht_on_primary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="TextAppearance.HomeTiming.Navigation" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:textSize">@dimen/ht_type_caption</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:textColor">@color/ht_primary</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+    <style name="Widget.HomeTiming.ScheduleRow" parent="">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">88dp</item>
+        <item name="android:paddingVertical">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
 </resources>

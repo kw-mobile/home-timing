@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_background">#235C4B</color>
+    <color name="ht_primary">#0C3B2E</color>
+    <color name="ht_primary_soft">#1A4B3D</color>
+    <color name="ht_secondary">#6D9773</color>
+    <color name="ht_on_primary">#FFFFFF</color>
+    <color name="ht_on_primary_muted">#CBDDD0</color>
+    <color name="ht_background">#F7F9F6</color>
+    <color name="ht_surface">#FFFFFF</color>
+    <color name="ht_container">#EAF1EB</color>
+    <color name="ht_text">#172B24</color>
+    <color name="ht_text_secondary">#58685F</color>
+    <color name="ht_divider">#DDE5DE</color>
+    <color name="ht_accent">#FFBA00</color>
+    <color name="ht_warning">#8A4B10</color>
+    <color name="ht_error">#B3261E</color>
+    <color name="launcher_background">@color/ht_primary</color>
 </resources>

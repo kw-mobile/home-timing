@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:clipToPadding="false"
+    android:id="@+id/preview_scroll">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="@dimen/ht_screen_gutter"
+            android:paddingTop="@dimen/ht_space_24"
+            android:paddingBottom="@dimen/ht_space_32">
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_eyebrow"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+                android:textColor="@color/ht_on_primary_muted" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/home_title"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Display"
+                android:layout_marginTop="@dimen/ht_space_12" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:layout_marginTop="@dimen/ht_space_32"
+                android:baselineAligned="false">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/weather_temperature"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Number" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/weather_location"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:layout_marginTop="@dimen/ht_space_8"
+                        android:textColor="@color/ht_on_primary_muted" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/weather_summary"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+                        android:layout_marginTop="@dimen/ht_space_4"
+                        android:textColor="@color/ht_on_primary" />
+                </LinearLayout>
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="64dp"
+                    android:layout_height="64dp"
+                    app:srcCompat="@drawable/ic_sun"
+                    app:tint="@color/ht_accent"
+                    android:importantForAccessibility="no" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="28dp"
+                android:baselineAligned="false">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/summary_items"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:textColor="@color/ht_on_primary_muted" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/summary_items_count"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Title"
+                        android:textColor="@color/ht_on_primary"
+                        android:layout_marginTop="@dimen/ht_space_8" />
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/summary_chores"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:textColor="@color/ht_on_primary_muted" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/summary_chores_count"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Title"
+                        android:textColor="@color/ht_on_primary"
+                        android:layout_marginTop="@dimen/ht_space_8" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:background="@drawable/bg_content_sheet"
+            android:paddingHorizontal="@dimen/ht_screen_gutter"
+            android:paddingTop="28dp"
+            android:paddingBottom="@dimen/ht_space_32">
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today_heading"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Title" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/today_count"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                android:layout_marginTop="@dimen/ht_space_4" />
+            <include layout="@layout/component_schedule_filter" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/ht_divider" />
+            <include layout="@layout/component_schedule_brush" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/next_heading"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Title"
+                android:layout_marginTop="@dimen/ht_space_24" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/next_hint"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                android:layout_marginTop="@dimen/ht_space_4" />
+            <include layout="@layout/component_schedule_bedding" />
+            <com.google.android.material.textview.MaterialTextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/preview_notice"
+                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                android:layout_marginTop="@dimen/ht_space_16" />
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:background="@color/ht_background"
+            android:importantForAccessibility="no" />
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
