@@ -141,7 +141,7 @@
     <string name="preview_copy_140" formatted="false">청명함</string>
     <string name="preview_copy_141" formatted="false">맑음</string>
     <string name="preview_copy_144" formatted="false">3일 예보</string>
-    <string name="preview_copy_145" formatted="false">서울 마포구 · 예시 데이터</string>
+    <string name="preview_copy_145">%1$s · 예시 데이터</string>
     <string name="preview_copy_146" formatted="false">내일</string>
     <string name="preview_copy_147" formatted="false">모레</string>
     <string name="preview_copy_148" formatted="false">, 흐림</string>

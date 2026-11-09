@@ -523,7 +523,7 @@ public final class MainActivity extends AppCompatActivity {
     private void bindWeather() {
         updateWeather();LinearLayout content=box(R.id.weather_content);
         if(stateMessage(content,this::render))return;
-        section(content,getString(R.string.preview_copy_144),getString(R.string.preview_copy_145));
+        section(content,getString(R.string.preview_copy_144),getString(R.string.preview_copy_145,s().region));
         for(int i=0;i<3;i++) {
             LinearLayout row=horizontal();row.setMinimumHeight(dp(62));TextView day=text(i==0?getString(R.string.preview_copy_017):i==1?getString(R.string.preview_copy_146):getString(R.string.preview_copy_147),R.style.TextAppearance_HomeTiming_BodyStrong);day.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));row.addView(day);
             ImageView icon=new androidx.appcompat.widget.AppCompatImageView(this);icon.setImageResource(i==1?R.drawable.ic_cloud:s().condition.equals("rain")?R.drawable.ic_rain:R.drawable.ic_sun);icon.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);row.addView(icon,new LinearLayout.LayoutParams(dp(22),dp(22)));

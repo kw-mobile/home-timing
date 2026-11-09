@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/preview_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/page_body" android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="20dp" android:paddingBottom="@dimen/ht_space_32">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/page_body"
+        android:clipToPadding="false"
+        android:clipChildren="false" android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="20dp" android:paddingBottom="@dimen/ht_space_32">
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_011" android:textAppearance="@style/TextAppearance.HomeTiming.Display"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_012" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="6dp"/>
         <Space android:layout_width="1dp" android:layout_height="@dimen/ht_space_24"/>
