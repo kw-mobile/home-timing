@@ -31,6 +31,7 @@ public final class MainActivity extends AppCompatActivity {
     private static final String SHEET_STATE = "sheet_state";
     private final SparseArray<View> previewScreens = new SparseArray<>();
     private ActivityMainBinding binding;
+    private int homeSheetState = BottomSheetBehavior.STATE_COLLAPSED;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,16 +60,16 @@ public final class MainActivity extends AppCompatActivity {
         });
         int selectedTab = savedInstanceState == null
                 ? R.id.nav_home : savedInstanceState.getInt(SELECTED_TAB, R.id.nav_home);
-        binding.bottomNavigation.setSelectedItemId(selectedTab);
         if (savedInstanceState != null) {
-            int sheetState = savedInstanceState.getInt(SHEET_STATE, BottomSheetBehavior.STATE_COLLAPSED);
-            binding.screenContainer.post(() -> currentSheet().setState(sheetState));
+            homeSheetState = savedInstanceState.getInt(SHEET_STATE, BottomSheetBehavior.STATE_COLLAPSED);
         }
+        binding.bottomNavigation.setSelectedItemId(selectedTab);
         getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
             @Override
             public void handleOnBackPressed() {
-                if (currentSheet().getState() != BottomSheetBehavior.STATE_COLLAPSED) {
-                    currentSheet().setState(BottomSheetBehavior.STATE_COLLAPSED);
+                BottomSheetBehavior<View> sheet = currentSheet();
+                if (sheet != null && sheet.getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                    sheet.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 } else if (binding.bottomNavigation.getSelectedItemId() != R.id.nav_home) {
                     binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
                 } else {
@@ -117,7 +118,14 @@ public final class MainActivity extends AppCompatActivity {
                     : tabId == R.id.nav_settings ? R.layout.screen_settings : R.layout.screen_home;
             screen = getLayoutInflater().inflate(layout, binding.screenContainer, false);
             bindPreviewActions(screen);
-            configureSheet(screen);
+            if (tabId == R.id.nav_home) {
+                configureSheet(screen);
+                BottomSheetBehavior<View> home = BottomSheetBehavior.from(
+                        screen.findViewById(R.id.preview_sheet));
+                screen.post(() -> home.setState(homeSheetState));
+            } else {
+                configurePage(screen);
+            }
             previewScreens.put(tabId, screen);
         }
         binding.screenContainer.removeAllViews();
@@ -126,7 +134,19 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private BottomSheetBehavior<View> currentSheet() {
-        return BottomSheetBehavior.from(binding.screenContainer.findViewById(R.id.preview_sheet));
+        View sheet = binding.screenContainer.findViewById(R.id.preview_sheet);
+        return sheet == null ? null : BottomSheetBehavior.from(sheet);
+    }
+
+    private void configurePage(View screen) {
+        screen.addOnLayoutChangeListener((view, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> {
+            int inset = navigationOverlayInset();
+            if (screen.getPaddingBottom() != inset) {
+                screen.setPadding(0, 0, 0, inset);
+            }
+            binding.glassBackdrop.refresh();
+        });
     }
 
     private void configureSheet(View screen) {
@@ -261,8 +281,14 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putInt(SELECTED_TAB, binding.bottomNavigation.getSelectedItemId());
-        outState.putInt(SHEET_STATE, currentSheet().getState() == BottomSheetBehavior.STATE_EXPANDED
-                ? BottomSheetBehavior.STATE_EXPANDED : BottomSheetBehavior.STATE_COLLAPSED);
+        View home = previewScreens.get(R.id.nav_home);
+        if (home != null) {
+            BottomSheetBehavior<View> sheet = BottomSheetBehavior.from(
+                    home.findViewById(R.id.preview_sheet));
+            homeSheetState = sheet.getState() == BottomSheetBehavior.STATE_EXPANDED
+                    ? BottomSheetBehavior.STATE_EXPANDED : BottomSheetBehavior.STATE_COLLAPSED;
+        }
+        outState.putInt(SHEET_STATE, homeSheetState);
         super.onSaveInstanceState(outState);
     }
 }

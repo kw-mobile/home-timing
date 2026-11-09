@@ -1,230 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout
+<!-- Light page surface intentionally covers the shared green window below the brand bar. -->
+<androidx.core.widget.NestedScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/preview_coordinator"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:ignore="Overdraw"
+    android:id="@+id/preview_scroll"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <androidx.core.widget.NestedScrollView
-        android:id="@+id/hero_scroll"
+    android:layout_height="match_parent"
+    android:background="@color/ht_background"
+    android:fillViewport="true"
+    android:clipToPadding="false">
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:clipToPadding="false">
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:paddingHorizontal="@dimen/ht_screen_gutter"
+        android:paddingTop="24dp"
+        android:paddingBottom="@dimen/ht_space_32">
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_eyebrow"
+            android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+            android:textColor="@color/ht_text_secondary" />
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_title"
+            android:textAppearance="@style/TextAppearance.HomeTiming.Display"
+            android:textColor="@color/ht_text"
+            android:id="@+id/page_title"
+            android:layout_marginTop="4dp" />
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_house_section"
+            android:textAppearance="@style/TextAppearance.HomeTiming.CaptionStrong"
+            android:id="@+id/section_primary"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="8dp" />
         <LinearLayout
-            android:id="@+id/hero_content"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingHorizontal="@dimen/ht_screen_gutter"
-            android:paddingTop="16dp"
-            android:paddingBottom="24dp">
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_eyebrow"
-                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                android:textColor="@color/ht_on_primary_muted" />
-            <com.google.android.material.textview.MaterialTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/settings_title"
-                android:textAppearance="@style/TextAppearance.HomeTiming.Display"
-                android:id="@+id/page_title"
-                android:layout_marginTop="4dp" />
-        </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
-    <LinearLayout
-        android:id="@+id/preview_sheet"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:background="@drawable/bg_content_sheet"
-        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
-        app:behavior_peekHeight="224dp"
-        app:behavior_hideable="false"
-        app:behavior_fitToContents="true"
-        app:behavior_draggable="true">
-        <androidx.appcompat.widget.AppCompatImageButton
-            android:id="@+id/sheet_handle"
-            android:layout_width="match_parent"
-            android:layout_height="@dimen/ht_touch_target"
-            android:background="?attr/selectableItemBackground"
-            android:contentDescription="@string/sheet_expand"
-            android:scaleType="center"
-            app:srcCompat="@drawable/ic_drag_handle"
-            app:tint="@color/ht_text_secondary" />
-        <androidx.core.widget.NestedScrollView
-            android:id="@+id/preview_scroll"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:fillViewport="true"
-            android:clipToPadding="false">
+            android:id="@+id/house_group"
+            android:background="@drawable/bg_settings_group">
             <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:paddingHorizontal="@dimen/ht_screen_gutter"
-                android:paddingBottom="@dimen/ht_space_32">
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_house_section"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.CaptionStrong"
-                    android:id="@+id/section_primary"
-                    android:layout_marginBottom="8dp" />
+                style="@style/Widget.HomeTiming.SettingsRow"
+                android:id="@+id/settings_house"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:baselineAligned="false"
+                android:paddingHorizontal="16dp">
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_home"
+                    android:layout_marginEnd="12dp"
+                    app:tint="@color/ht_primary" />
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/house_group"
-                    android:background="@drawable/bg_settings_group">
-                    <LinearLayout
-                        style="@style/Widget.HomeTiming.SettingsRow"
-                        android:id="@+id/settings_house"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:baselineAligned="false"
-                        android:paddingHorizontal="16dp">
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_home"
-                            android:layout_marginEnd="12dp"
-                            app:tint="@color/ht_primary" />
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_house"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_house_value"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_arrow"
-                            android:layout_marginStart="8dp"
-                            app:tint="@color/ht_icon_secondary" />
-                    </LinearLayout>
-                    <View
-                        android:layout_width="match_parent"
-                        android:layout_height="1dp"
-                        android:background="@color/ht_divider"
-                        android:layout_marginStart="48dp"
-                        android:layout_marginEnd="16dp" />
-                    <LinearLayout
-                        style="@style/Widget.HomeTiming.SettingsRow"
-                        android:id="@+id/settings_family"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:baselineAligned="false"
-                        android:paddingHorizontal="16dp">
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_users"
-                            android:layout_marginEnd="12dp"
-                            app:tint="@color/ht_primary" />
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_family"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_family_value"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_arrow"
-                            android:layout_marginStart="8dp"
-                            app:tint="@color/ht_icon_secondary" />
-                    </LinearLayout>
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_house"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_house_value"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:layout_marginTop="4dp" />
                 </LinearLayout>
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_notification_section"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.CaptionStrong"
-                    android:id="@+id/section_secondary"
-                    android:layout_marginTop="24dp"
-                    android:layout_marginBottom="8dp" />
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:id="@+id/notification_group"
-                    android:background="@drawable/bg_settings_group">
-                    <LinearLayout
-                        style="@style/Widget.HomeTiming.SettingsRow"
-                        android:id="@+id/settings_notification"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:baselineAligned="false"
-                        android:paddingHorizontal="16dp">
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_bell"
-                            android:layout_marginEnd="12dp"
-                            app:tint="@color/ht_primary" />
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_notification"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="@string/settings_notification_value"
-                                android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                                android:layout_marginTop="4dp" />
-                        </LinearLayout>
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="16dp"
-                            android:layout_height="16dp"
-                            android:importantForAccessibility="no"
-                            app:srcCompat="@drawable/ic_arrow"
-                            android:layout_marginStart="8dp"
-                            app:tint="@color/ht_icon_secondary" />
-                    </LinearLayout>
-                </LinearLayout>
-                <com.google.android.material.textview.MaterialTextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/settings_notice"
-                    android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
-                    android:layout_marginTop="20dp" />
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_arrow"
+                    android:layout_marginStart="8dp"
+                    app:tint="@color/ht_icon_secondary" />
             </LinearLayout>
-        </androidx.core.widget.NestedScrollView>
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="@color/ht_divider"
+                android:layout_marginStart="48dp"
+                android:layout_marginEnd="16dp" />
+            <LinearLayout
+                style="@style/Widget.HomeTiming.SettingsRow"
+                android:id="@+id/settings_family"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:baselineAligned="false"
+                android:paddingHorizontal="16dp">
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_users"
+                    android:layout_marginEnd="12dp"
+                    app:tint="@color/ht_primary" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_family"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_family_value"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_arrow"
+                    android:layout_marginStart="8dp"
+                    app:tint="@color/ht_icon_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_notification_section"
+            android:textAppearance="@style/TextAppearance.HomeTiming.CaptionStrong"
+            android:id="@+id/section_secondary"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:id="@+id/notification_group"
+            android:background="@drawable/bg_settings_group">
+            <LinearLayout
+                style="@style/Widget.HomeTiming.SettingsRow"
+                android:id="@+id/settings_notification"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:baselineAligned="false"
+                android:paddingHorizontal="16dp">
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_bell"
+                    android:layout_marginEnd="12dp"
+                    app:tint="@color/ht_primary" />
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_notification"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/settings_notification_value"
+                        android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+                        android:layout_marginTop="4dp" />
+                </LinearLayout>
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:importantForAccessibility="no"
+                    app:srcCompat="@drawable/ic_arrow"
+                    android:layout_marginStart="8dp"
+                    app:tint="@color/ht_icon_secondary" />
+            </LinearLayout>
+        </LinearLayout>
+        <com.google.android.material.textview.MaterialTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/settings_notice"
+            android:textAppearance="@style/TextAppearance.HomeTiming.Caption"
+            android:layout_marginTop="20dp" />
     </LinearLayout>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.core.widget.NestedScrollView>

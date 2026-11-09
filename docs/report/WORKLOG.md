@@ -20,7 +20,7 @@
 
 | 2026-11-08 | 조민제: PRD 화면 시안·디자인 스킬·홈 하단 내비게이션 요청; Codex (도구): 디자인·HTML 구현 및 브라우저 검증 | MVP 7개 화면과 P1 캘린더 참고 시안, 홈·용품·설정 고정 내비게이션, 예시 데이터 상호작용 | [화면 시안 이슈 #16](https://github.com/kw-mobile/home-timing/issues/16), [PR #17](https://github.com/kw-mobile/home-timing/pull/17) |
 
-| 2026-11-09 | 사용자(성명 확인 필요): 레퍼런스·단색 평면 디자인 방향·Android XML 제작 지정; Codex (도구): XML·Java·규격 작성, 빌드·에뮬레이터 검증 | 딥 그린 상단·밝은 목록 구조의 홈·용품·설정 네이티브 미리보기, 공통 색상·글자·치수·로고와 3탭 전환, 단색 태양·실제 드래그 패널·핸들·뒤로가기·회전 상태 복원, 중성 유리 바·배경 전용 블러, Pretendard·Apple 참고 글자 위계, 기한 초과 우선 목록·압축한 날씨·설정 그룹·무채색 유리 바, 글래스 캡처 후 화면 누락 보정. 실제 제품 데이터 미연결 | [디자인 규격](../DESIGN_SYSTEM.md), [검증·스크린샷](evidence/native-refined/verification.md). 로컬 `feature/design-system-foundations`, 원격 접근 실패로 이슈·PR 미생성 |
+| 2026-11-09 | 사용자(성명 확인 필요): 레퍼런스·단색 평면 디자인 방향·Android XML 제작 지정; Codex (도구): XML·Java·규격 작성, 빌드·에뮬레이터 검증 | 딥 그린 상단·밝은 목록 구조의 홈·용품·설정 네이티브 미리보기, 공통 색상·글자·치수·로고와 3탭 전환, 단색 태양·실제 드래그 패널·핸들·뒤로가기·회전 상태 복원, 중성 유리 바·배경 전용 블러, Pretendard·Apple 참고 글자 위계, 기한 초과 우선 목록·압축한 날씨·설정 그룹·무채색 유리 바, 글래스 캡처 후 화면 누락 보정. 홈만 드래그 패널 유지, 용품·설정 일반 스크롤 화면 전환, 집 실루엣·원형 시계 로고와 1024px 앱 아이콘 제작. 실제 제품 데이터 미연결 | [디자인 규격](../DESIGN_SYSTEM.md), [검증·스크린샷](evidence/native-pages-logo/verification.md). 로컬 `feature/design-system-foundations`, 원격 접근 실패로 이슈·PR 미생성 |
 
 ## 기록 예시
 

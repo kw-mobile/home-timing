@@ -1,0 +1,9 @@
+PASS home handle expands
+PASS nav_items is a regular scroll page without sheet
+PASS nav_settings is a regular scroll page without sheet
+PASS Back from page returns Home and restores expanded state after rotation
+PASS Back collapses home panel
+PASS settings notice works
+PASS nav_items 360dp font200 last row above navigation
+PASS nav_settings 360dp font200 last row above navigation
+PASS restored baseline

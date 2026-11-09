@@ -1,5 +1,7 @@
 # 네이티브 화면 정돈 검증
 
+이 기록은 `c5b3aa5` 시점입니다. 현재 홈 전용 패널·일반 페이지·새 로고는 [후속 검증](../native-pages-logo/verification.md)을 확인합니다.
+
 2026-11-09. 기준 커밋 `8356b09` 이후 Android XML·Java 미리보기 변경입니다. 검증한 app/ Git tree는 `bfd57b1973604f863b09a818e451733ed3dcd8fe`, APK SHA-256은 `1a8eff105fdf79991788e0f5ad217cc0f903a33e1f820b48be2eeb0fb0eb2db0`입니다. 공통 규격은 [디자인 시스템](../../../DESIGN_SYSTEM.md)에 둡니다.
 
 ## 설계와 구현
