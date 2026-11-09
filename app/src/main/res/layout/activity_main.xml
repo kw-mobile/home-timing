@@ -57,7 +57,7 @@
         android:importantForAccessibility="no" />
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/navigation_container"
-        android:maxWidth="480dp"
+        android:maxWidth="@dimen/ht_navigation_max_width"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"

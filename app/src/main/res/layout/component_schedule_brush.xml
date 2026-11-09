@@ -8,13 +8,13 @@
     android:gravity="center_vertical"
     android:baselineAligned="false">
     <FrameLayout
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+        android:layout_width="@dimen/ht_icon_container"
+        android:layout_height="@dimen/ht_icon_container"
         android:layout_marginEnd="@dimen/ht_space_12"
         android:background="@drawable/bg_icon_container">
         <androidx.appcompat.widget.AppCompatImageView
-            android:layout_width="20dp"
-            android:layout_height="20dp"
+            android:layout_width="@dimen/ht_icon_content"
+            android:layout_height="@dimen/ht_icon_content"
             app:srcCompat="@drawable/ic_brush"
             android:importantForAccessibility="no"
             android:layout_gravity="center"

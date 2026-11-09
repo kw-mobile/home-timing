@@ -57,7 +57,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="@color/ht_divider"
-            android:layout_marginStart="52dp" />
+            android:layout_marginStart="@dimen/ht_schedule_text_inset" />
         <include layout="@layout/component_schedule_filter" />
         <com.google.android.material.textview.MaterialTextView
             android:layout_width="wrap_content"

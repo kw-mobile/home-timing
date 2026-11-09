@@ -54,8 +54,8 @@
                 android:baselineAligned="false"
                 android:paddingHorizontal="16dp">
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="@dimen/ht_icon_content"
+                    android:layout_height="@dimen/ht_icon_content"
                     android:importantForAccessibility="no"
                     app:srcCompat="@drawable/ic_home"
                     android:layout_marginEnd="12dp"
@@ -99,8 +99,8 @@
                 android:baselineAligned="false"
                 android:paddingHorizontal="16dp">
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="@dimen/ht_icon_content"
+                    android:layout_height="@dimen/ht_icon_content"
                     android:importantForAccessibility="no"
                     app:srcCompat="@drawable/ic_users"
                     android:layout_marginEnd="12dp"
@@ -153,8 +153,8 @@
                 android:baselineAligned="false"
                 android:paddingHorizontal="16dp">
                 <androidx.appcompat.widget.AppCompatImageView
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
+                    android:layout_width="@dimen/ht_icon_content"
+                    android:layout_height="@dimen/ht_icon_content"
                     android:importantForAccessibility="no"
                     app:srcCompat="@drawable/ic_bell"
                     android:layout_marginEnd="12dp"

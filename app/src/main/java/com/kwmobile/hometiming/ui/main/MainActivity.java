@@ -59,7 +59,7 @@ public final class MainActivity extends AppCompatActivity {
         binding.navigationContainer.setOutlineProvider(new ViewOutlineProvider() {
             @Override
             public void getOutline(View view, Outline outline) {
-                float radius = 24 * getResources().getDisplayMetrics().density;
+                float radius = getResources().getDimension(R.dimen.ht_radius_surface);
                 outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), radius);
             }
         });
@@ -209,8 +209,10 @@ public final class MainActivity extends AppCompatActivity {
             weatherIcon.setImageResource(icon);
             weatherIcon.setImageTintList(ContextCompat.getColorStateList(this, iconColor));
             TextView time = home.findViewById(R.id.weather_time);
-            time.setText(getString(R.string.weather_time, getString(label),
-                    now.format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()))));
+            String clock = now.format(DateTimeFormatter.ofPattern("HH:mm", Locale.getDefault()));
+            time.setText(getString(R.string.weather_time, getString(label), clock));
+            time.setContentDescription(getString(R.string.weather_time_accessibility,
+                    getString(label), clock));
         }
         binding.glassBackdrop.refresh();
     }
@@ -316,20 +318,31 @@ public final class MainActivity extends AppCompatActivity {
             }
         }
         int[] scheduleIds = {R.id.schedule_filter, R.id.schedule_brush, R.id.schedule_bedding};
-        for (int id : scheduleIds) {
+        int[] scheduleNames = {R.string.item_filter, R.string.item_brush, R.string.item_bedding};
+        int[] scheduleDetails = {R.string.item_filter_meta, R.string.item_brush_meta, R.string.item_bedding_meta};
+        int[] scheduleStatuses = {R.string.status_today, R.string.status_overdue, R.string.status_tomorrow};
+        for (int index = 0; index < scheduleIds.length; index++) {
+            int id = scheduleIds[index];
             View row = screen.findViewById(id);
             if (row != null) {
                 if (getResources().getConfiguration().fontScale >= 1.5f) {
                     stackScheduleStatus((LinearLayout) row);
                 }
-                row.setOnClickListener(view -> showPreviewNotice(R.string.preview_item_notice));
+                int name = scheduleNames[index];
+                String message = getString(R.string.preview_item_notice,
+                        getString(scheduleDetails[index]), getString(scheduleStatuses[index]));
+                row.setOnClickListener(view -> showPreviewNotice(name, message));
             }
         }
         int[] settingIds = {R.id.settings_house, R.id.settings_family, R.id.settings_notification};
-        for (int id : settingIds) {
+        int[] settingNames = {R.string.settings_house, R.string.settings_family, R.string.settings_notification};
+        for (int index = 0; index < settingIds.length; index++) {
+            int id = settingIds[index];
             View row = screen.findViewById(id);
             if (row != null) {
-                row.setOnClickListener(view -> showPreviewNotice(R.string.preview_settings_notice));
+                int name = settingNames[index];
+                row.setOnClickListener(view -> showPreviewNotice(name,
+                        getString(R.string.preview_settings_notice)));
             }
         }
     }
@@ -344,9 +357,9 @@ public final class MainActivity extends AppCompatActivity {
         details.addView(status, params);
     }
 
-    private void showPreviewNotice(int message) {
+    private void showPreviewNotice(int title, String message) {
         AlertDialog notice = new MaterialAlertDialogBuilder(this)
-                .setTitle(R.string.preview_dialog_title)
+                .setTitle(title)
                 .setMessage(message)
                 .setPositiveButton(R.string.preview_dialog_close, null)
                 .show();

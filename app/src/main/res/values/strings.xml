@@ -6,12 +6,13 @@
     <string name="nav_home">홈</string>
     <string name="nav_items">용품</string>
     <string name="nav_settings">설정</string>
-    <string name="home_eyebrow">햇살 드는 집 · 일정 예시 11월 6일</string>
+    <string name="home_eyebrow">햇살 드는 집 · 11월 6일 예시</string>
     <string name="home_title">오늘</string>
-    <string name="weather_location">서울 마포구 · 예시</string>
+    <string name="weather_location">서울 마포구 · 예시 날씨</string>
     <string name="weather_temperature">18°</string>
-    <string name="weather_time_placeholder">기기 시간</string>
-    <string name="weather_time">%1$s · 기기 %2$s</string>
+    <string name="weather_time_placeholder">현재 시각</string>
+    <string name="weather_time">%1$s · %2$s</string>
+    <string name="weather_time_accessibility">현재 기기 시각 %1$s %2$s</string>
     <string name="time_morning">아침</string>
     <string name="time_day">낮</string>
     <string name="time_evening">저녁</string>
@@ -47,15 +48,14 @@
     <string name="settings_notification">알림 시각</string>
     <string name="settings_notification_value">오전 9시 · 예시</string>
     <string name="settings_notice">미리보기에서는 설정 변경을 저장하지 않아요.</string>
-    <string name="preview_item_notice">예시 항목입니다. 이 미리보기에서는 등록·완료 기록을 저장하지 않아요.</string>
+    <string name="preview_item_notice">%1$s\n%2$s\n\n예시 항목입니다. 이 미리보기에서는 등록·완료 기록을 저장하지 않아요.</string>
     <string name="preview_settings_notice">이 미리보기에서는 설정 변경을 저장하지 않아요.</string>
-    <string name="preview_dialog_title">미리보기 안내</string>
     <string name="preview_dialog_close">확인</string>
     <string name="sheet_expand">목록 펼치기</string>
     <string name="sheet_collapse">목록 접기</string>
     <string name="sheet_expanded">펼쳐짐</string>
     <string name="sheet_collapsed">접힘</string>
-    <string name="weather_condition">맑음 · 예시</string>
+    <string name="weather_condition">맑음</string>
     <string name="settings_house_section">우리 집</string>
     <string name="settings_notification_section">알림</string>
 </resources>

@@ -9,6 +9,11 @@
     <dimen name="ht_screen_gutter">20dp</dimen>
     <dimen name="ht_touch_target">48dp</dimen>
     <dimen name="ht_icon">24dp</dimen>
+    <dimen name="ht_icon_content">20dp</dimen>
+    <dimen name="ht_icon_container">40dp</dimen>
+    <dimen name="ht_radius_icon">10dp</dimen>
+    <dimen name="ht_schedule_text_inset">52dp</dimen>
+    <dimen name="ht_navigation_max_width">480dp</dimen>
     <dimen name="ht_radius_surface">24dp</dimen>
     <dimen name="ht_navigation_height">64dp</dimen>
     <dimen name="ht_type_caption">13sp</dimen>
