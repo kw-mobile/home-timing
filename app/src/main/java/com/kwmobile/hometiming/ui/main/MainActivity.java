@@ -272,9 +272,10 @@ public final class MainActivity extends AppCompatActivity {
                 else if(event.getActionMasked()==MotionEvent.ACTION_MOVE) {
                     float dx=event.getRawX()-x,dy=event.getRawY()-y;
                     if(Math.abs(dx)>dp(16)&&Math.abs(dx)>Math.abs(dy)*1.5f)horizontal=true;
-                    if(horizontal){v.getParent().requestDisallowInterceptTouchEvent(true);v.setTranslationX(Math.max(-dp(110),Math.min(dp(24),dx*.55f)));return true;}
+                    if(horizontal){v.setPressed(false);v.cancelLongPress();v.getParent().requestDisallowInterceptTouchEvent(true);v.setTranslationX(Math.max(-dp(110),Math.min(dp(24),dx*.55f)));return true;}
                 }else if(event.getActionMasked()==MotionEvent.ACTION_UP||event.getActionMasked()==MotionEvent.ACTION_CANCEL) {
                     boolean complete=event.getActionMasked()==MotionEvent.ACTION_UP&&horizontal&&event.getRawX()-x<-dp(90);
+                    if(horizontal){v.setPressed(false);v.cancelLongPress();}
                     if(FluidMotion.enabled(v))v.animate().translationX(0).setDuration(180).start();else v.setTranslationX(0);
                     if(complete)askComplete(item);return horizontal;
                 }

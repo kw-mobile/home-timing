@@ -68,6 +68,6 @@ public final class DesignPreviewViewModel extends ViewModel {
             d.id=item.id;d.name=item.name;d.location=item.location;d.category=item.category;
             d.weekday=item.weekday;d.chore=item.chore;d.weather=item.weatherSensitive;d.cycle=String.valueOf(item.cycle);d.date=item.start;
         }
-        state.draft=d;navigate("editor",id);
+        state.draft=d;state.scrolls.remove(new Route("editor",id).key());navigate("editor",id);
     }
 }
