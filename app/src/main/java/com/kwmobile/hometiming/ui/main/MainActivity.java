@@ -309,7 +309,7 @@ public final class MainActivity extends AppCompatActivity {
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));
         screen.findViewById(R.id.weather_hero).setContentDescription(getString(R.string.preview_copy_035));screen.findViewById(R.id.weather_hero).setFocusable(true);
         LinearLayout rows=box(R.id.home_rows);
-        LinearLayout heading=horizontal();TextView title=text(getString(R.string.preview_copy_036),R.style.TextAppearance_HomeTiming_Title);title.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));heading.addView(title);heading.addView(smallAction(getString(R.string.preview_copy_037),() -> edit("")));rows.addView(heading);
+        LinearLayout heading=horizontal();TextView title=text(getString(R.string.preview_copy_036),R.style.TextAppearance_HomeTiming_Title);title.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));heading.addView(title);heading.addView(smallAction(getString(R.string.preview_copy_037),() -> edit("")));ViewCompat.setAccessibilityHeading(title,true);box(R.id.home_sheet_heading).addView(heading);
 
         if(!stateMessage(rows,this::render)) {
             List<Item> due=new ArrayList<>(),soon=new ArrayList<>();
