@@ -301,6 +301,8 @@ public final class MainActivity extends AppCompatActivity {
     }
     private void bindHome() {
         ((TextView)screen.findViewById(R.id.home_date)).setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_034),Locale.KOREAN)));
+        View homePhoto=screen.findViewById(R.id.weather_hero);
+        ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(260);homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature=screen.findViewById(R.id.weather_temperature);homeTemperature.setTextSize(64);androidx.core.widget.TextViewCompat.setLineHeight(homeTemperature,Math.round(72*getResources().getDisplayMetrics().scaledDensity));
         LinearLayout photoCopy=(LinearLayout)screen.findViewById(R.id.weather_location).getParent();photoCopy.setPadding(dp(20),dp(16),dp(20),dp(16));
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));

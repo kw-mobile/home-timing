@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/weather_hero"
-    android:foreground="?attr/selectableItemBackground" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="290dp" android:background="@drawable/bg_photo">
+    android:foreground="?attr/selectableItemBackground" android:layout_width="match_parent" android:layout_height="320dp" android:background="@drawable/bg_photo">
     <androidx.appcompat.widget.AppCompatImageView android:id="@+id/weather_photo" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="centerCrop" android:importantForAccessibility="no"/>
     <View android:layout_width="match_parent" android:layout_height="match_parent" android:background="@color/ht_photo_scrim" android:importantForAccessibility="no"/>
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:gravity="center" android:padding="@dimen/ht_space_24">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_gravity="center"
+        android:orientation="vertical" android:gravity="center" android:padding="@dimen/ht_space_24">
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_006" android:textAppearance="@style/TextAppearance.HomeTiming.Title" android:id="@+id/weather_location" android:gravity="center" android:textColor="@color/ht_photo_text"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_007" android:textAppearance="@style/TextAppearance.HomeTiming.Number" android:id="@+id/weather_temperature" android:gravity="center" android:textSize="76sp" app:lineHeight="88sp" android:layout_marginTop="2dp" android:textColor="@color/ht_photo_text"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_008" android:textAppearance="@style/TextAppearance.HomeTiming.Body" android:id="@+id/weather_condition" android:gravity="center" android:textColor="@color/ht_photo_text"/>
