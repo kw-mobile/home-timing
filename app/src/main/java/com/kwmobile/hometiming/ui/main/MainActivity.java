@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.content.ContextCompat;
@@ -16,12 +17,14 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.core.view.WindowInsetsControllerCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.kwmobile.hometiming.R;
 import com.kwmobile.hometiming.databinding.ActivityMainBinding;
 
 /** Native design preview. Sample content does not perform account or schedule operations. */
 public final class MainActivity extends AppCompatActivity {
     private static final String SELECTED_TAB = "selected_tab";
+    private static final String SHEET_STATE = "sheet_state";
     private final SparseArray<View> previewScreens = new SparseArray<>();
     private ActivityMainBinding binding;
 
@@ -42,6 +45,23 @@ public final class MainActivity extends AppCompatActivity {
         int selectedTab = savedInstanceState == null
                 ? R.id.nav_home : savedInstanceState.getInt(SELECTED_TAB, R.id.nav_home);
         binding.bottomNavigation.setSelectedItemId(selectedTab);
+        if (savedInstanceState != null) {
+            int sheetState = savedInstanceState.getInt(SHEET_STATE, BottomSheetBehavior.STATE_COLLAPSED);
+            binding.screenContainer.post(() -> currentSheet().setState(sheetState));
+        }
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (currentSheet().getState() != BottomSheetBehavior.STATE_COLLAPSED) {
+                    currentSheet().setState(BottomSheetBehavior.STATE_COLLAPSED);
+                } else if (binding.bottomNavigation.getSelectedItemId() != R.id.nav_home) {
+                    binding.bottomNavigation.setSelectedItemId(R.id.nav_home);
+                } else {
+                    setEnabled(false);
+                    getOnBackPressedDispatcher().onBackPressed();
+                }
+            }
+        });
     }
 
     private void configureInsets() {
@@ -77,10 +97,67 @@ public final class MainActivity extends AppCompatActivity {
                     : tabId == R.id.nav_settings ? R.layout.screen_settings : R.layout.screen_home;
             screen = getLayoutInflater().inflate(layout, binding.screenContainer, false);
             bindPreviewActions(screen);
+            configureSheet(screen);
             previewScreens.put(tabId, screen);
         }
         binding.screenContainer.removeAllViews();
         binding.screenContainer.addView(screen);
+    }
+
+    private BottomSheetBehavior<View> currentSheet() {
+        return BottomSheetBehavior.from(binding.screenContainer.findViewById(R.id.preview_sheet));
+    }
+
+    private void configureSheet(View screen) {
+        View sheet = screen.findViewById(R.id.preview_sheet);
+        View handle = screen.findViewById(R.id.sheet_handle);
+        View hero = screen.findViewById(R.id.hero_content);
+        View heroScroll = screen.findViewById(R.id.hero_scroll);
+        BottomSheetBehavior<View> behavior = BottomSheetBehavior.from(sheet);
+        handle.setOnClickListener(view -> behavior.setState(
+                behavior.getState() == BottomSheetBehavior.STATE_EXPANDED
+                        ? BottomSheetBehavior.STATE_COLLAPSED : BottomSheetBehavior.STATE_EXPANDED));
+        behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                syncSheetAccessibility(handle, heroScroll, newState);
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+                // The panel moves as a solid surface; no scrim, blur, or decorative effects.
+            }
+        });
+        ViewCompat.setStateDescription(handle, getString(R.string.sheet_collapsed));
+        screen.addOnLayoutChangeListener((view, left, top, right, bottom,
+                oldLeft, oldTop, oldRight, oldBottom) -> {
+            int height = bottom - top;
+            if (height > 0 && height != oldBottom - oldTop) {
+                int minimumPeek = Math.round(224 * getResources().getDisplayMetrics().density);
+                int visibleHero = Math.round(96 * getResources().getDisplayMetrics().density);
+                int peek = Math.max(minimumPeek, height - hero.getMeasuredHeight());
+                peek = Math.min(peek, Math.max(height / 2, height - visibleHero));
+                behavior.setPeekHeight(peek);
+                heroScroll.setPadding(0, 0, 0, peek);
+            }
+            // CoordinatorLayout restores behavior state without dispatching a state callback.
+            syncSheetAccessibility(handle, heroScroll, behavior.getState());
+        });
+    }
+
+    private void syncSheetAccessibility(View handle, View heroScroll, int state) {
+        if (state != BottomSheetBehavior.STATE_EXPANDED
+                && state != BottomSheetBehavior.STATE_COLLAPSED) {
+            return;
+        }
+        boolean expanded = state == BottomSheetBehavior.STATE_EXPANDED;
+        handle.setContentDescription(getString(expanded
+                ? R.string.sheet_collapse : R.string.sheet_expand));
+        ViewCompat.setStateDescription(handle, getString(expanded
+                ? R.string.sheet_expanded : R.string.sheet_collapsed));
+        heroScroll.setImportantForAccessibility(expanded
+                ? View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                : View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
     }
 
     private void bindPreviewActions(View screen) {
@@ -124,6 +201,8 @@ public final class MainActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         outState.putInt(SELECTED_TAB, binding.bottomNavigation.getSelectedItemId());
+        outState.putInt(SHEET_STATE, currentSheet().getState() == BottomSheetBehavior.STATE_EXPANDED
+                ? BottomSheetBehavior.STATE_EXPANDED : BottomSheetBehavior.STATE_COLLAPSED);
         super.onSaveInstanceState(outState);
     }
 }

@@ -48,4 +48,8 @@
     <string name="preview_settings_notice">설정 기능은 아직 연결되지 않았어요. 현재 화면은 디자인 미리보기입니다.</string>
     <string name="preview_dialog_title">디자인 미리보기 안내</string>
     <string name="preview_dialog_close">확인</string>
+    <string name="sheet_expand">목록 펼치기</string>
+    <string name="sheet_collapse">목록 접기</string>
+    <string name="sheet_expanded">펼쳐짐</string>
+    <string name="sheet_collapsed">접힘</string>
 </resources>
