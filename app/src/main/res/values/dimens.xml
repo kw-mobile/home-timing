@@ -22,4 +22,5 @@
     <dimen name="ht_type_number">40sp</dimen>
     <dimen name="ht_type_navigation">12sp</dimen>
     <dimen name="ht_type_brand">18sp</dimen>
+    <dimen name="ht_calendar_gutter">16dp</dimen>
 </resources>

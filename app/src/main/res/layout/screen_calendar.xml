@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/preview_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
     <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/page_body"
-        android:clipToPadding="false"
-        android:clipChildren="false" android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="20dp" android:paddingBottom="@dimen/ht_space_32">
-        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_011" android:textAppearance="@style/TextAppearance.HomeTiming.Display"/>
-        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_012" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="6dp"/>
+ android:paddingHorizontal="@dimen/ht_calendar_gutter" android:paddingTop="20dp" android:paddingBottom="@dimen/ht_space_32">
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_011" android:textAppearance="@style/TextAppearance.HomeTiming.Display"
+            android:layout_marginHorizontal="@dimen/ht_space_4"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_012" android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+            android:layout_marginHorizontal="@dimen/ht_space_4" android:layout_marginTop="6dp"/>
         <Space android:layout_width="1dp" android:layout_height="@dimen/ht_space_24"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/calendar_controls"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/calendar_controls"
+            android:paddingHorizontal="@dimen/ht_space_4"/>
         <GridLayout android:id="@+id/calendar_grid"
-            android:layout_marginHorizontal="-4dp" android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="7" android:layout_marginTop="@dimen/ht_space_12"/>
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:columnCount="7" android:layout_marginTop="@dimen/ht_space_12"/>
         <Space android:layout_width="1dp" android:layout_height="28dp"/>
-        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/calendar_rows"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/calendar_rows"
+            android:paddingHorizontal="@dimen/ht_space_4"/>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
