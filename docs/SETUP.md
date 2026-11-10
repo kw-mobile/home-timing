@@ -54,7 +54,7 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 | Android 앱 | `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`) |
 | Authentication | 이메일/비밀번호 로그인 활성화 |
 | Firestore | `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB |
-| 앱 데이터 접근 | `firestore.rules`의 초기 전체 거부 상태. 집별 권한·거부 테스트는 기능 구현 시 작성 |
+| 앱 데이터 접근 | 저장소의 `firestore.rules` v1([허용 범위](DATA_MODEL.md#보안-규칙-범위-v1)). 실제 프로젝트에 배포된 커밋은 [#28](https://github.com/kw-mobile/home-timing/issues/28) 배포 기록 확인 |
 
 #### 팀원 관리 권한
 

@@ -42,7 +42,7 @@ invites/{code}                       초대 코드 (후보, 초대·참여 설�
 | `currentHouseId` | string | ✓ | 현재 집. 소속의 기준은 `members` 문서이며, 내보내지면 다음 접속에서 복구 |
 | `displayName` | string | ✓ | 가족에게 보일 이름. 가입 화면에서 입력, 공백 제외 1~20자 |
 | `notifyTime` | string | ✓ | 알림 시각 `HH:mm`, 기본 `09:00` |
-| `advanceDays` | number | ✓ | 사전 알림 일수, 기본 3, 0이면 끔 |
+| `advanceDays` | number | ✓ | 사전 알림 일수 0~30, 기본 3, 0이면 끔 |
 | `createdAt`, `updatedAt` | timestamp | ✓ | |
 
 ## houses/{houseId}
@@ -75,15 +75,15 @@ invites/{code}                       초대 코드 (후보, 초대·참여 설�
 
 | 필드 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
-| `name` | string | ✓ | 공백 제외 1자 이상 |
-| `category` | string | ✓ | 분류 코드, 기본 `ETC`. 코드 목록은 미정 |
+| `name` | string | ✓ | 공백 제외 1자 이상, 60자 이하 |
+| `category` | string | ✓ | 분류 코드(30자 이하), 기본 `ETC`. 코드 목록은 미정 |
 | `startDate` | string | ✓ | 사용 시작일, 오늘(서울) 이후 불가 |
 | `cycleDays` | number | ✓ | 1~730 |
 | `lastReplacedDate` | string | ✓ | 최초에는 `startDate`. 완료마다 실제 교체일, 뒤로 갈 수 없음 |
 | `nextDueDate` | string | ✓ | `lastReplacedDate + cycleDays`. 정렬·조회용 저장값 |
-| `occurrenceId` | string | ✓ | 현재 회차 |
+| `occurrenceId` | string | ✓ | 현재 회차(64자 이하) |
 | `revision` | number | ✓ | `startDate`·`cycleDays`·`lastReplacedDate`·`nextDueDate`·`occurrenceId` 변경 시 +1 |
-| `productName`, `location`, `memo` | string | | 선택 입력 |
+| `productName`, `location`, `memo` | string | | 선택 입력. 60·30·500자 이하 |
 | `createdBy` | string | ✓ | 등록자. 삭제 권한(등록자·집장) 판단, 변경 불가 |
 | `updatedBy` | string | ✓ | |
 | `createdAt`, `updatedAt` | timestamp | ✓ | |
@@ -162,7 +162,15 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 | 집안일 완료 (트랜잭션) | `logs/done_<occurrenceId>` 생성, `chores/{id}` 갱신 | 위 용품 완료와 같은 회차·revision 검사 |
 | 이번 회차 날짜 변경 | `chores/{id}` 갱신, `logs/{auto}` 생성 | `occurrenceId`·`plannedDueDate` 불변, `revision` +1 |
 
-완료 트랜잭션은 현재 문서를 읽어 `occurrenceId`·`revision`을 확인한 뒤 씁니다. 다음 예정일 계산은 규칙에서 하지 않고 `domain` 규칙이 맡습니다. 이력이 500개를 넘으면 삭제를 여러 번에 나눠 커밋합니다. 참여·나가기·내보내기·탈퇴의 쓰기 묶음은 초대·참여 설계와 정리 정책 작업에서 정합니다.
+완료 트랜잭션은 현재 문서를 읽어 `occurrenceId`·`revision`을 확인한 뒤 씁니다. 앱은 `domain` 규칙으로 다음 예정일을 계산하고, 규칙도 `nextDueDate = lastReplacedDate + cycleDays`와 미래 날짜 금지(서울 기준)를 다시 확인합니다. 이력이 500개를 넘으면 삭제를 여러 번에 나눠 커밋합니다. 참여·나가기·내보내기·탈퇴의 쓰기 묶음은 초대·참여 설계와 정리 정책 작업에서 정합니다.
+
+## 보안 규칙 범위 (v1)
+
+`firestore.rules` v1은 위 표의 최초 로그인·소속 복구·용품 등록·수정·완료·삭제만 허용합니다. 나머지는 기본 거부입니다: 집안일(`chores`·`logs`), 초대(`invites`), 기존 집 참여·나가기·내보내기, 지역 변경, 사용자·집 삭제. 각 작업에서 규칙과 테스트를 함께 추가합니다.
+
+- 집 `itemCount`는 구성원이 ±1씩만 바꿀 수 있고, 용품 생성·삭제는 같은 커밋의 ±1을 요구합니다. 항목 없이 개수만 올리는 쓰기는 막지 못하며, 이 경우 그 집이 참여 조건(빈 1인 집)을 잃을 뿐입니다.
+- 수정(F-03)은 같은 회차에서 `lastReplacedDate`를 고칠 수 있습니다. 이전 교체일 하한(#20)은 회차가 바뀌는 완료에만 적용됩니다.
+- 규칙 테스트: `firestore-rules/`([TESTING](TESTING.md#firestore-규칙-테스트)).
 
 ## 쿼리와 인덱스
 
