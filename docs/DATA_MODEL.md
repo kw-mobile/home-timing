@@ -40,7 +40,7 @@ invites/{code}                       초대 코드 (후보, 초대·참여 설�
 | 필드 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
 | `currentHouseId` | string | ✓ | 현재 집. 소속의 기준은 `members` 문서이며, 내보내지면 다음 접속에서 복구 |
-| `displayName` | string | ✓ | 가족에게 보일 이름. 입력 방식은 미정 |
+| `displayName` | string | ✓ | 가족에게 보일 이름. 가입 화면에서 입력, 공백 제외 1~20자 |
 | `notifyTime` | string | ✓ | 알림 시각 `HH:mm`, 기본 `09:00` |
 | `advanceDays` | number | ✓ | 사전 알림 일수, 기본 3, 0이면 끔 |
 | `createdAt`, `updatedAt` | timestamp | ✓ | |
@@ -63,7 +63,7 @@ invites/{code}                       초대 코드 (후보, 초대·참여 설�
 
 ## houses/{houseId}/members/{uid}
 
-문서가 있으면 구성원입니다. 규칙의 구성원 검사는 `exists(.../members/$(request.auth.uid))`로 합니다.
+문서가 있으면 구성원입니다. 규칙의 구성원 검사는 `exists(.../members/$(request.auth.uid))`로 합니다. 로그인할 때 내보내졌는지 확인하도록, 사용자는 구성원이 아니어도 **자기 uid의** member 문서는 `get`할 수 있어야 합니다(없으면 새 1인 집으로 복구).
 
 | 필드 | 타입 | 필수 | 설명 |
 | --- | --- | --- | --- |
@@ -153,7 +153,8 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 
 | 작업 | 함께 쓰는 문서 | 규칙이 확인할 것 |
 | --- | --- | --- |
-| 최초 로그인 | `users/{uid}` 생성, `houses/{new}` 생성, `members/{uid}` 생성 | `ownerId`=본인, `memberCount`=1, 개수 0, `currentHouseId`=새 집 |
+| 최초 로그인 (트랜잭션) | `users/{uid}` 생성, `houses/{new}` 생성, `members/{uid}` 생성 | `ownerId`=본인, `memberCount`=1, 개수 0, `currentHouseId`=새 집 |
+| 소속 복구 (트랜잭션) | `houses/{new}`·`members/{uid}` 생성, `users/{uid}`의 `currentHouseId`·`updatedAt` 갱신 | 위와 같은 새 집 조건, 사용자 문서는 그 두 필드만 변경 |
 | 용품 등록 | `items/{id}` 생성, 집 `itemCount` +1 | 구성원, 필수 필드·주기 범위, `createdBy`=본인, `revision`=1 |
 | 용품 수정 | `items/{id}` 갱신 | 구성원, `createdBy` 불변, 일정 필드가 바뀌면 `revision` +1 |
 | 용품 완료 (트랜잭션) | `history/{현재 occurrenceId}` 생성, `items/{id}` 갱신 | 이력 ID = 직전 `occurrenceId`, 새 `occurrenceId` ≠ 이전, `revision` +1, 이전 교체일 ≤ 새 교체일 |
@@ -186,7 +187,6 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 
 ## 미정 사항
 
-- `displayName`을 가입 때 입력받을지, 이메일 앞부분을 기본값으로 쓸지
 - 용품 분류 코드 목록: TRD는 `WATER_FILTER`·`SHOWER_FILTER`·`TOOTHBRUSH`·`AIR_FILTER`·`ETC`, 디자인 PR #19는 장소형 분류(욕실·주방 등)를 씀
 - 완료 취소(undo): 디자인 PR #19에 있으나 MVP에 없음. 지원하면 이력에 이전 상태 필드를 추가해야 함
 - 초대 코드 하나로 24시간 안에 여러 명이 참여할 수 있는지
