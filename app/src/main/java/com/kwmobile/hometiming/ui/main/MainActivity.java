@@ -148,7 +148,7 @@ public final class MainActivity extends AppCompatActivity {
         }
         if(s().route.screen.equals("home")) {
             View sheet=screen.findViewById(R.id.preview_sheet);
-            if(sheet!=null&&BottomSheetBehavior.from(sheet).getState()!=BottomSheetBehavior.STATE_COLLAPSED) {BottomSheetBehavior.from(sheet).setState(BottomSheetBehavior.STATE_COLLAPSED);return;}
+            if(sheet!=null&&BottomSheetBehavior.from(sheet).getState()!=BottomSheetBehavior.STATE_HIDDEN) {BottomSheetBehavior.from(sheet).setState(BottomSheetBehavior.STATE_HIDDEN);return;}
         }
         finishBack();
     }
@@ -309,12 +309,14 @@ public final class MainActivity extends AppCompatActivity {
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));
         screen.findViewById(R.id.weather_hero).setContentDescription(getString(R.string.preview_copy_035));screen.findViewById(R.id.weather_hero).setFocusable(true);
         LinearLayout rows=box(R.id.home_rows);
-        LinearLayout heading=horizontal();TextView title=text(getString(R.string.preview_copy_036),R.style.TextAppearance_HomeTiming_Title);title.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));heading.addView(title);heading.addView(smallAction(getString(R.string.preview_copy_037),() -> edit("")));ViewCompat.setAccessibilityHeading(title,true);box(R.id.home_sheet_heading).addView(heading);
+        LinearLayout heading=horizontal();LinearLayout headingCopy=vertical();headingCopy.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));
+        TextView title=text(getString(R.string.preview_copy_036),R.style.TextAppearance_HomeTiming_Title);headingCopy.addView(title);
+        TextView count=caption("");headingCopy.addView(count);heading.addView(headingCopy);heading.addView(smallAction(getString(R.string.preview_copy_037),() -> edit("")));ViewCompat.setAccessibilityHeading(title,true);box(R.id.home_sheet_heading).addView(heading);
 
         if(!stateMessage(rows,this::render)) {
             List<Item> due=new ArrayList<>(),soon=new ArrayList<>();
             for(Item item:s().store.sorted())if(!item.due.isAfter(PreviewStore.today()))due.add(item);else if(!item.due.isAfter(PreviewStore.today().plusDays(7)))soon.add(item);
-            rows.addView(caption(getString(R.string.preview_copy_038)+due.size()+getString(R.string.preview_copy_039)));gap(rows,8);
+            count.setText(getString(R.string.preview_home_due_count,due.size()));
             if(due.isEmpty())rows.addView(label(getString(R.string.preview_copy_040)));else for(Item item:due)itemRow(rows,item,false);
             if(!s().notifications){gap(rows,12);settingsRow(rows,getString(R.string.preview_copy_041),getString(R.string.preview_copy_042),R.drawable.ic_bell,() -> go("preferences","notifications"));line(rows);}
             gap(rows,28);section(rows,getString(R.string.preview_copy_043),soon.size()+getString(R.string.preview_copy_044));for(Item item:soon)itemRow(rows,item,false);
@@ -322,11 +324,22 @@ public final class MainActivity extends AppCompatActivity {
         gap(rows,16);rows.addView(caption(getString(R.string.preview_copy_045)));
         View sheet=screen.findViewById(R.id.preview_sheet);BottomSheetBehavior<View> behavior=BottomSheetBehavior.from(sheet);
         View handle=screen.findViewById(R.id.sheet_handle);
-        sheet.post(() -> {if(!sheet.isAttachedToWindow())return;int h=((View)sheet.getParent()).getHeight();behavior.setPeekHeight(Math.min(Math.max(dp(265),h-dp(350)),Math.max(dp(220),h-dp(90))),false);behavior.setState(s().expanded?BottomSheetBehavior.STATE_EXPANDED:BottomSheetBehavior.STATE_COLLAPSED);});
+        View reopen=screen.findViewById(R.id.home_reopen);
+        reopen.setVisibility(s().sheetHidden?View.VISIBLE:View.GONE);
+        reopen.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));FluidMotion.press(reopen);
+        androidx.appcompat.widget.AppCompatImageButton close=new androidx.appcompat.widget.AppCompatImageButton(this);
+        close.setId(View.generateViewId());close.setImageResource(R.drawable.ic_close);close.setContentDescription(getString(R.string.preview_sheet_close));
+        android.util.TypedValue closeFeedback=new android.util.TypedValue();getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless,closeFeedback,true);close.setBackgroundResource(closeFeedback.resourceId);
+        close.setPadding(dp(12),dp(12),dp(12),dp(12));close.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_HIDDEN));FluidMotion.press(close);
+        LinearLayout.LayoutParams closeSize=new LinearLayout.LayoutParams(dp(48),dp(48));closeSize.leftMargin=dp(4);heading.addView(close,closeSize);
+        sheet.post(() -> {if(!sheet.isAttachedToWindow())return;int h=((View)sheet.getParent()).getHeight();int previousPeek=Math.min(Math.max(dp(265),h-dp(350)),Math.max(dp(220),h-dp(90)));behavior.setPeekHeight(Math.min(Math.max(dp(180),previousPeek/2),Math.max(dp(120),h-dp(48))),false);behavior.setState(s().sheetHidden?BottomSheetBehavior.STATE_HIDDEN:s().expanded?BottomSheetBehavior.STATE_EXPANDED:BottomSheetBehavior.STATE_COLLAPSED);});
         handle.setOnClickListener(v -> behavior.setState(behavior.getState()==BottomSheetBehavior.STATE_EXPANDED?BottomSheetBehavior.STATE_COLLAPSED:BottomSheetBehavior.STATE_EXPANDED));
         behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override public void onStateChanged(@NonNull View bottom,int state) {
-                if(state==BottomSheetBehavior.STATE_EXPANDED||state==BottomSheetBehavior.STATE_COLLAPSED)s().expanded=state==BottomSheetBehavior.STATE_EXPANDED;
+                if(state==BottomSheetBehavior.STATE_EXPANDED||state==BottomSheetBehavior.STATE_COLLAPSED||state==BottomSheetBehavior.STATE_HIDDEN) {
+                    s().expanded=state==BottomSheetBehavior.STATE_EXPANDED;s().sheetHidden=state==BottomSheetBehavior.STATE_HIDDEN;
+                    reopen.setVisibility(s().sheetHidden?View.VISIBLE:View.GONE);
+                }
                 handle.setContentDescription(s().expanded?getString(R.string.preview_copy_046):getString(R.string.preview_copy_047));ViewCompat.setStateDescription(handle,s().expanded?getString(R.string.preview_copy_048):getString(R.string.preview_copy_049));
                 View hero=screen.findViewById(R.id.hero_scroll);if(hero!=null)hero.setImportantForAccessibility(s().expanded?View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS:View.IMPORTANT_FOR_ACCESSIBILITY_AUTO);
             }
@@ -639,7 +652,7 @@ public final class MainActivity extends AppCompatActivity {
         fullAction(body,getString(R.string.preview_copy_278),true,() -> go("home"));
         gap(body,24);section(body,getString(R.string.preview_copy_279),"");settingsRow(body,getString(R.string.preview_copy_280),getString(R.string.preview_copy_281),R.drawable.ic_sun,() -> go("preferences","weather"));
         SwitchMaterial owner=new SwitchMaterial(this);owner.setText(getString(R.string.preview_copy_282));owner.setMinHeight(dp(56));owner.setChecked(s().owner);owner.setTextColor(color(R.color.ht_text));owner.setOnCheckedChangeListener((button,value) -> s().owner=value);body.addView(owner);
-        fullAction(body,getString(R.string.preview_copy_283),false,() -> confirm(getString(R.string.preview_copy_284),getString(R.string.preview_copy_285),getString(R.string.preview_copy_286),() -> {s().store.reset();s().scenario="normal";s().filter=getString(R.string.preview_copy_051);s().weather="auto";s().condition="clear";s().selected=PreviewStore.today();s().month=YearMonth.from(s().selected);s().owner=true;s().joined=false;s().members=2;s().joinCode="";s().draft=null;s().time="09:00";s().advanceDays=3;s().invite="284619";s().authFields.clear();s().notifications=false;s().region=getString(R.string.preview_copy_223);s().scrolls.clear();render();}));
+        fullAction(body,getString(R.string.preview_copy_283),false,() -> confirm(getString(R.string.preview_copy_284),getString(R.string.preview_copy_285),getString(R.string.preview_copy_286),() -> {s().store.reset();s().expanded=false;s().sheetHidden=false;s().scenario="normal";s().filter=getString(R.string.preview_copy_051);s().weather="auto";s().condition="clear";s().selected=PreviewStore.today();s().month=YearMonth.from(s().selected);s().owner=true;s().joined=false;s().members=2;s().joinCode="";s().draft=null;s().time="09:00";s().advanceDays=3;s().invite="284619";s().authFields.clear();s().notifications=false;s().region=getString(R.string.preview_copy_223);s().scrolls.clear();render();}));
         gap(body,24);body.addView(caption(getString(R.string.preview_copy_287)));
     }
     private void choose(String title,String[] values,java.util.function.Consumer<String> pick) {new MaterialAlertDialogBuilder(this).setTitle(title).setItems(values,(dialog,index) -> pick.accept(values[index])).setNegativeButton(getString(R.string.preview_copy_288),null).show();}
