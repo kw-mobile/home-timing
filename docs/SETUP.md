@@ -90,7 +90,7 @@ firebase firestore:indexes --project kw-mobile-home-timing --account 팀원Gmail
 
 #### 규칙 수정과 배포
 
-`.firebaserc`·`firebase.json`이 프로젝트와 규칙 파일을 지정합니다. 담당자는 저장소의 `firestore.rules`를 수정하고 허용·거부 테스트와 함께 PR로 남깁니다. 승인된 변경을 main에 병합한 뒤 최신 main에서 아래 명령으로 **규칙만** 배포합니다. 콘솔에서 먼저 수정했다면 같은 내용을 저장소에도 반영해 서버와 Git을 일치시킵니다.
+`.firebaserc`·`firebase.json`이 프로젝트와 규칙 파일을 지정합니다. 담당자는 저장소의 `firestore.rules`를 수정하고 허용·거부 테스트와 함께 PR로 남깁니다. 규칙 테스트는 로컬 emulator에서 `demo-home-timing` 프로젝트로만 실행하며 [검증 기준의 규칙 테스트](TESTING.md#firestore-규칙-테스트)를 따릅니다. emulator는 Java 21 이상이 필요하지만 `JAVA_HOME`은 JDK 17로 유지합니다. 승인된 변경을 main에 병합한 뒤 최신 main에서 아래 명령으로 **규칙만** 배포합니다. 콘솔에서 먼저 수정했다면 같은 내용을 저장소에도 반영해 서버와 Git을 일치시킵니다.
 
 ```sh
 git switch main

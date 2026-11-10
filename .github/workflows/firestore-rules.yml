@@ -1,0 +1,69 @@
+name: Firestore rules
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - firestore.rules
+      - firebase.json
+      - 'firestore-rules/**'
+      - '*.gradle'
+      - 'gradle/**'
+      - gradlew
+      - .java-version
+      - .github/workflows/firestore-rules.yml
+  push:
+    branches: [main]
+    paths:
+      - firestore.rules
+      - firebase.json
+      - 'firestore-rules/**'
+      - '*.gradle'
+      - 'gradle/**'
+      - gradlew
+      - .java-version
+      - .github/workflows/firestore-rules.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: firestore-rules-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned CLI; its Firestore emulator needs Java 21+, while Gradle stays on .java-version (17).
+  FIREBASE_TOOLS_VERSION: 15.35.0
+
+jobs:
+  rules:
+    name: Rules tests on the emulator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          persist-credentials: false
+      - name: Set up Java 21 for the emulator
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Set up the project JDK for Gradle
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle and validate wrapper
+        uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+        with:
+          cache-read-only: ${{ github.event_name == 'pull_request' }}
+      - name: Run rules tests on a demo project emulator
+        shell: bash
+        run: |
+          node --version
+          export PATH="$JAVA_HOME_21_X64/bin:$PATH"
+          npx --yes "firebase-tools@${FIREBASE_TOOLS_VERSION}" emulators:exec \
+            --only firestore --project demo-home-timing \
+            "./gradlew --no-daemon --console=plain --configure-on-demand :firestore-rules:rulesTest"

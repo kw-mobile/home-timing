@@ -1,0 +1,46 @@
+plugins {
+    id 'java'
+}
+
+// Security rules tests talk to the Firestore emulator over its REST API (JDK HttpClient only).
+// Run them with :firestore-rules:rulesTest through `firebase emulators:exec`; see docs/TESTING.md.
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.STRICT
+}
+
+dependencies {
+    testImplementation libs.junit
+}
+
+// Keep `./gradlew test`/`build` usable without an emulator: the default test task reports SKIPPED.
+tasks.named('test') {
+    enabled = false
+}
+
+tasks.register('rulesTest', Test) {
+    group = 'verification'
+    description = 'Runs Firestore security rules tests against a running Firestore emulator.'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    // Results depend on firestore.rules and the emulator, not only on compiled classes.
+    inputs.file(rootProject.file('firestore.rules'))
+    outputs.upToDateWhen { false }
+    testLogging {
+        events 'passed', 'failed', 'skipped'
+        exceptionFormat 'full'
+    }
+    doFirst {
+        if (!System.getenv('FIRESTORE_EMULATOR_HOST')) {
+            throw new GradleException('FIRESTORE_EMULATOR_HOST is not set. Run these tests through '
+                    + '`firebase emulators:exec --only firestore --project demo-home-timing`; see docs/TESTING.md.')
+        }
+    }
+}
