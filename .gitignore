@@ -19,6 +19,11 @@ key.properties
 .cxx/
 captures/
 
+# Firebase emulator logs
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
 # Notion automation tooling
 __pycache__/
 *.py[cod]

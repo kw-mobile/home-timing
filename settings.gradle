@@ -21,3 +21,5 @@ if (JavaVersion.current() != JavaVersion.VERSION_17) {
 
 rootProject.name = 'HomeTiming'
 include ':app'
+// Firestore security rules tests. Run only through the emulator; see docs/TESTING.md.
+include ':firestore-rules'

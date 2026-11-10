@@ -18,6 +18,7 @@
 | 2026-11-08 | 조민제: PRD 화면 시안·디자인 스킬·홈 하단 내비게이션 요청; Codex (도구): 디자인·HTML 구현 및 브라우저 검증 | MVP 7개 화면과 P1 캘린더 참고 시안, 홈·용품·설정 고정 내비게이션, 예시 데이터 상호작용 | [화면 시안 이슈 #16](https://github.com/kw-mobile/home-timing/issues/16), [PR #17](https://github.com/kw-mobile/home-timing/pull/17) |
 | 2026-11-10 | 전주용: 백엔드 작업 순서·이번 범위 결정; Claude Code (도구): domain 규칙·JUnit 작성 및 로컬 검증 | 서울 기준 날짜 변환, 실제 교체일+주기 예정일, D-day 4단계 상태, 필수 입력 검증(F-02·F-04·F-05). 화면·저장소 연결 전, 리뷰 대기 | [이슈 #20](https://github.com/kw-mobile/home-timing/issues/20), [PR #21](https://github.com/kw-mobile/home-timing/pull/21) |
 | 2026-11-10 | 전주용: 스키마 설계 범위 결정; Claude Code (도구): 설계 초안·문서 작성 및 링크 검증 | Firestore 스키마 v1: 집 소속 항목·주간 집안일, members 기반 소속, occurrenceId·revision, 회차 ID 이력, 함께 커밋할 문서. 규칙·코드 전, 리뷰 대기 | [이슈 #22](https://github.com/kw-mobile/home-timing/issues/22), [PR #23](https://github.com/kw-mobile/home-timing/pull/23) |
+| 2026-11-10 | 전주용: 규칙 테스트 방식(Java REST) 결정; Claude Code (도구): 테스트 모듈·CI·문서 작성 및 로컬 emulator 검증 | Firestore emulator 규칙 테스트 환경: JDK HttpClient 기반 도우미, demo 프로젝트 전용, 전체 거부 기준 테스트 6개, 규칙 변경 CI. 실제 권한 규칙 전, 리뷰 대기 | [이슈 #24](https://github.com/kw-mobile/home-timing/issues/24), [PR #25](https://github.com/kw-mobile/home-timing/pull/25) |
 
 ## 기록 예시
 
