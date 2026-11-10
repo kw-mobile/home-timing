@@ -9,6 +9,7 @@ import android.graphics.Rect;
 import android.graphics.RenderEffect;
 import android.graphics.RuntimeShader;
 import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
@@ -72,9 +73,7 @@ public final class GlassBackdropView extends View {
         backdropLocation[1] -= samplePadding;
         Canvas canvas = new Canvas(backdrop);
         canvas.scale(1f / SAMPLE_SCALE, 1f / SAMPLE_SCALE);
-        source.getLocationInWindow(viewLocation);
-        canvas.translate(viewLocation[0] - backdropLocation[0], viewLocation[1] - backdropLocation[1]);
-        source.draw(canvas);
+        drawContentStrip(source, canvas);
         if (Build.VERSION.SDK_INT >= 33 && lens != null) {
             if (blurPixels == null || blurPixels.length != width * height) {
                 blurPixels = new int[width * height];
@@ -88,6 +87,37 @@ public final class GlassBackdropView extends View {
         }
         invalidateContent(source);
         invalidate();
+    }
+
+    // Drawing the whole root to a clipped software Canvas can consume hardware
+    // display-list flags for off-strip siblings. Visit only the sampled strip.
+    private void drawContentStrip(View view, Canvas canvas) {
+        if (view.getVisibility() != VISIBLE || view.getAlpha() == 0) return;
+        view.getLocationInWindow(viewLocation);
+        int left = viewLocation[0] - backdropLocation[0];
+        int top = viewLocation[1] - backdropLocation[1];
+        if (left >= getWidth() + 2 * samplePadding || top >= getHeight() + 2 * samplePadding
+                || left + view.getWidth() <= 0 || top + view.getHeight() <= 0) return;
+        int saved = canvas.save();
+        canvas.translate(left, top);
+        canvas.clipRect(0, 0, view.getWidth(), view.getHeight());
+        if (view.getAlpha() < 1) {
+            canvas.saveLayerAlpha(0, 0, view.getWidth(), view.getHeight(), Math.round(view.getAlpha() * 255));
+        }
+        if (view instanceof ViewGroup) {
+            Drawable background = view.getBackground();
+            if (background != null) background.draw(canvas);
+            int children = canvas.save();
+            canvas.translate(-left, -top);
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) drawContentStrip(group.getChildAt(i), canvas);
+            canvas.restoreToCount(children);
+            Drawable foreground = view.getForeground();
+            if (foreground != null) foreground.draw(canvas);
+        } else {
+            view.draw(canvas);
+        }
+        canvas.restoreToCount(saved);
     }
 
     // Software snapshots can consume display-list dirty flags. Restore them for the
