@@ -312,8 +312,8 @@
     <string name="intent_proposal_keep">그대로 두기</string>
     <string name="intent_proposal_kept">이번 일정은 그대로 유지해요.</string>
     <string name="intent_proposal_keep_schedule">현재 일정을 유지해요. 필요한 날에 완료해 주세요.</string>
-    <string name="intent_proposal_reason">%1$s 비 예보 예시입니다. 비가 없는 %2$s로 옮기는 예시를 확인할 수 있어요. 실제 예보는 연결 전이에요.</string>
-    <string name="intent_proposal_confirm">%1$s 일정을 %2$s로 옮길까요? 원래 반복 요일은 유지해요. 실제 저장이 아닌 예시 동작입니다.</string>
+    <string name="intent_proposal_reason">%1$s 비 예보 예시 · %2$s로 변경을 제안해요.</string>
+    <string name="intent_proposal_confirm">%1$s 일정을 %2$s로 옮길까요? 원래 반복 요일은 유지해요.</string>
     <string name="intent_member_manage">구성원 · 눌러 관리</string>
     <string name="intent_member_remove_title">가족을 내보낼까요?</string>
     <string name="intent_member_remove_help">이 집의 일정에 더 이상 참여하지 않게 돼요. 완료 이력은 남겨요. 실제 가족 소속은 바꾸지 않는 디자인 예시입니다.</string>
@@ -325,6 +325,6 @@
     <string name="intent_join_family">가족 관리로 이동</string>
     <string name="intent_permission_separate">앱의 일정 알림 설정과 기기 알림 권한은 별개예요.</string>
     <string name="intent_permission_preview">알림 권한 허용 예시</string>
-    <string name="intent_delete_permission">등록한 사람과 집장만 삭제할 수 있어요. 현재 항목은 다른 가족이 등록한 예시입니다.</string>
+    <string name="intent_delete_permission">등록한 사람과 집장만 삭제할 수 있어요.</string>
     <string name="intent_proposal_outside">3일 예보 범위 밖이라 변경을 제안하지 않았어요.</string>
 </resources>
