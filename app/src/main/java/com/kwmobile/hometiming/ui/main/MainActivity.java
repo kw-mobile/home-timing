@@ -520,6 +520,22 @@ public final class MainActivity extends AppCompatActivity {
         else if(period.equals("morning"))image=R.drawable.weather_morning;
         else image=R.drawable.weather_day;
         photo.setImageResource(image);
+        photo.setScaleType(ImageView.ScaleType.CENTER_CROP);
+        if(image==R.drawable.weather_night) {
+            // Place the moon in the upper right, clear of centered weather labels.
+            android.graphics.drawable.Drawable nightPhoto=photo.getDrawable();
+            photo.post(() -> {
+                if(photo.getDrawable()!=nightPhoto||photo.getWidth()==0||photo.getHeight()==0)return;
+                float width=photo.getWidth(),height=photo.getHeight();
+                float sourceWidth=nightPhoto.getIntrinsicWidth(),sourceHeight=nightPhoto.getIntrinsicHeight();
+                float scale=Math.max(width/sourceWidth,height/sourceHeight)*1.65f;
+                float x=Math.max(width-sourceWidth*scale,Math.min(0,width*.86f-sourceWidth*.59f*scale));
+                float y=Math.max(height-sourceHeight*scale,Math.min(0,height*.14f-sourceHeight*.40f*scale));
+                android.graphics.Matrix crop=new android.graphics.Matrix();
+                crop.setScale(scale,scale);crop.postTranslate(x,y);
+                photo.setScaleType(ImageView.ScaleType.MATRIX);photo.setImageMatrix(crop);
+            });
+        }
         ((View)photo.getParent()).setClipToOutline(true);
         ((TextView)screen.findViewById(R.id.weather_location)).setText(s().region);
         ((TextView)screen.findViewById(R.id.weather_temperature)).setText(period.equals("night")?"12°":"18°");
