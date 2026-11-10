@@ -68,4 +68,4 @@ PDF는 p.2에서 ‘8장 사용자 인터뷰’를 참조하지만 제공 파일
 
 현재 판정은 **제품 방향과 화면 구조는 유지, 디자인 세부 요구와 실제 기능에는 남은 작업 있음**입니다. 스타일을 다시 갈아엎기보다 위 세 가지 디자인 부족분을 먼저 보완하는 것이 PRD 의도를 살리는 업그레이드입니다.
 
-코드 근거: [홈·폼·완료·제안](../../app/src/main/java/com/kwmobile/hometiming/ui/main/MainActivity.java), [등록 필드](../../app/src/main/res/layout/screen_editor.xml), [로컬 일정](../../app/src/main/java/com/kwmobile/hometiming/data/preview/PreviewStore.java). 사용자(성명 확인 필요)는 PRD 제공·디자인 방향을 담당했고, Codex 도구가 원문 대조·코드 확인·기록을 수행했습니다. 원격 접근 오류로 이슈/PR을 만들지 못했으며 병합하지 않았습니다.
+코드 근거: [홈·폼·완료·제안](../../app/src/main/java/com/kwmobile/hometiming/ui/main/MainActivity.java), [등록 필드](../../app/src/main/res/layout/screen_editor.xml), [로컬 일정](../../app/src/main/java/com/kwmobile/hometiming/data/preview/PreviewStore.java). 사용자(성명 확인 필요)는 PRD 제공·디자인 방향을 담당했고, Codex 도구가 원문 대조·코드 확인·기록을 수행했습니다. 당시 원격 접근 오류로 이슈/PR을 만들지 못했습니다. 이후 디자인 작업 전체는 [이슈 #18](https://github.com/kw-mobile/home-timing/issues/18)·[PR #19](https://github.com/kw-mobile/home-timing/pull/19)로 업로드했으며 병합하지 않았습니다.

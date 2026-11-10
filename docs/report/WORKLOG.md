@@ -44,7 +44,7 @@
 
 | 2026-11-10 | 사용자(성명 확인 필요): PRD PDF 제공·디자인 담당; Codex (도구): 7쪽 원문/렌더·MVP·코드 대조·기록 | 홈 제안 직접 노출·선택 제품명/메모·주기 프리셋·실제 완료일/탭 수 부족 확인. 가족 이전 등 MVP 의도적 차이와 미연동 구분. 앱 변경 없음 | [원문 대조·업그레이드 수용 기준](PRD_DESIGN_AUDIT.md). PDF·TRD 실시간 Notion 동기화 아님, 원격 오류로 PR 미생성 |
 
-| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·컴포넌트/최신 스타일/폰트 유지·전체 공유 HTML/업로드·테두리 대신 패널 상단 그림자 요청; Codex (도구): Java/XML 컴포넌트·로컬 사용 예시·규격·캡처/HTML·검증 | 기존 S1~S8 전체 디자인에 제안/추가 정보/주기 예시/완료일 컴포넌트 추가. 기본 글자 크기만 확인, 실제 서비스 미연결 | [작업 #18](https://github.com/kw-mobile/home-timing/issues/18), [디자인 시스템](../DESIGN_SYSTEM.md), [검증](evidence/component-system/verification.md). PR 링크는 작성 후 갱신 |
+| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·컴포넌트/최신 스타일/폰트 유지·전체 공유 HTML/업로드·테두리 대신 패널 상단 그림자 요청; Codex (도구): Java/XML 컴포넌트·로컬 사용 예시·규격·캡처/HTML·검증 | 기존 S1~S8 전체 디자인에 제안/추가 정보/주기 예시/완료일 컴포넌트 추가. 기본 글자 크기만 확인, 실제 서비스 미연결 | [작업 #18](https://github.com/kw-mobile/home-timing/issues/18), [디자인 시스템](../DESIGN_SYSTEM.md), [검증](evidence/component-system/verification.md). [PR #19](https://github.com/kw-mobile/home-timing/pull/19) · 기존 화면 작업 함께 업로드, 미병합 |
 
 ## 기록 예시
 
