@@ -1,5 +1,9 @@
 Weather background photographs (downloaded 2026-11-10)
 
+Morning: Dieu Mien, Clouds in the Sky
+https://www.pexels.com/photo/clouds-in-the-sky-14583320/
+https://www.pexels.com/license/
+
 Day: Diana, Clouds on Blue Sky
 https://www.pexels.com/photo/clouds-on-blue-sky-8175412/
 https://www.pexels.com/license/
@@ -8,13 +12,18 @@ Evening: Ilya Klimenko, Clouds on Sky at Sunset
 https://www.pexels.com/photo/clouds-on-sky-at-sunset-5674495/
 https://www.pexels.com/license/
 
-Night: 于光 胡 (@yghu), A dark sky filled with countless bright stars
-https://unsplash.com/photos/a-dark-sky-filled-with-countless-bright-stars-7mdXlBXgBpI
-https://unsplash.com/license
+Night: Camille Cox, Full moon in cloudy sky at night
+https://www.pexels.com/photo/full-moon-in-cloudy-sky-at-night-7275996/
+https://www.pexels.com/license/
 
-Cloudy / rain: Enrique, Rain Clouds on Sky
+Cloudy: Enrique, Rain Clouds on Sky
 https://www.pexels.com/photo/rain-clouds-on-sky-15938544/
 https://www.pexels.com/license/
+
+Rain: Berke Can, Raindrops on Window Against Cloudy Sky
+https://unsplash.com/id/foto/tetesan-hujan-di-jendela-dengan-langit-mendung-di-latar-belakang-9ASQuNGsa5k
+https://images.unsplash.com/photo-1714428132463-16aa457790c1
+https://unsplash.com/license
 
 Downloaded from original image hosts at 1200px width; displayed with native
 centerCrop and a uniform scrim. No generative image assets, fabricated stars,

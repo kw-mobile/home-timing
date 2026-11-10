@@ -122,15 +122,16 @@ Pretendard v1.3.9의 원본 OTF 400·500·600·700을 앱에 포함합니다. �
 
 | 시간·상태 | 배경 |
 | --- | --- |
-| 06:00–09:59 | 낮 하늘 사진 |
+| 06:00–09:59 | 따뜻한 아침빛이 드는 구름 사진 |
 | 10:00–16:59 | 낮 하늘 사진 |
 | 17:00–19:59 | 해질녘 사진 |
-| 20:00–05:59 | 별이 있는 밤하늘 사진 |
-| 흐림·비 | 시간대보다 흐린 하늘 사진을 우선 |
+| 20:00–05:59 | 달과 얇은 구름이 있는 밤하늘 사진 |
+| 흐림 | 시간대보다 회색 먹구름 사진을 우선 |
+| 비 | 시간대보다 창에 맺힌 빗방울 사진을 우선 |
 
-기기 현지 시각의 고정 구간이며 일출·일몰을 계산하지 않습니다. 앱 복귀·분·시간대 변경 시 갱신합니다. 다크 모드로 바꿔도 맑은 낮이 밤 사진으로 바뀌지 않습니다. 테스트 날씨 화면에서 배경과 상태를 수동으로 확인할 수 있습니다. 아침·낮은 같은 실사를, 흐림·비도 같은 실사를 재사용합니다.
+기기 현지 시각의 고정 구간이며 일출·일몰을 계산하지 않습니다. 앱 복귀·분·시간대 변경 시 갱신합니다. 다크 모드로 바꿔도 맑은 낮이 밤 사진으로 바뀌지 않습니다. 테스트 날씨 화면에서 배경과 상태를 수동으로 확인할 수 있습니다. 아침·낮·저녁·밤·흐림·비의 6종 실사를 구분합니다. 흐림·비는 시간대별 사진을 별도로 두지 않습니다.
 
-무료 사용 조건을 확인한 [낮 하늘](https://www.pexels.com/photo/clouds-on-blue-sky-8175412/)·[해질녘](https://www.pexels.com/photo/clouds-on-sky-at-sunset-5674495/)·[흐린 하늘](https://www.pexels.com/photo/rain-clouds-on-sky-15938544/)·[밤하늘](https://unsplash.com/photos/a-dark-sky-filled-with-countless-bright-stars-7mdXlBXgBpI)을 사용합니다. 촬영자·원본 URL·라이선스는 [APK 내 고지](../app/src/main/assets/licenses/weather-photographs.txt)에 기록합니다. 각 원본의 자연스러운 색 변화는 유지하고 합성 별·빛·인위적인 그라데이션을 추가하지 않습니다.
+무료 사용 조건을 확인한 [낮 하늘](https://www.pexels.com/photo/clouds-on-blue-sky-8175412/)·[해질녘](https://www.pexels.com/photo/clouds-on-sky-at-sunset-5674495/)·[흐린 하늘](https://www.pexels.com/photo/rain-clouds-on-sky-15938544/)·[밤하늘](https://www.pexels.com/photo/full-moon-in-cloudy-sky-at-night-7275996/)·[아침](https://www.pexels.com/photo/clouds-in-the-sky-14583320/)·[빗방울](https://unsplash.com/photos/9ASQuNGsa5k)을 사용합니다. 촬영자·원본 URL·라이선스는 [APK 내 고지](../app/src/main/assets/licenses/weather-photographs.txt)에 기록합니다. 각 원본의 자연스러운 색 변화는 유지하고 합성 별·빛·인위적인 그라데이션을 추가하지 않습니다.
 
 ## 로고
 

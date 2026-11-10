@@ -512,7 +512,13 @@ public final class MainActivity extends AppCompatActivity {
     private void updateWeather() {
         if(screen==null)return;ImageView photo=screen.findViewById(R.id.weather_photo);if(photo==null)return;
         String period=s().weather.equals("auto")?HomeTimeOfDay.at(ZonedDateTime.now()).name().toLowerCase(Locale.ROOT):s().weather;
-        int image=s().condition.equals("clear")?(period.equals("night")?R.drawable.weather_night:period.equals("evening")?R.drawable.weather_evening:R.drawable.weather_day):R.drawable.weather_clouds;
+        int image;
+        if(s().condition.equals("rain"))image=R.drawable.weather_rain;
+        else if(s().condition.equals("clouds"))image=R.drawable.weather_clouds;
+        else if(period.equals("night"))image=R.drawable.weather_night;
+        else if(period.equals("evening"))image=R.drawable.weather_evening;
+        else if(period.equals("morning"))image=R.drawable.weather_morning;
+        else image=R.drawable.weather_day;
         photo.setImageResource(image);
         ((View)photo.getParent()).setClipToOutline(true);
         ((TextView)screen.findViewById(R.id.weather_location)).setText(s().region);
