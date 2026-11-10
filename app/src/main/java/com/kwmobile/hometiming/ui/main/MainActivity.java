@@ -250,13 +250,13 @@ public final class MainActivity extends AppCompatActivity {
         if(icon!=0){ImageView image=new androidx.appcompat.widget.AppCompatImageView(this);image.setImageResource(icon);image.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);LinearLayout.LayoutParams lp=new LinearLayout.LayoutParams(dp(22),dp(22));lp.rightMargin=dp(16);row.addView(image,lp);}
         LinearLayout copy=vertical();copy.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));copy.addView(text(title,R.style.TextAppearance_HomeTiming_BodyStrong));
         if(!description.isEmpty()){gap(copy,4);copy.addView(caption(description));}row.addView(copy);
-        if(run!=null){ImageView arrow=new androidx.appcompat.widget.AppCompatImageView(this);arrow.setImageResource(R.drawable.ic_arrow);arrow.setImageTintList(ColorStateList.valueOf(color(R.color.ht_icon_secondary)));arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);row.addView(arrow,new LinearLayout.LayoutParams(dp(16),dp(16)));row.setBackgroundResource(android.R.drawable.list_selector_background);row.setFocusable(true);row.setOnClickListener(v -> run.run());}
+        if(run!=null){ImageView arrow=new androidx.appcompat.widget.AppCompatImageView(this);arrow.setImageResource(R.drawable.ic_arrow);arrow.setImageTintList(ColorStateList.valueOf(color(R.color.ht_icon_secondary)));arrow.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);row.addView(arrow,new LinearLayout.LayoutParams(dp(16),dp(16)));android.util.TypedValue feedback=new android.util.TypedValue();getTheme().resolveAttribute(android.R.attr.selectableItemBackground,feedback,true);row.setBackgroundResource(feedback.resourceId);row.setFocusable(true);row.setOnClickListener(v -> run.run());}
         parent.addView(row);return row;
     }
     private String date(LocalDate day) {return day.format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_020),Locale.KOREAN));}
     private String status(Item item) {long d=ChronoUnit.DAYS.between(PreviewStore.today(),item.due);return d<0?Math.abs(d)+getString(R.string.preview_copy_021):d==0?getString(R.string.preview_copy_017):"D−"+d;}
     private int statusColor(Item item) {long d=ChronoUnit.DAYS.between(PreviewStore.today(),item.due);return d<=0?R.color.ht_error:d<=3?R.color.ht_due_soon:R.color.ht_text_secondary;}
-    private int icon(Item item) {return item.chore?R.drawable.ic_wash:item.name.contains(getString(R.string.preview_copy_022))?R.drawable.ic_brush:item.category.equals(getString(R.string.preview_copy_023))?R.drawable.ic_filter:R.drawable.ic_box;}
+    private int icon(Item item) {return item.chore?(item.category.equals(getString(R.string.preview_copy_092))?R.drawable.ic_clean:R.drawable.ic_wash):item.name.contains(getString(R.string.preview_copy_022))?R.drawable.ic_brush:item.category.equals(getString(R.string.preview_copy_023))?R.drawable.ic_filter:R.drawable.ic_box;}
     @android.annotation.SuppressLint("ClickableViewAccessibility") // Native View handles taps; this listener consumes horizontal swipes only.
     private void itemRow(LinearLayout parent,Item item,boolean swipe) {
         View row=getLayoutInflater().inflate(R.layout.component_item_row,parent,false);
@@ -338,6 +338,7 @@ public final class MainActivity extends AppCompatActivity {
         chips(controls,new String[]{getString(R.string.preview_copy_051),getString(R.string.preview_copy_023),getString(R.string.preview_copy_052),getString(R.string.preview_copy_053)},s().filter,value -> {capture();s().filter=value;render();});
         LinearLayout rows=box(R.id.item_rows);if(stateMessage(rows,this::render))return;
         int countItems=0;for(Item item:s().store.sorted())if(!item.chore&&(s().filter.equals(getString(R.string.preview_copy_051))||s().filter.equals(item.category))){itemRow(rows,item,true);countItems++;}
+        if(s().scenario.equals("normal"))count.setText(getString(R.string.preview_item_count,s().filter,countItems));
         if(countItems==0){gap(rows,32);section(rows,getString(R.string.preview_copy_054),getString(R.string.preview_copy_055));fullAction(rows,getString(R.string.preview_copy_056),true,() -> edit(""));}
         else {gap(rows,20);rows.addView(caption(getString(R.string.preview_copy_057)));}
     }
@@ -548,13 +549,16 @@ public final class MainActivity extends AppCompatActivity {
         updateWeather();LinearLayout content=box(R.id.weather_content);
         if(stateMessage(content,this::render))return;
         section(content,getString(R.string.preview_copy_144),getString(R.string.preview_copy_145,s().region));
+        LinearLayout forecastHead=horizontal();
+        TextView dayHeading=caption(getString(R.string.preview_forecast_day));forecastHead.addView(dayHeading,new LinearLayout.LayoutParams(0,-2,1));
+        TextView temperatureHeading=caption(getString(R.string.preview_forecast_temperatures));temperatureHeading.setGravity(Gravity.END);forecastHead.addView(temperatureHeading,new LinearLayout.LayoutParams(0,-2,1));content.addView(forecastHead);gap(content,4);
         for(int i=0;i<3;i++) {
             LinearLayout row=horizontal();row.setMinimumHeight(dp(62));TextView day=text(i==0?getString(R.string.preview_copy_017):i==1?getString(R.string.preview_copy_146):getString(R.string.preview_copy_147),R.style.TextAppearance_HomeTiming_BodyStrong);day.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));row.addView(day);
             ImageView icon=new androidx.appcompat.widget.AppCompatImageView(this);icon.setImageResource(i==1?R.drawable.ic_cloud:s().condition.equals("rain")?R.drawable.ic_rain:R.drawable.ic_sun);icon.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);row.addView(icon,new LinearLayout.LayoutParams(dp(22),dp(22)));
             TextView degrees=label(i==0?"12°   21°":i==1?"11°   19°":"10°   20°");degrees.setGravity(Gravity.END);row.addView(degrees,new LinearLayout.LayoutParams(0,-2,1));row.setContentDescription((i==0?getString(R.string.preview_copy_017):i==1?getString(R.string.preview_copy_146):getString(R.string.preview_copy_147))+(i==1?getString(R.string.preview_copy_148):", "+(s().condition.equals("rain")?getString(R.string.preview_copy_138):getString(R.string.preview_copy_141)))+", "+degrees.getText());content.addView(row);line(content);
         }
         gap(content,28);boolean rain=s().condition.equals("rain"),unknown=s().scenario.equals("offline");
-        section(content,getString(R.string.preview_copy_149)+(unknown?getString(R.string.preview_copy_150):rain?getString(R.string.preview_copy_151):getString(R.string.preview_copy_152)),getString(R.string.preview_copy_153));
+        section(content,getString(R.string.preview_copy_149,unknown?getString(R.string.preview_copy_150):rain?getString(R.string.preview_copy_151):getString(R.string.preview_copy_152)),getString(R.string.preview_copy_153));
         content.addView(label(unknown?getString(R.string.preview_copy_154):rain?getString(R.string.preview_copy_155):getString(R.string.preview_copy_156)));
         gap(content,28);section(content,getString(R.string.preview_copy_157),getString(R.string.preview_copy_158));
         for(Item item:s().store.sorted())if(item.chore&&item.weatherSensitive) {
@@ -570,7 +574,7 @@ public final class MainActivity extends AppCompatActivity {
         settingsRow(body,getString(R.string.preview_copy_172),s().region+(s().owner?"":getString(R.string.preview_copy_173)),R.drawable.ic_pin,() -> go("preferences","region"));
         gap(body,28);section(body,getString(R.string.preview_copy_174),"");
         settingsRow(body,getString(R.string.preview_copy_175),s().notifications?s().time+" · "+s().advanceDays+getString(R.string.preview_copy_176):getString(R.string.preview_copy_177),R.drawable.ic_bell,() -> go("preferences","notifications"));line(body);
-        settingsRow(body,getString(R.string.preview_copy_178),s().notifications?getString(R.string.preview_copy_179):getString(R.string.preview_copy_180),0,() -> go("preferences","notifications"));
+        settingsRow(body,getString(R.string.preview_copy_178),s().notifications?getString(R.string.preview_copy_179):getString(R.string.preview_copy_180),R.drawable.ic_shield,() -> go("preferences","notifications"));
         gap(body,28);section(body,getString(R.string.preview_copy_181),"");
         settingsRow(body,getString(R.string.preview_copy_182),s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):getString(R.string.preview_copy_141),R.drawable.ic_cloud,() -> go("preferences","weather"));line(body);
         settingsRow(body,getString(R.string.preview_copy_183),getString(R.string.preview_copy_184),R.drawable.ic_logout,() -> confirm(getString(R.string.preview_copy_185),getString(R.string.preview_copy_186),getString(R.string.preview_copy_183),() -> {s().authFields.clear();vm.tab("login");render();}));

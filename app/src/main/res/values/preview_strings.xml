@@ -145,7 +145,7 @@
     <string name="preview_copy_146" formatted="false">내일</string>
     <string name="preview_copy_147" formatted="false">모레</string>
     <string name="preview_copy_148" formatted="false">, 흐림</string>
-    <string name="preview_copy_149" formatted="false">세탁하기 </string>
+    <string name="preview_copy_149">세탁하기 %1$s</string>
     <string name="preview_copy_150" formatted="false">확인 필요</string>
     <string name="preview_copy_151" formatted="false">어려워요</string>
     <string name="preview_copy_152" formatted="false">좋아요</string>
@@ -300,4 +300,7 @@
     <string name="preview_forecast_empty">아직 예보가 없어요</string>
     <string name="preview_forecast_empty_help">예보가 준비되면 세탁 적합도와 제안을 확인할 수 있어요.</string>
     <string name="preview_weather_manual">예시 날씨 · %1$s 배경 테스트</string>
+    <string name="preview_forecast_day">날짜</string>
+    <string name="preview_forecast_temperatures">최저 · 최고</string>
+    <string name="preview_item_count">%1$s · %2$d개</string>
 </resources>
