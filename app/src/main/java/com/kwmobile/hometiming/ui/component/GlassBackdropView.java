@@ -14,6 +14,8 @@ import android.os.Build;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+import android.widget.ImageView;
 
 /** Samples only content behind the bar; the navigation labels and icons stay sharp. */
 public final class GlassBackdropView extends View {
@@ -59,7 +61,7 @@ public final class GlassBackdropView extends View {
     }
 
     private void captureBackdrop() {
-        if (!isAttachedToWindow() || source == null || getWidth() == 0 || getHeight() == 0) {
+        if (!isAttachedToWindow() || !isShown() || source == null || getWidth() == 0 || getHeight() == 0) {
             return;
         }
         int width = Math.max(1, (getWidth() + 2 * samplePadding + SAMPLE_SCALE - 1) / SAMPLE_SCALE);
@@ -85,7 +87,6 @@ public final class GlassBackdropView extends View {
             backdrop.setPixels(blurPixels, 0, width, 0, 0, width, height);
             lens.update(backdrop, getWidth(), getHeight(), samplePadding);
         }
-        invalidateContent(source);
         invalidate();
     }
 
@@ -115,21 +116,34 @@ public final class GlassBackdropView extends View {
             Drawable foreground = view.getForeground();
             if (foreground != null) foreground.draw(canvas);
         } else {
-            view.draw(canvas);
+            // Never call draw() on an attached View: software snapshots can consume
+            // its hardware display-list flags, especially during stretch overscroll.
+            Drawable background = view.getBackground();
+            if (background != null) background.draw(canvas);
+            if (view instanceof TextView) {
+                TextView text = (TextView) view;
+                if (text.getLayout() != null) {
+                    int content = canvas.save();
+                    canvas.translate(text.getTotalPaddingLeft() - text.getScrollX(),
+                            text.getTotalPaddingTop() - text.getScrollY());
+                    text.getLayout().draw(canvas);
+                    canvas.restoreToCount(content);
+                }
+            } else if (view instanceof ImageView) {
+                ImageView image = (ImageView) view;
+                Drawable drawable = image.getDrawable();
+                if (drawable != null) {
+                    int content = canvas.save();
+                    canvas.translate(image.getPaddingLeft(), image.getPaddingTop());
+                    canvas.concat(image.getImageMatrix());
+                    drawable.draw(canvas);
+                    canvas.restoreToCount(content);
+                }
+            }
+            Drawable foreground = view.getForeground();
+            if (foreground != null) foreground.draw(canvas);
         }
         canvas.restoreToCount(saved);
-    }
-
-    // Software snapshots can consume display-list dirty flags. Restore them for the
-    // complete source so unchanged siblings remain visible in the hardware frame.
-    private void invalidateContent(View view) {
-        view.invalidate();
-        if (view instanceof ViewGroup) {
-            ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                invalidateContent(group.getChildAt(i));
-            }
-        }
     }
 
     @Override
