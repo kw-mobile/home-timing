@@ -113,7 +113,7 @@
     <string name="preview_copy_114" formatted="false">장소</string>
     <string name="preview_copy_115" formatted="false">지정하지 않음</string>
     <string name="preview_copy_116" formatted="false">관리 주기</string>
-    <string name="preview_copy_117" formatted="false">매주 </string>
+    <string name="preview_copy_117">매주 %1$s</string>
     <string name="preview_copy_118" formatted="false">일마다</string>
     <string name="preview_copy_119" formatted="false">완료 이력</string>
     <string name="preview_copy_120" formatted="false">교체 이력</string>
@@ -153,13 +153,12 @@
     <string name="preview_copy_156" formatted="false">낮 동안 비 소식이 적고 습도가 낮아요.</string>
     <string name="preview_copy_157" formatted="false">집안일 제안</string>
     <string name="preview_copy_158" formatted="false">날씨는 용품의 교체일을 바꾸지 않아요.</string>
-    <string name="preview_copy_159" formatted="false"> 예정</string>
+    <string name="preview_copy_159">%1$s 예정</string>
     <string name="preview_copy_160" formatted="false">내일로 변경</string>
     <string name="preview_copy_161" formatted="false">일정을 옮길까요?</string>
     <string name="preview_copy_164" formatted="false">변경</string>
     <string name="preview_copy_165" formatted="false">예시 일정을 변경했어요.</string>
-    <string name="preview_copy_166" formatted="false">조회 시각 </string>
-    <string name="preview_copy_167" formatted="false"> · 실제 예보 미연결</string>
+    <string name="preview_copy_166">조회 시각 %1$s · 실제 예보 미연결</string>
     <string name="preview_copy_168" formatted="false">우리 집</string>
     <string name="preview_copy_169" formatted="false">햇살 드는 집</string>
     <string name="preview_copy_172" formatted="false">지역</string>

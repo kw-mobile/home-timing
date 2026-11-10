@@ -519,7 +519,7 @@ public final class MainActivity extends AppCompatActivity {
         if(done||s().scenario.equals("offline")){complete.setEnabled(false);complete.setBackgroundTintList(ColorStateList.valueOf(color(R.color.ht_disabled)));complete.setTextColor(color(R.color.ht_on_disabled));gap(body,8);body.addView(caption(done?getString(R.string.preview_copy_111):getString(R.string.preview_copy_112)));}
         gap(body,32);line(body);gap(body,24);section(body,getString(R.string.preview_copy_113),"");
         settingsRow(body,getString(R.string.preview_copy_114),item.location.isEmpty()?getString(R.string.preview_copy_115):item.location,0,null);
-        settingsRow(body,getString(R.string.preview_copy_116),item.chore?getString(R.string.preview_copy_117)+java.time.DayOfWeek.of(item.weekday).getDisplayName(java.time.format.TextStyle.FULL,Locale.KOREAN):item.cycle+getString(R.string.preview_copy_118),0,null);
+        settingsRow(body,getString(R.string.preview_copy_116),item.chore?getString(R.string.preview_copy_117,java.time.DayOfWeek.of(item.weekday).getDisplayName(java.time.format.TextStyle.FULL,Locale.KOREAN)):item.cycle+getString(R.string.preview_copy_118),0,null);
         settingsRow(body,getString(R.string.preview_copy_094),date(item.start),0,null);
         gap(body,24);section(body,item.chore?getString(R.string.preview_copy_119):getString(R.string.preview_copy_120),item.history.size()+getString(R.string.preview_copy_121));
         if(item.history.isEmpty()){gap(body,16);body.addView(label(getString(R.string.preview_copy_122)));}
@@ -589,7 +589,7 @@ public final class MainActivity extends AppCompatActivity {
         content.addView(label(unknown?getString(R.string.preview_copy_154):rain?getString(R.string.preview_copy_155):getString(R.string.preview_copy_156)));
         gap(content,28);section(content,getString(R.string.preview_copy_157),getString(R.string.preview_copy_158));
         for(Item item:s().store.sorted())if(item.chore&&item.weatherSensitive) {
-            settingsRow(content,item.name,date(item.due)+getString(R.string.preview_copy_159),icon(item),() -> go("detail",item.id));
+            settingsRow(content,item.name,getString(R.string.preview_copy_159,date(item.due)),icon(item),() -> go("detail",item.id));
             LocalDate target=PreviewStore.today().plusDays(1);
             if(unknown)content.addView(caption(getString(R.string.preview_copy_154)));
             else if(item.proposalDismissed)content.addView(caption(getString(R.string.intent_proposal_kept)));
@@ -603,7 +603,7 @@ public final class MainActivity extends AppCompatActivity {
             }
             gap(content,16);
         }
-        gap(content,16);content.addView(caption(getString(R.string.preview_copy_166)+ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))+getString(R.string.preview_copy_167)));
+        gap(content,16);content.addView(caption(getString(R.string.preview_copy_166,ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))));
     }
     private void bindSettings() {
         LinearLayout body=box(R.id.settings_content);section(body,getString(R.string.preview_copy_168),"");
