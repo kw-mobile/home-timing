@@ -19,7 +19,7 @@ public class PreviewStoreTest {
         int before=original.history.size();
         LocalDate start=PreviewStore.today().minusDays(20);
         PreviewStore.Item edited=store.save("filter","새 필터","욕실","욕실",false,30,start,false,start.getDayOfWeek().getValue());
-        assertSame(original,edited);assertEquals(before,edited.history.size());
+        assertSame(original,edited);assertEquals(before,edited.history.size());assertEquals("가족",edited.createdBy);
         assertEquals(start.plusDays(30),store.find("filter").due);
     }
     @Test public void weatherMoveDoesNotChangeWeeklyRecurrenceAnchor() {
@@ -36,5 +36,29 @@ public class PreviewStoreTest {
         assertNotEquals(a.id,b.id);assertEquals(PreviewStore.today().plusDays(730),b.due);
         assertTrue(store.delete(a.id));assertNull(store.find(a.id));assertNotNull(store.find(b.id));
         store.reset();assertEquals(5,store.items.size());assertNull(store.find(b.id));
+    }
+    @Test public void weatherSuggestionCannotMoveSuppliesOrUnsuitableChores() {
+        PreviewStore store=new PreviewStore();
+        PreviewStore.Item supply=store.find("filter");LocalDate original=supply.due;
+        assertFalse(store.moveWeatherSuggestion(supply.id,PreviewStore.today().plusDays(1)));
+        assertEquals(original,supply.due);
+        PreviewStore.Item chore=store.find("bedding");chore.weatherSensitive=false;
+        assertFalse(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
+        chore.weatherSensitive=true;
+        assertFalse(store.moveWeatherSuggestion(chore.id,PreviewStore.today().minusDays(1)));
+        int anchor=chore.weekday;
+        assertTrue(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
+        assertFalse(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
+        assertEquals(anchor,chore.weekday);
+    }
+    @Test public void keepingThisSuggestionDoesNotSuppressTheNextOccurrence() {
+        PreviewStore store=new PreviewStore();PreviewStore.Item chore=store.find("bedding");
+        LocalDate original=chore.due;int anchor=chore.weekday;
+        assertTrue(store.dismissWeatherSuggestion(chore.id));
+        assertFalse(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
+        assertEquals(original,chore.due);
+        assertTrue(store.complete(chore.id));assertFalse(chore.proposalDismissed);
+        assertEquals(anchor,chore.due.getDayOfWeek().getValue());
+        assertTrue(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
     }
 }

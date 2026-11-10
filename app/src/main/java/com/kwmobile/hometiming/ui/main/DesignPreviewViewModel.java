@@ -39,7 +39,7 @@ public final class DesignPreviewViewModel extends ViewModel {
         public int members=2;
         public LocalDate selected=PreviewStore.today();
         public YearMonth month=YearMonth.from(selected);
-        public boolean expanded=false, sheetHidden=false, owner=true, joined=false, notifications=false;
+        public boolean expanded=false, sheetHidden=false, owner=true, joined=false, notifications=false, permissionGranted=false;
         public boolean passwordVisible=false, initialized=false;
         public int advanceDays=3;
     }

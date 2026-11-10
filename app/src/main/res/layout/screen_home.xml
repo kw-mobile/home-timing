@@ -8,6 +8,8 @@
             <include layout="@layout/component_weather"/>
             <Space android:layout_width="1dp" android:layout_height="20dp"/>
             <com.google.android.material.button.MaterialButton android:id="@+id/home_reopen" style="@style/Widget.HomeTiming.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/preview_sheet_reopen" android:visibility="gone"/>
+            <LinearLayout android:id="@+id/home_task_summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+            <LinearLayout android:id="@+id/home_weather_suggestion" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
     <LinearLayout android:id="@+id/preview_sheet" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:background="@drawable/bg_content_sheet" android:elevation="2dp" app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" app:behavior_peekHeight="320dp" app:behavior_hideable="true" app:behavior_fitToContents="true" app:behavior_draggable="true">

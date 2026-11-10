@@ -21,7 +21,8 @@ public final class PreviewStore implements Serializable {
         private static final long serialVersionUID = 1L;
         public final String id;
         public String name, category, location;
-        public boolean chore, weatherSensitive;
+        public String createdBy="나";
+        public boolean chore, weatherSensitive, proposalDismissed;
         public int cycle, weekday;
         public LocalDate start, due;
         public final List<History> history = new ArrayList<>();
@@ -44,7 +45,7 @@ public final class PreviewStore implements Serializable {
         items.add(brush);
         Item filter=new Item("filter", "샤워기 필터", "욕실", "욕실", false, 60,
                 today.minusDays(60), today);
-        filter.history.add(new History(today.minusDays(60), "가족")); items.add(filter);
+        filter.createdBy="가족";filter.history.add(new History(today.minusDays(60), "가족")); items.add(filter);
         Item bedding=new Item("bedding", "침구 세탁", "세탁", "침실", true, 7,
                 today.minusDays(5), today.plusDays(2));
         bedding.history.add(new History(today.minusDays(5), "나")); items.add(bedding);
@@ -69,7 +70,7 @@ public final class PreviewStore implements Serializable {
             item.name=name; item.category=category; item.location=location; item.chore=chore;
             item.cycle=cycle; item.start=start; item.due=start.plusDays(cycle);
         }
-        item.weatherSensitive=weatherSensitive;item.weekday=weekday;
+        item.weatherSensitive=weatherSensitive;item.weekday=weekday;item.proposalDismissed=false;
         if(chore)item.due=start.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(weekday)));
         return item;
     }
@@ -78,9 +79,20 @@ public final class PreviewStore implements Serializable {
         LocalDate today=today();
         // A repeated tap on the same demo day cannot create duplicate history entries.
         if(!item.history.isEmpty() && item.history.get(0).date.equals(today)) return false;
-        item.history.add(0,new History(today,"나")); item.start=today;
+        item.history.add(0,new History(today,"나")); item.start=today;item.proposalDismissed=false;
         item.due=item.chore?today.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(item.weekday))):today.plusDays(item.cycle);
         return true;
     }
     public boolean delete(String id) { return items.removeIf(item -> item.id.equals(id)); }
+    public boolean moveWeatherSuggestion(String id, LocalDate target) {
+        Item item=find(id);
+        if(item==null||!item.chore||!item.weatherSensitive||item.proposalDismissed
+                ||target.isBefore(today())||target.equals(item.due))return false;
+        item.due=target;return true;
+    }
+    public boolean dismissWeatherSuggestion(String id) {
+        Item item=find(id);
+        if(item==null||!item.chore||!item.weatherSensitive)return false;
+        item.proposalDismissed=true;return true;
+    }
 }
