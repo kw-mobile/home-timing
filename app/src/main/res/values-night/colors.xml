@@ -27,4 +27,5 @@
     <color name="ht_disabled">#3A3A3F</color>
     <color name="ht_on_disabled">#A2A2AB</color>
     <color name="launcher_background">#0C3B2E</color>
+    <color name="ht_sheet_edge">#ACACB4</color>
 </resources>
