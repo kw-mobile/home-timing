@@ -4,13 +4,13 @@
         <shape>
             <solid android:color="@color/ht_glass_surface" />
             <stroke android:width="0.75dp" android:color="@color/ht_glass_border" />
-            <corners android:radius="@dimen/ht_radius_surface" />
+            <corners android:radius="1000dp" />
         </shape>
     </item>
     <item android:left="0.75dp" android:right="0.75dp" android:top="0.75dp" android:bottom="0.75dp">
         <shape>
             <stroke android:width="0.75dp" android:color="@color/ht_glass_highlight" />
-            <corners android:radius="23.25dp" />
+            <corners android:radius="1000dp" />
         </shape>
     </item>
 </layer-list>

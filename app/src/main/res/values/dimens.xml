@@ -12,7 +12,6 @@
     <dimen name="ht_icon_container">44dp</dimen>
     <dimen name="ht_radius_icon">12dp</dimen>
     <dimen name="ht_navigation_max_width">480dp</dimen>
-    <dimen name="ht_radius_surface">24dp</dimen>
     <dimen name="ht_navigation_height">64dp</dimen>
     <dimen name="ht_type_caption">13sp</dimen>
     <dimen name="ht_type_label">15sp</dimen>

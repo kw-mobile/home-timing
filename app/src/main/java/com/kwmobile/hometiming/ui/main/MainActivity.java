@@ -84,7 +84,7 @@ public final class MainActivity extends AppCompatActivity {
         binding.systemNavigationBackdrop.getLayoutParams().height=dp(16);
         binding.navigationContainer.setClipToOutline(true);
         binding.navigationContainer.setOutlineProvider(new ViewOutlineProvider() {
-            @Override public void getOutline(View view,Outline outline) {outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),dp(24));}
+            @Override public void getOutline(View view,Outline outline) {outline.setRoundRect(0,0,view.getWidth(),view.getHeight(),view.getHeight()/2f);}
         });
         binding.glassBackdrop.setSource(binding.mainContent);
         binding.getRoot().getViewTreeObserver().addOnScrollChangedListener(binding.glassBackdrop::refresh);
