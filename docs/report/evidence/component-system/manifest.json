@@ -1,5 +1,5 @@
 {
-  "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7",
+  "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609",
   "font_scale": "1.0",
   "serial": "emulator-5554",
   "records": [
@@ -10,7 +10,7 @@
       "group": "screens",
       "note": "",
       "file": "light-login.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-signup",
@@ -19,7 +19,7 @@
       "group": "screens",
       "note": "",
       "file": "light-signup.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-signup-end",
@@ -28,7 +28,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "light-signup-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-reset",
@@ -37,7 +37,7 @@
       "group": "screens",
       "note": "",
       "file": "light-reset.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-home",
@@ -46,7 +46,7 @@
       "group": "screens",
       "note": "",
       "file": "light-home.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-items",
@@ -55,7 +55,7 @@
       "group": "screens",
       "note": "",
       "file": "light-items.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-editor",
@@ -64,7 +64,7 @@
       "group": "screens",
       "note": "",
       "file": "light-editor.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-editor-end",
@@ -73,7 +73,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "light-editor-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-editor-optional",
@@ -82,7 +82,7 @@
       "group": "components",
       "note": "",
       "file": "light-editor-optional.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-detail",
@@ -91,7 +91,7 @@
       "group": "screens",
       "note": "",
       "file": "light-detail.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-detail-end",
@@ -100,7 +100,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "light-detail-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-calendar",
@@ -109,7 +109,7 @@
       "group": "screens",
       "note": "",
       "file": "light-calendar.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-weather",
@@ -118,7 +118,7 @@
       "group": "screens",
       "note": "",
       "file": "light-weather.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-weather-end",
@@ -127,7 +127,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "light-weather-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-settings",
@@ -136,7 +136,7 @@
       "group": "screens",
       "note": "",
       "file": "light-settings.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-family",
@@ -145,7 +145,7 @@
       "group": "screens",
       "note": "",
       "file": "light-family.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-family-end",
@@ -154,7 +154,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "light-family-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-preferences-region",
@@ -163,7 +163,7 @@
       "group": "screens",
       "note": "",
       "file": "light-preferences-region.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-preferences-notifications",
@@ -172,7 +172,7 @@
       "group": "screens",
       "note": "",
       "file": "light-preferences-notifications.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-preferences-join",
@@ -181,7 +181,7 @@
       "group": "screens",
       "note": "",
       "file": "light-preferences-join.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-preferences-weather",
@@ -190,7 +190,7 @@
       "group": "screens",
       "note": "",
       "file": "light-preferences-weather.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-home-rain",
@@ -199,7 +199,7 @@
       "group": "components",
       "note": "",
       "file": "light-home-rain.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-home-expanded",
@@ -208,7 +208,7 @@
       "group": "components",
       "note": "",
       "file": "light-home-expanded.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-home-hidden",
@@ -217,7 +217,7 @@
       "group": "components",
       "note": "",
       "file": "light-home-hidden.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-components",
@@ -226,7 +226,7 @@
       "group": "components",
       "note": "",
       "file": "light-components.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-components-1",
@@ -235,7 +235,7 @@
       "group": "components",
       "note": "",
       "file": "light-components-1.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-components-2",
@@ -244,7 +244,7 @@
       "group": "components",
       "note": "",
       "file": "light-components-2.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "light-components-3",
@@ -253,7 +253,7 @@
       "group": "components",
       "note": "",
       "file": "light-components-3.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-login",
@@ -262,7 +262,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-login.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-signup",
@@ -271,7 +271,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-signup.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-signup-end",
@@ -280,7 +280,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "dark-signup-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-reset",
@@ -289,7 +289,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-reset.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-home",
@@ -298,7 +298,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-home.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-items",
@@ -307,7 +307,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-items.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-editor",
@@ -316,7 +316,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-editor.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-editor-end",
@@ -325,7 +325,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "dark-editor-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-editor-optional",
@@ -334,7 +334,7 @@
       "group": "components",
       "note": "",
       "file": "dark-editor-optional.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-detail",
@@ -343,7 +343,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-detail.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-detail-end",
@@ -352,7 +352,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "dark-detail-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-calendar",
@@ -361,7 +361,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-calendar.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-weather",
@@ -370,7 +370,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-weather.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-weather-end",
@@ -379,7 +379,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "dark-weather-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-settings",
@@ -388,7 +388,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-settings.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-family",
@@ -397,7 +397,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-family.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-family-end",
@@ -406,7 +406,7 @@
       "group": "screens",
       "note": "같은 화면을 아래로 스크롤한 상태",
       "file": "dark-family-end.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-preferences-region",
@@ -415,7 +415,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-preferences-region.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-preferences-notifications",
@@ -424,7 +424,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-preferences-notifications.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-preferences-join",
@@ -433,7 +433,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-preferences-join.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-preferences-weather",
@@ -442,7 +442,7 @@
       "group": "screens",
       "note": "",
       "file": "dark-preferences-weather.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-home-rain",
@@ -451,7 +451,7 @@
       "group": "components",
       "note": "",
       "file": "dark-home-rain.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-home-expanded",
@@ -460,7 +460,7 @@
       "group": "components",
       "note": "",
       "file": "dark-home-expanded.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-home-hidden",
@@ -469,7 +469,7 @@
       "group": "components",
       "note": "",
       "file": "dark-home-hidden.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-components",
@@ -478,7 +478,7 @@
       "group": "components",
       "note": "",
       "file": "dark-components.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-components-1",
@@ -487,7 +487,7 @@
       "group": "components",
       "note": "",
       "file": "dark-components-1.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-components-2",
@@ -496,7 +496,7 @@
       "group": "components",
       "note": "",
       "file": "dark-components-2.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "dark-components-3",
@@ -505,7 +505,97 @@
       "group": "components",
       "note": "",
       "file": "dark-components-3.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "preset-confirm",
+      "label": "입력 주기 변경 확인",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "preset-confirm.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "editor-optional-filled",
+      "label": "선택 정보 입력 예시",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "editor-optional-filled.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "dark-editor-draft",
+      "label": "다크 · 초안 유지",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-editor-draft.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "detail-metadata",
+      "label": "저장한 제품명·메모",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "detail-metadata.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "metadata-edit",
+      "label": "추가 정보 다시 수정",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "metadata-edit.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "completion-picker",
+      "label": "실제 완료일 선택",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "completion-picker.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "detail-selected-date",
+      "label": "과거 완료일 선택",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "detail-selected-date.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "actual-completed",
+      "label": "실제 날짜로 완료·되돌리기",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "actual-completed.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "quick-completed",
+      "label": "홈 빠른 완료·되돌리기",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "quick-completed.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
+    },
+    {
+      "id": "quick-undone",
+      "label": "홈 완료 되돌림",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "quick-undone.png",
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-empty",
@@ -514,7 +604,7 @@
       "group": "states",
       "note": "",
       "file": "state-empty.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-loading",
@@ -523,7 +613,7 @@
       "group": "states",
       "note": "",
       "file": "state-loading.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-error",
@@ -532,7 +622,7 @@
       "group": "states",
       "note": "",
       "file": "state-error.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-offline",
@@ -541,7 +631,7 @@
       "group": "states",
       "note": "",
       "file": "state-offline.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-login-error",
@@ -550,7 +640,7 @@
       "group": "states",
       "note": "",
       "file": "state-login-error.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "state-weather-unavailable",
@@ -559,7 +649,7 @@
       "group": "states",
       "note": "",
       "file": "state-weather-unavailable.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-아침",
@@ -568,7 +658,7 @@
       "group": "states",
       "note": "",
       "file": "photo-아침.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-낮",
@@ -577,7 +667,7 @@
       "group": "states",
       "note": "",
       "file": "photo-낮.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-저녁",
@@ -586,7 +676,7 @@
       "group": "states",
       "note": "",
       "file": "photo-저녁.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-밤",
@@ -595,7 +685,7 @@
       "group": "states",
       "note": "",
       "file": "photo-밤.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-흐림",
@@ -604,7 +694,7 @@
       "group": "states",
       "note": "",
       "file": "photo-흐림.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "photo-비",
@@ -613,7 +703,7 @@
       "group": "states",
       "note": "",
       "file": "photo-비.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     },
     {
       "id": "ready-home",
@@ -622,97 +712,7 @@
       "group": "states",
       "note": "",
       "file": "ready-home.png",
-      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
-    },
-    {
-      "id": "preset-confirm",
-      "label": "입력 주기 변경 확인",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "preset-confirm.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "editor-optional-filled",
-      "label": "선택 정보 입력 예시",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "editor-optional-filled.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "dark-editor-draft",
-      "label": "다크 · 초안 유지",
-      "theme": "dark",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "dark-editor-draft.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "detail-metadata",
-      "label": "저장한 제품명·메모",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "detail-metadata.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "metadata-edit",
-      "label": "추가 정보 다시 수정",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "metadata-edit.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "completion-picker",
-      "label": "실제 완료일 선택",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "completion-picker.png",
-      "app_commit": "69d2289"
-    },
-    {
-      "id": "detail-selected-date",
-      "label": "과거 완료일 선택",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "detail-selected-date.png",
-      "app_commit": "69d2289"
-    },
-    {
-      "id": "actual-completed",
-      "label": "실제 날짜로 완료·되돌리기",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "actual-completed.png",
-      "app_commit": "69d2289"
-    },
-    {
-      "id": "quick-completed",
-      "label": "홈 빠른 완료·되돌리기",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "quick-completed.png",
-      "app_commit": "76b6633"
-    },
-    {
-      "id": "quick-undone",
-      "label": "홈 완료 되돌림",
-      "theme": "light",
-      "group": "components",
-      "note": "별도 입력 검증 상태",
-      "file": "quick-undone.png",
-      "app_commit": "76b6633"
+      "app_commit": "7daec1c5893bee87c097211b531e812fd9c2f609"
     }
   ]
 }

@@ -46,6 +46,8 @@
 
 | 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·컴포넌트/최신 스타일/폰트 유지·전체 공유 HTML/업로드·테두리 대신 패널 상단 그림자 요청; Codex (도구): Java/XML 컴포넌트·로컬 사용 예시·규격·캡처/HTML·검증 | 기존 S1~S8 전체 디자인에 제안/추가 정보/주기 예시/완료일 컴포넌트 추가. 기본 글자 크기만 확인, 실제 서비스 미연결 | [작업 #18](https://github.com/kw-mobile/home-timing/issues/18), [디자인 시스템](../DESIGN_SYSTEM.md), [검증](evidence/component-system/verification.md). [PR #19](https://github.com/kw-mobile/home-timing/pull/19) · 기존 화면 작업 함께 업로드, 미병합 |
 
+| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·에뮬레이터 라이트/다크 시안 확인·현 방식 업로드 승인; Codex (도구): 통합 날씨 영역·날짜 제목 정리·외부 모서리 그림자·전체 재촬영/HTML·검증 | 상단 바 아래부터 사진에 날짜/날씨 통합, 고정 오늘 제거, 핸들 아래가 아닌 모달 위 모서리 바깥 그림자. 기본 폰트 유지, 입력 예시 포함79장 모두 재생성 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), [검증·화면](evidence/component-system/verification.md), [HTML](../design-review.html). 사용자 승인은 디자인/업로드이며 팀 코드 리뷰·병합 아님 |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.

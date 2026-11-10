@@ -61,7 +61,7 @@ def type_field(id,value):
  current=field.get('text','')
  if current:
   sh('input','keyevent','123');sh('input','keyevent',*(['67']*(len(current)+2)))
- sh('input','text',value);time.sleep(.5)
+ sh('input','text',value.replace(' ','%s'));time.sleep(.5)
  if not field.get('password')=='true':
   assert nodes(id=id)[0].get('text')==value,'Typed value differs for '+id
 
@@ -103,7 +103,32 @@ if __name__=='__main__':
    open_page('components',weather='auto');top();capture(theme+'-components','제안 · Suggested / Kept',theme,'components')
    for index in range(1,4):
     swipe_up();capture(theme+'-components-'+str(index),'컴포넌트 상태 · '+str(index),theme,'components')
-  sh('cmd','uimode','night','no');reset()
+  sh('cmd','uimode','night','no');time.sleep(1.2);reset()
+  # Regenerate input-state examples too; no historical Home styling is embedded.
+  open_page('editor','filter',weather='auto');type_field('edit_cycle','45');sh('input','keyevent','4')
+  reach('칫솔 · 90일 예시');tap(text='칫솔 · 90일 예시');capture('preset-confirm','입력 주기 변경 확인','light','components');tap(text='취소')
+  reach('추가 정보 (선택)');tap(id='optional_toggle')
+  for field,label,value in [('edit_product_name','제품명 (선택)','FilterModel'),('edit_location','장소 (선택)','Bathroom'),('edit_memo','메모 (선택)','Size A replace seal')]:
+   reach(label);type_field(field,value);sh('input','keyevent','4')
+  capture('editor-optional-filled','선택 정보 입력 예시','light','components')
+  sh('cmd','uimode','night','yes');time.sleep(1.2);capture('dark-editor-draft','다크 · 초안 유지','dark','components')
+  sh('cmd','uimode','night','no');time.sleep(1.2);reach('변경 저장');tap(id='edit_submit')
+  reach('제품명 (선택)');capture('detail-metadata','저장한 제품명·메모','light','components')
+  reach('수정');tap(text='수정');reach('추가 정보 (선택)');tap(id='optional_toggle');reach('제품명 (선택)');capture('metadata-edit','추가 정보 다시 수정','light','components')
+  reset();open_page('detail','filter',weather='auto');top();tap(id='completion_date_action');capture('completion-picker','실제 완료일 선택','light','components')
+  from datetime import datetime,timedelta
+  from zoneinfo import ZoneInfo
+  today=datetime.now(ZoneInfo('Asia/Seoul')).date();yesterday=today-timedelta(days=1)
+  if yesterday.month!=today.month:
+   previous=[n for n in tree().iter('node') if n.get('resource-id')=='android:id/prev'][0]
+   x1,y1,x2,y2=bounds(previous);sh('input','tap',str((x1+x2)//2),str((y1+y2)//2))
+  tap(text=str(yesterday.day))
+  positive=[n for n in tree().iter('node') if n.get('resource-id')=='android:id/button1'][0]
+  x1,y1,x2,y2=bounds(positive);sh('input','tap',str((x1+x2)//2),str((y1+y2)//2));time.sleep(.4)
+  capture('detail-selected-date','과거 완료일 선택','light','components')
+  tap(text='교체 완료');capture('actual-completed','실제 날짜로 완료·되돌리기','light','components');tap(text='되돌리기')
+  reset();open_page('home',weather='auto');tap(id='sheet_handle');tap(id='row_complete');capture('quick-completed','홈 빠른 완료·되돌리기','light','components');tap(text='되돌리기');capture('quick-undone','홈 완료 되돌림','light','components')
+  reset()
   for state,label in [('empty','빈 목록'),('loading','불러오는 중'),('error','불러오기 오류'),('offline','오프라인')]:
    open_page('items',state=state,weather='auto');capture('state-'+state,label,'common','states')
   open_page('login',weather='auto');tap(id='auth_submit');capture('state-login-error','로그인 필드 오류','common','states')
@@ -113,10 +138,6 @@ if __name__=='__main__':
  finally:
   sh('cmd','uimode','night','no');reset();open_page('home',weather='auto');capture('ready-home','기본 홈','light','states')
  for record in records:record['app_commit']=source
- # Optional, separately verified input states. Their capture source is preserved per image.
- extras=[('preset-confirm','입력 주기 변경 확인','light','76b6633'),('editor-optional-filled','선택 정보 입력 예시','light','76b6633'),('dark-editor-draft','다크 · 초안 유지','dark','76b6633'),('detail-metadata','저장한 제품명·메모','light','76b6633'),('metadata-edit','추가 정보 다시 수정','light','76b6633'),('completion-picker','실제 완료일 선택','light','69d2289'),('detail-selected-date','과거 완료일 선택','light','69d2289'),('actual-completed','실제 날짜로 완료·되돌리기','light','69d2289'),('quick-completed','홈 빠른 완료·되돌리기','light','76b6633'),('quick-undone','홈 완료 되돌림','light','76b6633')]
- for key,label,theme,sha in extras:
-  if (OUT/(key+'.png')).exists():records.append(dict(id=key,label=label,theme=theme,group='components',note='별도 입력 검증 상태',file=key+'.png',app_commit=sha))
  manifest=dict(app_commit=source,font_scale='1.0',serial=DEVICE,records=records)
  (OUT/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n')
  print('DONE',len(records),'actual screenshots; default Home restored.',flush=True)
