@@ -578,7 +578,7 @@ public final class MainActivity extends AppCompatActivity {
         PreviewStore.CompletionReceipt receipt=s().store.complete(item.id,actualDate);
         if(receipt==null){notice(getString(s().store.completedToday(item)?R.string.preview_copy_137:R.string.component_completion_invalid));return;}
         s().completionDates.remove(item.id);capture();render();
-        Snackbar.make(binding.getRoot(),getString(R.string.component_completion_saved,item.name,date(actualDate)),Snackbar.LENGTH_LONG)
+        Snackbar.make(binding.getRoot(),getString(R.string.component_completion_saved,item.name,date(actualDate)),10000)
                 .setAnchorView(rootPage()?binding.navigationContainer:null)
                 .setAction(R.string.component_undo,v -> {boolean restored=s().store.undo(receipt);capture();render();notice(getString(restored?R.string.component_undone:R.string.component_undo_unavailable));}).show();
     }
