@@ -1,0 +1,718 @@
+{
+  "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7",
+  "font_scale": "1.0",
+  "serial": "emulator-5554",
+  "records": [
+    {
+      "id": "light-login",
+      "label": "S1 로그인",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-login.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-signup",
+      "label": "S1 회원가입",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-signup.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-signup-end",
+      "label": "S1 회원가입 · 아래 영역",
+      "theme": "light",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "light-signup-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-reset",
+      "label": "S1 비밀번호 재설정",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-reset.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-home",
+      "label": "S2 홈",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-home.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-items",
+      "label": "S3 생활용품",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-items.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-editor",
+      "label": "S4 등록",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-editor.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-editor-end",
+      "label": "S4 등록 · 아래 영역",
+      "theme": "light",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "light-editor-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-editor-optional",
+      "label": "S4 추가 정보 펼침",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-editor-optional.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-detail",
+      "label": "S5 상세·이력",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-detail.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-detail-end",
+      "label": "S5 상세·이력 · 아래 영역",
+      "theme": "light",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "light-detail-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-calendar",
+      "label": "S6 캘린더",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-calendar.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-weather",
+      "label": "S7 날씨·제안",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-weather.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-weather-end",
+      "label": "S7 날씨·제안 · 아래 영역",
+      "theme": "light",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "light-weather-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-settings",
+      "label": "S8 설정",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-settings.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-family",
+      "label": "S8 가족 관리",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-family.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-family-end",
+      "label": "S8 가족 관리 · 아래 영역",
+      "theme": "light",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "light-family-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-preferences-region",
+      "label": "S8 지역",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-preferences-region.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-preferences-notifications",
+      "label": "S8 알림 설정",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-preferences-notifications.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-preferences-join",
+      "label": "S8 가족 참여",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-preferences-join.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-preferences-weather",
+      "label": "S8 테스트 날씨",
+      "theme": "light",
+      "group": "screens",
+      "note": "",
+      "file": "light-preferences-weather.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-home-rain",
+      "label": "S2 홈 날씨 제안",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-home-rain.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-home-expanded",
+      "label": "S2 펼친 패널·빠른 완료",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-home-expanded.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-home-hidden",
+      "label": "S2 닫힌 패널·복귀",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-home-hidden.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-components",
+      "label": "제안 · Suggested / Kept",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-components.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-components-1",
+      "label": "컴포넌트 상태 · 1",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-components-1.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-components-2",
+      "label": "컴포넌트 상태 · 2",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-components-2.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "light-components-3",
+      "label": "컴포넌트 상태 · 3",
+      "theme": "light",
+      "group": "components",
+      "note": "",
+      "file": "light-components-3.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-login",
+      "label": "S1 로그인",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-login.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-signup",
+      "label": "S1 회원가입",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-signup.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-signup-end",
+      "label": "S1 회원가입 · 아래 영역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "dark-signup-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-reset",
+      "label": "S1 비밀번호 재설정",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-reset.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-home",
+      "label": "S2 홈",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-home.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-items",
+      "label": "S3 생활용품",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-items.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-editor",
+      "label": "S4 등록",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-editor.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-editor-end",
+      "label": "S4 등록 · 아래 영역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "dark-editor-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-editor-optional",
+      "label": "S4 추가 정보 펼침",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-editor-optional.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-detail",
+      "label": "S5 상세·이력",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-detail.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-detail-end",
+      "label": "S5 상세·이력 · 아래 영역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "dark-detail-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-calendar",
+      "label": "S6 캘린더",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-calendar.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-weather",
+      "label": "S7 날씨·제안",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-weather.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-weather-end",
+      "label": "S7 날씨·제안 · 아래 영역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "dark-weather-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-settings",
+      "label": "S8 설정",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-settings.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-family",
+      "label": "S8 가족 관리",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-family.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-family-end",
+      "label": "S8 가족 관리 · 아래 영역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "같은 화면을 아래로 스크롤한 상태",
+      "file": "dark-family-end.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-preferences-region",
+      "label": "S8 지역",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-preferences-region.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-preferences-notifications",
+      "label": "S8 알림 설정",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-preferences-notifications.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-preferences-join",
+      "label": "S8 가족 참여",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-preferences-join.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-preferences-weather",
+      "label": "S8 테스트 날씨",
+      "theme": "dark",
+      "group": "screens",
+      "note": "",
+      "file": "dark-preferences-weather.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-home-rain",
+      "label": "S2 홈 날씨 제안",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-home-rain.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-home-expanded",
+      "label": "S2 펼친 패널·빠른 완료",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-home-expanded.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-home-hidden",
+      "label": "S2 닫힌 패널·복귀",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-home-hidden.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-components",
+      "label": "제안 · Suggested / Kept",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-components.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-components-1",
+      "label": "컴포넌트 상태 · 1",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-components-1.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-components-2",
+      "label": "컴포넌트 상태 · 2",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-components-2.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "dark-components-3",
+      "label": "컴포넌트 상태 · 3",
+      "theme": "dark",
+      "group": "components",
+      "note": "",
+      "file": "dark-components-3.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-empty",
+      "label": "빈 목록",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-empty.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-loading",
+      "label": "불러오는 중",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-loading.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-error",
+      "label": "불러오기 오류",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-error.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-offline",
+      "label": "오프라인",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-offline.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-login-error",
+      "label": "로그인 필드 오류",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-login-error.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "state-weather-unavailable",
+      "label": "날씨 판정 불가",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "state-weather-unavailable.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-아침",
+      "label": "날씨 사진 · 아침",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-아침.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-낮",
+      "label": "날씨 사진 · 낮",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-낮.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-저녁",
+      "label": "날씨 사진 · 저녁",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-저녁.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-밤",
+      "label": "날씨 사진 · 밤",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-밤.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-흐림",
+      "label": "날씨 사진 · 흐림",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-흐림.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "photo-비",
+      "label": "날씨 사진 · 비",
+      "theme": "common",
+      "group": "states",
+      "note": "",
+      "file": "photo-비.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "ready-home",
+      "label": "기본 홈",
+      "theme": "light",
+      "group": "states",
+      "note": "",
+      "file": "ready-home.png",
+      "app_commit": "42d204009f03b420c3115db2ec95f956206d42a7"
+    },
+    {
+      "id": "preset-confirm",
+      "label": "입력 주기 변경 확인",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "preset-confirm.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "editor-optional-filled",
+      "label": "선택 정보 입력 예시",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "editor-optional-filled.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "dark-editor-draft",
+      "label": "다크 · 초안 유지",
+      "theme": "dark",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "dark-editor-draft.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "detail-metadata",
+      "label": "저장한 제품명·메모",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "detail-metadata.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "metadata-edit",
+      "label": "추가 정보 다시 수정",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "metadata-edit.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "completion-picker",
+      "label": "실제 완료일 선택",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "completion-picker.png",
+      "app_commit": "69d2289"
+    },
+    {
+      "id": "detail-selected-date",
+      "label": "과거 완료일 선택",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "detail-selected-date.png",
+      "app_commit": "69d2289"
+    },
+    {
+      "id": "actual-completed",
+      "label": "실제 날짜로 완료·되돌리기",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "actual-completed.png",
+      "app_commit": "69d2289"
+    },
+    {
+      "id": "quick-completed",
+      "label": "홈 빠른 완료·되돌리기",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "quick-completed.png",
+      "app_commit": "76b6633"
+    },
+    {
+      "id": "quick-undone",
+      "label": "홈 완료 되돌림",
+      "theme": "light",
+      "group": "components",
+      "note": "별도 입력 검증 상태",
+      "file": "quick-undone.png",
+      "app_commit": "76b6633"
+    }
+  ]
+}

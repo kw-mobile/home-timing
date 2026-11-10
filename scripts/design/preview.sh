@@ -20,7 +20,7 @@ while [[ $# -gt 0 ]]; do
     *) echo 'Usage: scripts/design/preview.sh [--serial emulator-5554] [--screen home|login|gallery|...] [--id filter] [--no-build]' >&2; exit 2;;
   esac
 done
-case "$preview_screen" in home|items|calendar|settings|login|signup|reset|editor|detail|weather|family|preferences|gallery) ;; *) echo '알 수 없는 미리보기 화면입니다.' >&2; exit 2;; esac
+case "$preview_screen" in home|items|calendar|settings|login|signup|reset|editor|detail|weather|family|preferences|gallery|components) ;; *) echo '알 수 없는 미리보기 화면입니다.' >&2; exit 2;; esac
 if [[ -n "$preview_id" && ! "$preview_id" =~ ^[a-zA-Z0-9_-]+$ ]]; then
   echo '미리보기 ID에는 영문·숫자·밑줄·하이픈만 사용할 수 있습니다.' >&2; exit 2
 fi

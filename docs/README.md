@@ -6,6 +6,7 @@
 
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
+| 팀 공유용 전체 화면 HTML | [오프라인 화면 갤러리](design-review.html) |
 | PRD 의도·화면별 대응·업그레이드 기준 | [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) |
 | 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
 | 현재 화면 시안을 어떻게 확인하는가 | [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) |
