@@ -9,6 +9,7 @@
 | 화면 시안을 어떻게 확인하는가 | [HTML 프로토타입](prototype/README.md) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Firestore에 무엇을 어떤 구조로 저장하는가 | [DATA_MODEL.md](DATA_MODEL.md) |
 | 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |
 | 변경 후 무엇을 확인하고 어떤 근거를 남기는가 | [TESTING.md](TESTING.md) |
 | 누가 무엇을 했는지, 보고서 근거를 어떻게 모으는가 | [report/README.md](report/README.md) |
@@ -25,6 +26,7 @@ docs/
 ├─ README.md             문서 안내와 관리 원칙
 ├─ MVP.md                제출 범위·사용자 흐름·제품 규칙
 ├─ ARCHITECTURE.md       패키지 책임·의존 방향·구조 변경 기준
+├─ DATA_MODEL.md         Firestore 경로·필드·회차·함께 커밋할 문서
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
 ├─ TESTING.md            변경별 검증·결과 기록
 ├─ SKILLS.md             최초 환경 설정·작업 시작·완료 스킬
