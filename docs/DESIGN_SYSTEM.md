@@ -6,7 +6,7 @@ v1.5 · Android Java + XML · 2026-11-10
 
 ## 디자인 방향
 
-라이트 모드는 흰색, 다크 모드는 검정에 가까운 중성 배경입니다. 본문과 아이콘은 무채색이고 주요 버튼에만 브랜드 색을 사용합니다. 날짜 상태의 빨강·주황은 의미 전달을 위한 예외입니다. 예전 딥 그린 상단 바·연초록 아이콘 배경은 제거했습니다. [기존 HTML](prototype/index.html)과 이전 스크린샷은 과거 시안입니다.
+라이트 모드는 흰색, 다크 모드는 검정에 가까운 중성 배경입니다. 본문과 아이콘은 무채색이고 주요 버튼에만 브랜드 색을 사용합니다. 날짜 상태의 빨강·주황은 의미 전달을 위한 예외입니다. 현재 승인된 시각 규격과 최종 화면만 공유 산출물에 포함합니다.
 
 [Apple HIG Typography](https://developer.apple.com/design/human-interface-guidelines/typography), [Materials](https://developer.apple.com/design/human-interface-guidelines/materials), [Motion](https://developer.apple.com/design/human-interface-guidelines/motion)의 명료성·위계·직접 조작 원칙을 Android View에 적용합니다. Apple의 SF 폰트·SwiftUI Material·Liquid Glass 굴절을 그대로 사용한 구현은 아닙니다.
 
@@ -188,7 +188,7 @@ container.addView(proposal);
 5. 가족의 집 참여 완료 예시는 `123456`, 다른 6자리 코드는 만료/잘못된 코드 상태입니다. 실제 초대는 하지 않습니다.
 6. 화면 모음 → 예시 데이터 초기화로 완료·등록·수정한 예시를 되돌립니다.
 
-[PRD 의도 점검·업그레이드 기준](report/PRD_DESIGN_AUDIT.md)과 [최신 전체 화면 및 검증 기록](report/evidence/prd-intent/verification.md)을 확인합니다. 실제 API·계정·알림·가족 공유·사진 인식 완료와 구분합니다.
+[PRD 의도 점검·업그레이드 기준](report/PRD_DESIGN_AUDIT.md)과 [최신 전체 화면 및 검증 기록](report/evidence/component-system/verification.md)을 확인합니다. 실제 API·계정·알림·가족 공유·사진 인식 완료와 구분합니다.
 
 ## 전체 화면 공유
 
@@ -204,3 +204,15 @@ python3 scripts/design/export-review.py
 파일별 캡처 SHA·상태는 `docs/report/evidence/component-system/manifest.json`, 최신 검증은 [컴포넌트 검증](report/evidence/component-system/verification.md)에 둡니다.
 
 홈 패널 외부 그림자는 `SheetShadowView`가 패널보다 24dp 위에서 그립니다. [홈 XML](../app/src/main/res/layout/screen_home.xml)처럼 같은 부모에 본문→그림자→패널 순서로 배치하고, 그림자는 패널과 같은 X/폭·높이48dp를 사용합니다. `shadow.follow(sheet)`로 연결합니다. 패널이 좌우 여백을 가지는 변형은 그림자의 X/폭도 함께 맞춰야 합니다. 패널의 이동·펼침·숨김을 따라가며 본문이 그림자의 채움 부분을 가립니다. 핸들 영역 아래에는 그림자를 넣지 않습니다.
+
+## JPG 공유
+
+확정된 화면만 [JPG 폴더](design-jpg)에 둡니다. 라이트/다크 8화면 요약과 전체 화면을 나눈5개 보드로 구성합니다. 개별79장 JPG와 보드를 묶은 ZIP도 만들 수 있습니다. 앱 폰트와 레이아웃을 다시 그리지 않고 승인 캡처를 JPEG로 변환합니다.
+
+macOS에서 `sips`·`rsvg-convert`가 필요합니다.
+
+```sh
+python3 scripts/design/export-jpg.py --zip /원하는/경로/home-timing-design-jpg.zip
+```
+
+이전 프로토타입·중간 화면 폴더는 현재 트리에서 제거합니다. 개발 기록의 과거 검증 링크는 당시 자료를 담은 고정 커밋을 가리키며 최신 디자인 규격으로 사용하지 않습니다.

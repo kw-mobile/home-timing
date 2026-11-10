@@ -6,6 +6,7 @@
 
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
+| 확정 화면 JPG | [라이트 요약](design-jpg/overview-light.jpg) · [다크 요약](design-jpg/overview-dark.jpg) · [전체 보드](design-jpg) |
 | 팀 공유용 전체 화면 HTML | [오프라인 화면 갤러리](design-review.html) |
 | PRD 의도·화면별 대응·업그레이드 기준 | [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) |
 | 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
@@ -32,7 +33,8 @@ docs/
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
 ├─ TESTING.md            변경별 검증·결과 기록
 ├─ SKILLS.md             최초 환경 설정·작업 시작·완료 스킬
-├─ prototype/           브라우저에서 여는 모바일 화면 시안
+├─ design-review.html   확정 화면 HTML
+├─ design-jpg/          확정 화면 JPG 보드
 └─ report/
    ├─ README.md          참여자 기록·PR/댓글 기준·최종 보고서 목차
    ├─ WORKLOG.md         작업별 참여자·결과·근거 색인

@@ -49,3 +49,9 @@ HTML은 이미지가 포함된 파일 하나(약26MB)입니다. Chrome157에서 
 현재 실행 로그는 ignored `app/build/reports/design/approved-home-build.log`, `approved-gallery-captures.log`, `approved-gallery-html.log`, `approved-home-ui.log`에 보존합니다. APK·개인 설정·키는 커밋하지 않습니다. 이전 검사 시도와 당시 한계는 기존 Git 기록에 남기며 현재 성공으로 합치지 않습니다.
 
 [이슈 #18](https://github.com/kw-mobile/home-timing/issues/18)·[PR #19](https://github.com/kw-mobile/home-timing/pull/19) 갱신입니다. main 기준은 `8511eb9408f3203cc2f8821630d854e7716171bd`. main 병합·보호 설정 변경·브랜치/worktree 삭제는 수행하지 않습니다. 최종 원격 CI 결과는 PR 본문에 기록합니다.
+
+## 승인본 JPG 인계 · 2026-11-10
+
+현재 manifest의 승인 캡처만 사용해 `python3 scripts/design/export-jpg.py --zip /Users/riaco/Downloads/home-timing-design-jpg.zip`로 JPG를 생성했습니다. macOS `sips` JPEG 품질92·`rsvg-convert`를 사용하며 앱 화면과 글씨 크기는 변경하지 않습니다. 저장소에는 요약2장·전체 페이지5장, ZIP에는 보드7장·원본 해상도 개별 화면79장·색인이 있습니다. ZIP 파일명 중복 없음과 개수, 라이트 요약·공통 상태 보드의 배치·한글 표시를 확인했습니다.
+
+기존 HTML 프로토타입과 중간 디자인 캡처는 현재 트리에서 제거했습니다. 승인 캡처79장과 요약 PNG2장, 단일 HTML·디자인 시스템은 유지합니다. 개발 기록·PRD 검토의 과거 증거는 삭제 전 커밋 `800c5ebf3445cd739e0050c97c333628b54e2ae9`의 고정 Git 링크로 보존합니다. 저장소 Markdown의 로컬 파일 링크 누락0, `git diff --check` 및 JPG 내보내기 스크립트 구문 검사를 확인했습니다. 이번 인계는 문서·이미지·변환 도구 변경이며 Android 소스 변경이나 추가 Android 빌드는 없습니다.
