@@ -16,10 +16,10 @@ public final class SheetShadowView extends View {
     private View sheet;
     private ViewTreeObserver observer;
     private final ViewTreeObserver.OnPreDrawListener follow=() -> {
-        if(sheet!=null) {
+        if(sheet!=null&&sheet.getParent() instanceof View) {
             setY(sheet.getY()-24*density);
             setVisibility(!sheet.isShown()||sheet.getY()>=((View)sheet.getParent()).getHeight()?INVISIBLE:VISIBLE);
-        }
+        } else setVisibility(INVISIBLE);
         return true;
     };
     public void follow(View sheet) {this.sheet=sheet;invalidate();}
