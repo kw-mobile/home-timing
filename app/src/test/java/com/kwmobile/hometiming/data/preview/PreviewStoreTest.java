@@ -23,11 +23,12 @@ public class PreviewStoreTest {
         assertEquals(start.plusDays(30),store.find("filter").due);
     }
     @Test public void weatherMoveDoesNotChangeWeeklyRecurrenceAnchor() {
-        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("bedding");int weekday=item.weekday;
+        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("bedding");int weekday=item.weekday;LocalDate originalPlan=item.plannedDue;
         item.due=PreviewStore.today().plusDays(1);
         assertTrue(store.complete(item.id));
         assertTrue(item.due.isAfter(PreviewStore.today()));
         assertEquals(weekday,item.due.getDayOfWeek().getValue());
+        assertEquals(originalPlan.plusWeeks(1),item.due);
     }
     @Test public void newDraftCreatesUniqueItemsAndResetRestoresFixture() {
         PreviewStore store=new PreviewStore();
@@ -60,5 +61,27 @@ public class PreviewStoreTest {
         assertTrue(store.complete(chore.id));assertFalse(chore.proposalDismissed);
         assertEquals(anchor,chore.due.getDayOfWeek().getValue());
         assertTrue(store.moveWeatherSuggestion(chore.id,PreviewStore.today().plusDays(1)));
+    }
+    @Test public void lateCompletionSkipsElapsedWeeklyOccurrences() {
+        PreviewStore store=new PreviewStore();LocalDate today=PreviewStore.today();
+        LocalDate original=today.minusDays(18);
+        PreviewStore.Item item=new PreviewStore.Item("late","늦은 집안일","청소","",true,7,original.minusWeeks(1),original);
+        store.items.add(item);
+        LocalDate expected=original.plusWeeks(1);
+        while(!expected.isAfter(today))expected=expected.plusWeeks(1);
+        assertTrue(store.complete(item.id));assertEquals(expected,item.due);assertEquals(expected,item.plannedDue);
+    }
+    @Test public void metadataEditsKeepMovedAndCompletedOccurrenceDates() {
+        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("bedding");
+        LocalDate original=item.plannedDue;LocalDate moved=PreviewStore.today().plusDays(1);
+        assertTrue(store.moveWeatherSuggestion(item.id,moved));
+        store.save(item.id,"이름만 수정",item.category,item.location,true,7,item.start,item.weatherSensitive,item.weekday);
+        assertEquals(moved,item.due);assertEquals(original,item.plannedDue);assertEquals(moved,store.previewDue(item.id,true,7,item.start,item.weekday));
+        assertTrue(store.dismissWeatherSuggestion(item.id));
+        store.save(item.id,"다시 이름 수정",item.category,item.location,true,7,item.start,item.weatherSensitive,item.weekday);
+        assertTrue(item.proposalDismissed);
+        assertTrue(store.complete(item.id));LocalDate next=original.plusWeeks(1);
+        store.save(item.id,"완료 뒤 이름 수정",item.category,item.location,true,7,item.start,item.weatherSensitive,item.weekday);
+        assertEquals(next,item.due);assertEquals(next,item.plannedDue);assertEquals(next,store.previewDue(item.id,true,7,item.start,item.weekday));
     }
 }

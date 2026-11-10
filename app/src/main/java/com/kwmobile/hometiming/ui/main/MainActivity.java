@@ -503,7 +503,7 @@ public final class MainActivity extends AppCompatActivity {
         try {
             int days=Integer.parseInt(draft.cycle);
             if(days<1||days>730){preview.setText("");return;}
-            LocalDate next=draft.chore?draft.date.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(draft.weekday))):draft.date.plusDays(days);
+            LocalDate next=s().store.previewDue(draft.id,draft.chore,days,draft.date,draft.weekday);
             preview.setText(getString(R.string.preview_next_due,date(next)));
         }catch(NumberFormatException invalid){preview.setText("");}
     }
@@ -513,7 +513,8 @@ public final class MainActivity extends AppCompatActivity {
         body.addView(caption((item.chore?getString(R.string.preview_copy_088):getString(R.string.preview_copy_087))+" / "+item.category));gap(body,12);
         TextView name=text(item.name,R.style.TextAppearance_HomeTiming_Display);ViewCompat.setAccessibilityHeading(name,true);body.addView(name);gap(body,28);
         TextView status=text(status(item),R.style.TextAppearance_HomeTiming_Number);status.setTextColor(color(statusColor(item)));body.addView(status);gap(body,6);
-        body.addView(text(date(item.due),R.style.TextAppearance_HomeTiming_Title));gap(body,8);body.addView(caption(item.chore?getString(R.string.preview_copy_107):getString(R.string.preview_copy_108)));gap(body,16);
+        body.addView(text(date(item.due),R.style.TextAppearance_HomeTiming_Title));gap(body,8);body.addView(caption(item.chore?getString(R.string.preview_copy_107):getString(R.string.preview_copy_108)));
+        if(item.chore&&!item.due.equals(item.plannedDue)){gap(body,4);body.addView(caption(getString(R.string.intent_original_plan,date(item.plannedDue))));}gap(body,16);
         MaterialButton complete=action(item.chore?getString(R.string.preview_copy_109):getString(R.string.preview_copy_110),true,() -> askComplete(item));body.addView(complete,new LinearLayout.LayoutParams(-1,-2));
         boolean done=!item.history.isEmpty()&&item.history.get(0).date.equals(PreviewStore.today());
         if(done||s().scenario.equals("offline")){complete.setEnabled(false);complete.setBackgroundTintList(ColorStateList.valueOf(color(R.color.ht_disabled)));complete.setTextColor(color(R.color.ht_on_disabled));gap(body,8);body.addView(caption(done?getString(R.string.preview_copy_111):getString(R.string.preview_copy_112)));}

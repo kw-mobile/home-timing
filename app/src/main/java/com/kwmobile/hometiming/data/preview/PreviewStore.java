@@ -24,12 +24,12 @@ public final class PreviewStore implements Serializable {
         public String createdBy="나";
         public boolean chore, weatherSensitive, proposalDismissed;
         public int cycle, weekday;
-        public LocalDate start, due;
+        public LocalDate start, due, plannedDue;
         public final List<History> history = new ArrayList<>();
         public Item(String id, String name, String category, String location, boolean chore,
                     int cycle, LocalDate start, LocalDate due) {
             this.id=id; this.name=name; this.category=category; this.location=location;
-            this.chore=chore; this.cycle=cycle; this.start=start; this.due=due;
+            this.chore=chore; this.cycle=cycle; this.start=start; this.due=due;this.plannedDue=due;
             weatherSensitive=chore;weekday=due.getDayOfWeek().getValue();
         }
     }
@@ -55,7 +55,7 @@ public final class PreviewStore implements Serializable {
                 today.minusDays(3), today.plusDays(4)));
     }
     public Item find(String id) {
-        for(Item item: items) if(item.id.equals(id)) {if(item.weekday==0)item.weekday=item.due.getDayOfWeek().getValue();return item;}
+        for(Item item: items) if(item.id.equals(id)) {if(item.weekday==0)item.weekday=item.due.getDayOfWeek().getValue();if(item.plannedDue==null)item.plannedDue=item.due;return item;}
         return null;
     }
     public List<Item> sorted() {
@@ -65,14 +65,29 @@ public final class PreviewStore implements Serializable {
     public Item save(String id, String name, String category, String location, boolean chore,
                      int cycle, LocalDate start, boolean weatherSensitive, int weekday) {
         Item item=find(id);
-        if(item==null) { item=new Item(UUID.randomUUID().toString(),name,category,location,chore,cycle,start,start.plusDays(cycle)); items.add(item); }
+        boolean keepSchedule=keepsWeeklySchedule(item,chore,start,weekday);
+        LocalDate preview=previewDue(id,chore,cycle,start,weekday);
+        boolean keepProposal=keepSchedule&&item.weatherSensitive==weatherSensitive;
+        if(item==null) {item=new Item(UUID.randomUUID().toString(),name,category,location,chore,cycle,start,start.plusDays(cycle));items.add(item);}
         else {
-            item.name=name; item.category=category; item.location=location; item.chore=chore;
-            item.cycle=cycle; item.start=start; item.due=start.plusDays(cycle);
+            item.name=name;item.category=category;item.location=location;item.chore=chore;
+            item.cycle=cycle;item.start=start;
         }
-        item.weatherSensitive=weatherSensitive;item.weekday=weekday;item.proposalDismissed=false;
-        if(chore)item.due=start.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(weekday)));
+        item.weatherSensitive=weatherSensitive;item.weekday=weekday;
+        if(!keepProposal)item.proposalDismissed=false;
+        if(!keepSchedule) {
+            item.due=preview;
+            item.plannedDue=item.due;
+        }
         return item;
+    }
+    private static boolean keepsWeeklySchedule(Item item, boolean chore, LocalDate start, int weekday) {
+        return item!=null&&item.chore&&chore&&item.weekday==weekday&&item.start.equals(start);
+    }
+    public LocalDate previewDue(String id, boolean chore, int cycle, LocalDate start, int weekday) {
+        Item item=find(id);
+        if(keepsWeeklySchedule(item,chore,start,weekday))return item.due;
+        return chore?start.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(weekday))):start.plusDays(cycle);
     }
     public boolean complete(String id) {
         Item item=find(id); if(item==null) return false;
@@ -80,7 +95,9 @@ public final class PreviewStore implements Serializable {
         // A repeated tap on the same demo day cannot create duplicate history entries.
         if(!item.history.isEmpty() && item.history.get(0).date.equals(today)) return false;
         item.history.add(0,new History(today,"나")); item.start=today;item.proposalDismissed=false;
-        item.due=item.chore?today.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(item.weekday))):today.plusDays(item.cycle);
+        LocalDate anchor=today.isAfter(item.plannedDue)?today:item.plannedDue;
+        item.due=item.chore?anchor.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(item.weekday))):today.plusDays(item.cycle);
+        item.plannedDue=item.due;
         return true;
     }
     public boolean delete(String id) { return items.removeIf(item -> item.id.equals(id)); }
