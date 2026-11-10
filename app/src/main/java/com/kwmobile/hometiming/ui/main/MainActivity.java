@@ -592,6 +592,7 @@ public final class MainActivity extends AppCompatActivity {
             settingsRow(content,item.name,getString(R.string.preview_copy_159,date(item.due)),icon(item),() -> go("detail",item.id));
             LocalDate target=PreviewStore.today().plusDays(1);
             if(unknown)content.addView(caption(getString(R.string.preview_copy_154)));
+            else if(item.due.isBefore(PreviewStore.today())||item.due.isAfter(PreviewStore.today().plusDays(2)))content.addView(caption(getString(R.string.intent_proposal_outside)));
             else if(item.proposalDismissed)content.addView(caption(getString(R.string.intent_proposal_kept)));
             else if(!rain||item.due.equals(target))content.addView(caption(getString(R.string.intent_proposal_keep_schedule)));
             else {

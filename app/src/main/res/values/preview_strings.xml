@@ -326,4 +326,5 @@
     <string name="intent_permission_separate">앱의 일정 알림 설정과 기기 알림 권한은 별개예요.</string>
     <string name="intent_permission_preview">알림 권한 허용 예시</string>
     <string name="intent_delete_permission">등록한 사람과 집장만 삭제할 수 있어요. 현재 항목은 다른 가족이 등록한 예시입니다.</string>
+    <string name="intent_proposal_outside">3일 예보 범위 밖이라 변경을 제안하지 않았어요.</string>
 </resources>
