@@ -541,7 +541,8 @@ public final class MainActivity extends AppCompatActivity {
         ((TextView)screen.findViewById(R.id.weather_temperature)).setText(period.equals("night")?"12°":"18°");
         ((TextView)screen.findViewById(R.id.weather_condition)).setText(s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):period.equals("night")?getString(R.string.preview_copy_140):getString(R.string.preview_copy_141));
         String time=ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
-        ((TextView)screen.findViewById(R.id.weather_time)).setText(getString(R.string.preview_weather_clock,time));
+        int periodLabel=period.equals("night")?R.string.preview_copy_257:period.equals("evening")?R.string.preview_copy_256:period.equals("morning")?R.string.preview_copy_254:R.string.preview_copy_255;
+        ((TextView)screen.findViewById(R.id.weather_time)).setText(s().weather.equals("auto")?getString(R.string.preview_weather_clock,time):getString(R.string.preview_weather_manual,getString(periodLabel)));
     }
     private void bindWeather() {
         updateWeather();LinearLayout content=box(R.id.weather_content);
