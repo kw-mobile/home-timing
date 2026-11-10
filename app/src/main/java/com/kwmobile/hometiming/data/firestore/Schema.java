@@ -44,4 +44,39 @@ public final class Schema {
         private Members() {
         }
     }
+
+    public static final class Items {
+        public static final String COLLECTION = "items";
+        public static final String NAME = "name";
+        public static final String CATEGORY = "category";
+        public static final String START_DATE = "startDate";
+        public static final String CYCLE_DAYS = "cycleDays";
+        public static final String LAST_REPLACED_DATE = "lastReplacedDate";
+        public static final String NEXT_DUE_DATE = "nextDueDate";
+        public static final String OCCURRENCE_ID = "occurrenceId";
+        public static final String REVISION = "revision";
+        public static final String PRODUCT_NAME = "productName";
+        public static final String LOCATION = "location";
+        public static final String MEMO = "memo";
+        public static final String CREATED_BY = "createdBy";
+        public static final String UPDATED_BY = "updatedBy";
+        public static final String CREATED_AT = "createdAt";
+        public static final String UPDATED_AT = "updatedAt";
+
+        private Items() {
+        }
+    }
+
+    public static final class History {
+        public static final String COLLECTION = "history";
+        public static final String REPLACED_DATE = "replacedDate";
+        public static final String PREVIOUS_DUE_DATE = "previousDueDate";
+        public static final String CYCLE_DAYS_USED = "cycleDaysUsed";
+        public static final String COMPLETED_BY = "completedBy";
+        public static final String COMPLETED_BY_NAME = "completedByName";
+        public static final String CREATED_AT = "createdAt";
+
+        private History() {
+        }
+    }
 }

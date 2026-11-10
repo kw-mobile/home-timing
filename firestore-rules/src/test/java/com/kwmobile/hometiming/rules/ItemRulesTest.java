@@ -128,6 +128,25 @@ public class ItemRulesTest extends RulesTestBase {
     }
 
     @Test
+    public void fullDocumentEditLikeTheRepositoryIsAllowed() {
+        // ItemRepository.update rewrites the whole document with the stored createdAt.
+        String newStart = daysFromToday(-40);
+        Fields edited = itemFields("bob", newStart, newStart, 60, "occ-1", 2)
+                .str("updatedBy", "alice").time("createdAt", SEEDED_AT);
+
+        assertAllowed(firestore.commit(OWNER, Write.set(itemPath(HOUSE, "filter"), edited).serverTime("updatedAt")));
+    }
+
+    @Test
+    public void fullDocumentEditCannotResetCreatedAt() {
+        Fields edited = itemFields("bob", daysFromToday(-30), daysFromToday(-30), 60, "occ-1", 1)
+                .str("updatedBy", "alice");
+
+        assertDenied(firestore.commit(OWNER, Write.set(itemPath(HOUSE, "filter"), edited)
+                .serverTime("createdAt").serverTime("updatedAt")));
+    }
+
+    @Test
     public void ownershipAndOccurrenceCannotBeRewrittenByEdit() {
         assertDenied(firestore.commit(OWNER, Write.merge(itemPath(HOUSE, "filter"),
                 Fields.of().str("createdBy", "alice").str("updatedBy", "alice")).serverTime("updatedAt")));
