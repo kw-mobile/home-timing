@@ -54,7 +54,7 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 | Android 앱 | `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`) |
 | Authentication | 이메일/비밀번호 로그인 활성화 |
 | Firestore | `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB |
-| 앱 데이터 접근 | 저장소의 `firestore.rules` v1([허용 범위](DATA_MODEL.md#보안-규칙-범위-v1)). 실제 프로젝트에 배포된 커밋은 [#28](https://github.com/kw-mobile/home-timing/issues/28) 배포 기록 확인 |
+| 앱 데이터 접근 | `firestore.rules` v1([허용 범위](DATA_MODEL.md#보안-규칙-범위-v1)), `335fb10`을 2026-11-10 콘솔로 게시. 이후 배포는 해당 작업 이슈의 배포 기록 확인([#28](https://github.com/kw-mobile/home-timing/issues/28)) |
 
 #### 팀원 관리 권한
 
@@ -65,12 +65,14 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 | DB | DB 설정·문서 읽기/쓰기·삭제·인덱스 관리 |
 | 보안 규칙 | 규칙 조회·작성·릴리스 생성/수정 |
 | Authentication | 인증 설정·사용자 관리 |
-| CLI | 프로젝트·앱·API 키·서비스·API 작업 조회 |
+| CLI | 프로젝트·앱·API 키·서비스·API 작업 조회. **규칙 배포에 필요한 `serviceusage.services.use`는 없음**(아래) |
 | 제외 | 결제 연결·요금제 변경·IAM 역할 변경·서비스 계정으로 권한 확대 |
 
 2026-11-08 원격 정책에서 두 계정의 직접 역할 할당을 읽고, 두 역할의 합집합에 대상 작업의 권한 41개가 포함됨을 확인했습니다. 인덱스 권한의 현재 이름은 `datastore.schemas.*`이며 `datastore.indexes.*`는 이전 이름/별칭입니다. [Firestore 권한 기준](https://docs.cloud.google.com/firestore/native/docs/security/iam), [Firebase CLI 필수 권한](https://firebase.google.com/docs/projects/iam/permissions)을 참고합니다. 팀원 계정으로 직접 로그인한 CLI/콘솔 동작은 아래 순서로 각자 확인합니다. 권한 목록 확인을 실제 팀원 작업 성공으로 기록하지 않습니다.
 
-콘솔·관리 API의 팀원 권한과 Android 앱 사용자의 Security Rules는 별개입니다. 팀원은 콘솔에서 DB를 관리할 수 있어도 앱 데이터 요청은 현재 거부됩니다. 개발 중에는 기존 공용 DB의 규칙을 전체 허용으로 바꾸지 않습니다.
+`firebase deploy --only firestore:rules`는 배포 전에 Firestore API 사용 여부를 확인하며 `serviceusage.services.use`가 필요합니다. 현재 팀원 역할에는 이 권한이 없어 2026-11-10 배포가 403으로 실패했습니다([#28](https://github.com/kw-mobile/home-timing/issues/28)). 팀원 역할로는 IAM을 바꿀 수 없으므로, 프로젝트 소유자가 IAM 및 관리자 → 역할 → `homeTimingTeamAdmin`에 `serviceusage.services.use`를 추가하거나 팀원 계정에 `roles/serviceusage.serviceUsageConsumer`를 부여합니다. 이 권한은 API 사용만 허용하며 결제·IAM 변경은 포함하지 않습니다. 추가 전까지는 아래 콘솔 게시 절차를 씁니다.
+
+콘솔·관리 API의 팀원 권한과 Android 앱 사용자의 Security Rules는 별개입니다. 팀원은 콘솔에서 DB를 관리할 수 있어도, 앱 요청은 게시된 `firestore.rules`가 허용하는 범위만 통과합니다. 개발 중에는 기존 공용 DB의 규칙을 전체 허용으로 바꾸지 않습니다.
 
 #### 팀원 최초 연결과 확인
 
@@ -98,7 +100,14 @@ git pull --ff-only origin main
 firebase deploy --only firestore:rules --project kw-mobile-home-timing --account 팀원Gmail
 ```
 
-이 명령은 로컬의 `firestore.rules`를 실제 프로젝트에 게시합니다. 미커밋 변경이 있으면 [작업 시작 절차](../.agents/skills/team-task-start/SKILL.md)에 따라 보존하고, `git diff 검토·병합한커밋SHA -- firestore.rules`로 검토된 정확한 커밋과 규칙 파일의 차이가 없는지 확인한 뒤 실행합니다. main 갱신이 실패하면 배포를 진행하지 않습니다. 결과는 이슈/PR에 배포 커밋·계정·시간·성공/실패로 남깁니다. 인덱스가 필요하면 먼저 인덱스 정의 파일을 추가하고 `firebase.json`에 연결해 같은 방식으로 관리합니다. 현재 MVP 쿼리는 [TRD 기반 범위](MVP.md)를 따라 필요한 인덱스만 추가합니다.
+이 명령은 로컬의 `firestore.rules`를 실제 프로젝트에 게시합니다. `serviceusage` 권한 오류(403)가 나면 위 팀원 권한을 확인하고, 권한이 추가될 때까지 콘솔 게시 절차를 씁니다. 미커밋 변경이 있으면 [작업 시작 절차](../.agents/skills/team-task-start/SKILL.md)에 따라 보존하고, `git diff 검토·병합한커밋SHA -- firestore.rules`로 검토된 정확한 커밋과 규칙 파일의 차이가 없는지 확인한 뒤 실행합니다. main 갱신이 실패하면 배포를 진행하지 않습니다. 결과는 이슈/PR에 배포 커밋·계정·시간·성공/실패로 남깁니다. 인덱스가 필요하면 먼저 인덱스 정의 파일을 추가하고 `firebase.json`에 연결해 같은 방식으로 관리합니다. 현재 MVP 쿼리는 [TRD 기반 범위](MVP.md)를 따라 필요한 인덱스만 추가합니다.
+
+**콘솔 게시 (CLI 권한이 없을 때):** Firebase Console → Firestore Database → 규칙 탭에서만 게시하며, 내용은 병합된 커밋의 `firestore.rules`를 **한 글자도 바꾸지 않고** 통째로 넣습니다. 편집기에서 직접 고치지 않습니다.
+
+1. 최신 main에서 `git diff 병합한커밋SHA -- firestore.rules`로 차이가 없는지 확인하고, 파일의 SHA-256을 기록합니다.
+2. 편집기 내용을 파일 내용으로 바꾼 뒤, 게시 전에 편집기 내용이 파일과 같은지 확인합니다. 자동 들여쓰기·괄호 자동 완성이 내용을 바꿀 수 있으므로 직접 타이핑하지 않습니다.
+3. **게시**를 누르고, 페이지를 새로 불러와 서버에서 읽은 규칙이 파일과 같은지, "게시되지 않은 변경사항"이 없는지 확인합니다. 반영에는 최대 1분이 걸릴 수 있습니다.
+4. 이슈에 커밋·해시·게시 방법·계정·시간·성공/실패를 남깁니다.
 
 ### 기상청
 

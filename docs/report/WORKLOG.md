@@ -21,6 +21,7 @@
 | 2026-11-10 | 전주용: 규칙 테스트 방식(Java REST) 결정; Claude Code (도구): 테스트 모듈·CI·문서 작성 및 로컬 emulator 검증 | Firestore emulator 규칙 테스트 환경: JDK HttpClient 기반 도우미, demo 프로젝트 전용, 전체 거부 기준 테스트 6개, 규칙 변경 CI. 실제 권한 규칙 전, 리뷰 대기 | [이슈 #24](https://github.com/kw-mobile/home-timing/issues/24), [PR #25](https://github.com/kw-mobile/home-timing/pull/25) |
 | 2026-11-10 | 전주용: 4번 범위 결정·Firebase 설정 확인 요청; Claude Code (도구): 인증 저장소·집 준비·테스트 작성 및 로컬 검증 | AuthRepository(가입·로그인·복원·로그아웃·재설정), 첫 로그인 1인 집·소속 복구 트랜잭션, 오류 한국어 분류, 가입 이름 1~20자 결정(F-01). 실제 Firebase 동작은 규칙 작업 후 확인, 리뷰 대기 | [이슈 #26](https://github.com/kw-mobile/home-timing/issues/26), [PR #27](https://github.com/kw-mobile/home-timing/pull/27) |
 | 2026-11-10 | 전주용: 5번 범위 결정·배포 승인 예정; Claude Code (도구): 규칙·emulator 테스트·문서 작성 및 검증 | Firestore 보안 규칙 v1: 본인 사용자 문서, 1인 집 생성·소속 복구, 구성원 전용 집·용품, 필드·날짜·예정일·revision 검사, 회차 이력 기반 완료(#20 하한), 등록자·집장 삭제. 허용·거부 테스트 43개. 배포 전, 리뷰 대기 | [이슈 #28](https://github.com/kw-mobile/home-timing/issues/28), [PR #29](https://github.com/kw-mobile/home-timing/pull/29) |
+| 2026-11-10 | 전주용: 규칙 게시 승인·직접 로그인, SETUP 보완 요청; Claude Code (도구): 콘솔 게시·검증, 문서 작성 | 규칙 v1(`335fb10`)을 CLI 권한 부족으로 콘솔에서 게시하고 서버 내용 일치 확인(#28). SETUP에 `serviceusage.services.use` 누락·소유자 조치·콘솔 게시 절차 기록. 리뷰 대기 | [배포 기록](https://github.com/kw-mobile/home-timing/issues/28#issuecomment-6766413991), [이슈 #30](https://github.com/kw-mobile/home-timing/issues/30), [PR #31](https://github.com/kw-mobile/home-timing/pull/31) |
 
 ## 기록 예시
 
