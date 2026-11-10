@@ -613,6 +613,7 @@ public final class MainActivity extends AppCompatActivity {
             });
         }
         View hero=(View)photo.getParent();hero.setClipToOutline(false);hero.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        ((ViewGroup)hero.getParent()).setClipToPadding(false);
         if(hero.getLayoutParams() instanceof LinearLayout.LayoutParams) {
             LinearLayout.LayoutParams fullWidth=(LinearLayout.LayoutParams)hero.getLayoutParams();
             int gutter=getResources().getDimensionPixelSize(R.dimen.ht_screen_gutter);
@@ -626,6 +627,7 @@ public final class MainActivity extends AppCompatActivity {
         String time=ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
         int periodLabel=period.equals("night")?R.string.preview_copy_257:period.equals("evening")?R.string.preview_copy_256:period.equals("morning")?R.string.preview_copy_254:R.string.preview_copy_255;
         ((TextView)screen.findViewById(R.id.weather_time)).setText(s().weather.equals("auto")?getString(R.string.preview_weather_clock,time):getString(R.string.preview_weather_manual,getString(periodLabel)));
+
     }
     private void bindWeather() {
         updateWeather();LinearLayout content=box(R.id.weather_content);
