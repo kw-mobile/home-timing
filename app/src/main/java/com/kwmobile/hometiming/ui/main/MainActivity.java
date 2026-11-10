@@ -314,9 +314,9 @@ public final class MainActivity extends AppCompatActivity {
         return true;
     }
     private void bindHome() {
-        ((TextView)screen.findViewById(R.id.home_date)).setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_034),Locale.KOREAN)));
+        screen.findViewById(R.id.home_weather_heading).setVisibility(View.VISIBLE);
         View homePhoto=screen.findViewById(R.id.weather_hero);
-        ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(320);homePhoto.setLayoutParams(photoSize);
+        ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(420);homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature=screen.findViewById(R.id.weather_temperature);homeTemperature.setTextSize(64);androidx.core.widget.TextViewCompat.setLineHeight(homeTemperature,Math.round(72*getResources().getDisplayMetrics().scaledDensity));
         LinearLayout photoCopy=(LinearLayout)screen.findViewById(R.id.weather_location).getParent();photoCopy.setPadding(dp(20),dp(16),dp(20),dp(16));
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));
@@ -335,7 +335,9 @@ public final class MainActivity extends AppCompatActivity {
             gap(rows,28);section(rows,getString(R.string.preview_copy_043),soon.size()+getString(R.string.preview_copy_044));for(Item item:soon)itemRow(rows,item,false);
         }
         gap(rows,16);rows.addView(caption(getString(R.string.preview_copy_045)));
-        View sheet=screen.findViewById(R.id.preview_sheet);BottomSheetBehavior<View> behavior=BottomSheetBehavior.from(sheet);
+        View sheet=screen.findViewById(R.id.preview_sheet);
+        ((com.kwmobile.hometiming.ui.component.SheetShadowView)screen.findViewById(R.id.home_sheet_shadow)).follow(sheet);
+        BottomSheetBehavior<View> behavior=BottomSheetBehavior.from(sheet);
         View handle=screen.findViewById(R.id.sheet_handle);
         LinearLayout summary=box(R.id.home_task_summary);int todayCount=0,lateCount=0,weekCount=0;
         for(Item item:s().store.sorted()) {
@@ -587,6 +589,10 @@ public final class MainActivity extends AppCompatActivity {
     }
     private void updateWeather() {
         if(screen==null)return;ImageView photo=screen.findViewById(R.id.weather_photo);if(photo==null)return;
+        if(s().route.screen.equals("home")) {
+            TextView homeDate=screen.findViewById(R.id.home_date);
+            if(homeDate!=null)homeDate.setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_034),Locale.KOREAN)));
+        }
         String period=s().weather.equals("auto")?HomeTimeOfDay.at(ZonedDateTime.now()).name().toLowerCase(Locale.ROOT):s().weather;
         int image;
         if(s().condition.equals("rain"))image=R.drawable.weather_rain;

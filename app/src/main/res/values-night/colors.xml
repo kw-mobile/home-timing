@@ -28,4 +28,5 @@
     <color name="ht_on_disabled">#A2A2AB</color>
     <color name="launcher_background">#0C3B2E</color>
     <color name="ht_sheet_edge">#55555B</color>
+    <color name="ht_sheet_shadow">#80000000</color>
 </resources>
