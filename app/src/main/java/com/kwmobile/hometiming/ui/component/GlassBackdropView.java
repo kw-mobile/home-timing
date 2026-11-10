@@ -16,6 +16,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.ImageView;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 
 /** Samples only content behind the bar; the navigation labels and icons stay sharp. */
 public final class GlassBackdropView extends View {
@@ -126,7 +128,15 @@ public final class GlassBackdropView extends View {
                     int content = canvas.save();
                     canvas.translate(text.getTotalPaddingLeft() - text.getScrollX(),
                             text.getTotalPaddingTop() - text.getScrollY());
-                    text.getLayout().draw(canvas);
+                    // A fresh layout keeps the attached TextView's layout/render caches untouched.
+                    String value=text.getText().toString();
+                    StaticLayout snapshot=StaticLayout.Builder.obtain(value,0,value.length(),
+                            new TextPaint(text.getPaint()),Math.max(1,text.getLayout().getWidth()))
+                            .setAlignment(text.getLayout().getAlignment())
+                            .setIncludePad(text.getIncludeFontPadding())
+                            .setLineSpacing(text.getLineSpacingExtra(),text.getLineSpacingMultiplier())
+                            .build();
+                    snapshot.draw(canvas);
                     canvas.restoreToCount(content);
                 }
             } else if (view instanceof ImageView) {

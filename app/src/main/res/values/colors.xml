@@ -27,4 +27,5 @@
     <color name="ht_disabled">#DADADD</color>
     <color name="ht_on_disabled">#606066</color>
     <color name="launcher_background">#0C3B2E</color>
+    <color name="ht_grouped_background">#F2F2F7</color>
 </resources>
