@@ -109,19 +109,19 @@ public final class GlassBackdropView extends View {
         }
         if (view instanceof ViewGroup) {
             Drawable background = view.getBackground();
-            if (background != null) background.draw(canvas);
+            drawSnapshot(background, canvas);
             int children = canvas.save();
             canvas.translate(-left, -top);
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) drawContentStrip(group.getChildAt(i), canvas);
             canvas.restoreToCount(children);
             Drawable foreground = view.getForeground();
-            if (foreground != null) foreground.draw(canvas);
+            drawSnapshot(foreground, canvas);
         } else {
             // Never call draw() on an attached View: software snapshots can consume
             // its hardware display-list flags, especially during stretch overscroll.
             Drawable background = view.getBackground();
-            if (background != null) background.draw(canvas);
+            drawSnapshot(background, canvas);
             if (view instanceof TextView) {
                 TextView text = (TextView) view;
                 if (text.getLayout() != null) {
@@ -146,14 +146,22 @@ public final class GlassBackdropView extends View {
                     int content = canvas.save();
                     canvas.translate(image.getPaddingLeft(), image.getPaddingTop());
                     canvas.concat(image.getImageMatrix());
-                    drawable.draw(canvas);
+                    drawSnapshot(drawable, canvas);
                     canvas.restoreToCount(content);
                 }
             }
             Drawable foreground = view.getForeground();
-            if (foreground != null) foreground.draw(canvas);
+            drawSnapshot(foreground, canvas);
         }
         canvas.restoreToCount(saved);
+    }
+
+    private void drawSnapshot(Drawable drawable, Canvas canvas) {
+        if (drawable == null || drawable.getConstantState() == null) return;
+        Drawable snapshot=drawable.getConstantState().newDrawable(getResources()).mutate();
+        snapshot.setBounds(drawable.getBounds());snapshot.setState(drawable.getState());
+        snapshot.setLevel(drawable.getLevel());snapshot.setAlpha(drawable.getAlpha());
+        snapshot.draw(canvas);
     }
 
     @Override

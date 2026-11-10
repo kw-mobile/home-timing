@@ -165,7 +165,7 @@ public final class MainActivity extends AppCompatActivity {
             if(autofill!=null)autofill.cancel();
         }
         String name=s().route.screen;
-        int pageColor=color(name.equals("home")?R.color.ht_grouped_background:R.color.ht_background);
+        int pageColor=color(R.color.ht_background);
         binding.mainContent.setBackgroundColor(pageColor);
         binding.topBar.setBackgroundColor(pageColor);
         int layout;
@@ -316,7 +316,7 @@ public final class MainActivity extends AppCompatActivity {
     private void bindHome() {
         ((TextView)screen.findViewById(R.id.home_date)).setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_034),Locale.KOREAN)));
         View homePhoto=screen.findViewById(R.id.weather_hero);
-        ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(260);homePhoto.setLayoutParams(photoSize);
+        ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(320);homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature=screen.findViewById(R.id.weather_temperature);homeTemperature.setTextSize(64);androidx.core.widget.TextViewCompat.setLineHeight(homeTemperature,Math.round(72*getResources().getDisplayMetrics().scaledDensity));
         LinearLayout photoCopy=(LinearLayout)screen.findViewById(R.id.weather_location).getParent();photoCopy.setPadding(dp(20),dp(16),dp(20),dp(16));
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));
@@ -612,7 +612,14 @@ public final class MainActivity extends AppCompatActivity {
                 photo.setScaleType(ImageView.ScaleType.MATRIX);photo.setImageMatrix(crop);
             });
         }
-        ((View)photo.getParent()).setClipToOutline(true);
+        View hero=(View)photo.getParent();hero.setClipToOutline(false);hero.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        if(hero.getLayoutParams() instanceof LinearLayout.LayoutParams) {
+            LinearLayout.LayoutParams fullWidth=(LinearLayout.LayoutParams)hero.getLayoutParams();
+            int gutter=getResources().getDimensionPixelSize(R.dimen.ht_screen_gutter);
+            fullWidth.leftMargin=-gutter;fullWidth.rightMargin=-gutter;
+            if(!s().route.screen.equals("home"))fullWidth.height=dp(360);
+            hero.setLayoutParams(fullWidth);
+        }
         ((TextView)screen.findViewById(R.id.weather_location)).setText(s().region);
         ((TextView)screen.findViewById(R.id.weather_temperature)).setText(period.equals("night")?"12°":"18°");
         ((TextView)screen.findViewById(R.id.weather_condition)).setText(s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):period.equals("night")?getString(R.string.preview_copy_140):getString(R.string.preview_copy_141));
