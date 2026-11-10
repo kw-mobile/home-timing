@@ -21,6 +21,8 @@ Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상�
 
 현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. Android Studio에서 앱을 실행하면 홈이 열립니다. 상단 **화면 모음**에서 로그인·회원가입·등록·상세·캘린더·날씨·가족 관리까지 확인할 수 있습니다. 에뮬레이터 실행 후 `./scripts/design/preview.sh`로 빌드·설치할 수도 있습니다. [미리보기 실행 안내](docs/DESIGN_SYSTEM.md#미리보기-실행)를 참고하세요. [HTML 프로토타입](docs/prototype/README.md)은 이전 구조의 참고 시안입니다.
 
+[PRD 의도 점검과 업그레이드 기준](docs/report/PRD_DESIGN_AUDIT.md)에서 화면별 대응, 예시 동작과 실제 연동의 경계, 후속 연결 순서를 확인합니다.
+
 ## 팀 작업 안내
 
 | 주제 | 문서 |
