@@ -50,6 +50,10 @@ import com.kwmobile.hometiming.data.preview.PreviewStore;
 import com.kwmobile.hometiming.data.preview.PreviewStore.Item;
 import com.kwmobile.hometiming.databinding.ActivityMainBinding;
 import com.kwmobile.hometiming.ui.component.FluidMotion;
+import com.kwmobile.hometiming.ui.component.WeatherProposalView;
+import com.kwmobile.hometiming.ui.component.OptionalItemFieldsView;
+import com.kwmobile.hometiming.ui.component.CompletionDateView;
+import com.kwmobile.hometiming.ui.component.CyclePresetView;
 import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
@@ -106,7 +110,7 @@ public final class MainActivity extends AppCompatActivity {
     private void readPreviewIntent(Intent intent) {
         if(!BuildConfig.DEBUG)return;
         String route=intent.getStringExtra("preview_screen");
-        if(route!=null && java.util.Arrays.asList("home","items","calendar","settings","login","signup","reset","editor","detail","weather","family","preferences","gallery").contains(route)) {
+        if(route!=null && java.util.Arrays.asList("home","items","calendar","settings","login","signup","reset","editor","detail","weather","family","preferences","gallery","components").contains(route)) {
             s().back.clear();s().route=new DesignPreviewViewModel.Route(route,intent.getStringExtra("preview_id")==null?"":intent.getStringExtra("preview_id"));
             if(route.equals("editor")) {vm.edit(s().route.id);s().back.clear();}
             if(route.equals("detail")&&s().route.id.isEmpty())s().route=new DesignPreviewViewModel.Route("detail","filter");
@@ -168,7 +172,7 @@ public final class MainActivity extends AppCompatActivity {
             case "calendar":layout=R.layout.screen_calendar;break;case "editor":layout=R.layout.screen_editor;break;
             case "detail":layout=R.layout.screen_detail;break;case "weather":layout=R.layout.screen_weather;break;
             case "settings":layout=R.layout.screen_settings;break;case "family":layout=R.layout.screen_family;break;
-            case "preferences":layout=R.layout.screen_preferences;break;case "gallery":layout=R.layout.screen_gallery;break;
+            case "preferences":layout=R.layout.screen_preferences;break;case "components":case "gallery":layout=R.layout.screen_gallery;break;
             default:layout=R.layout.screen_home;
         }
         screen=getLayoutInflater().inflate(layout,binding.screenContainer,false);
@@ -195,7 +199,7 @@ public final class MainActivity extends AppCompatActivity {
             case "editor":bindEditor();break;case "detail":bindDetail();break;
             case "weather":bindWeather();break;case "settings":bindSettings();break;
             case "family":bindFamily();break;case "preferences":bindPreferences();break;
-            case "gallery":bindGallery();break;default:bindHome();break;
+            case "components":bindComponents();break;case "gallery":bindGallery();break;default:bindHome();break;
         }
         motion(screen);FluidMotion.enter(screen,binding.glassBackdrop::refresh);binding.glassBackdrop.refresh();
         ViewCompat.setAccessibilityPaneTitle(screen,toolbarTitle(name));
@@ -204,7 +208,7 @@ public final class MainActivity extends AppCompatActivity {
         switch(name) {case "login":return getString(R.string.preview_copy_005);case "signup":return getString(R.string.preview_copy_006);case "reset":return getString(R.string.preview_copy_007);
             case "editor":return s().route.id.isEmpty()?getString(R.string.preview_copy_008):getString(R.string.preview_copy_009);case "detail":return getString(R.string.preview_copy_010);
             case "weather":return getString(R.string.preview_copy_011);case "family":return getString(R.string.preview_copy_012);case "preferences":return getString(R.string.preview_copy_013);
-            case "gallery":return getString(R.string.preview_copy_014);case "items":return getString(R.string.preview_copy_015);case "calendar":return getString(R.string.preview_copy_016);case "settings":return getString(R.string.preview_copy_013);default:return getString(R.string.preview_copy_017);}
+            case "components":return getString(R.string.component_catalog);case "gallery":return getString(R.string.preview_copy_014);case "items":return getString(R.string.preview_copy_015);case "calendar":return getString(R.string.preview_copy_016);case "settings":return getString(R.string.preview_copy_013);default:return getString(R.string.preview_copy_017);}
     }
     private void motion(View view) {
         if(view instanceof MaterialButton)FluidMotion.press(view);
@@ -282,6 +286,12 @@ public final class MainActivity extends AppCompatActivity {
                 return false;
             }
         });
+        if(s().route.screen.equals("home")) {
+            View quick=row.findViewById(R.id.row_complete);quick.setVisibility(View.VISIBLE);
+            quick.setContentDescription(getString(R.string.component_quick_complete,item.name));
+            quick.setEnabled(s().scenario.equals("normal")&&!s().store.completedToday(item));
+            quick.setOnClickListener(v -> recordCompletion(item,PreviewStore.today()));FluidMotion.press(quick);
+        }
         parent.addView(row);line(parent);
     }
     private boolean stateMessage(LinearLayout parent,Runnable retry) {
@@ -334,8 +344,14 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout summaryRow=settingsRow(summary,getString(R.string.intent_home_tasks),unavailable?getString(R.string.intent_home_loading):getString(R.string.intent_home_counts,todayCount,lateCount,weekCount),R.drawable.ic_calendar,() -> behavior.setState(BottomSheetBehavior.STATE_EXPANDED));
         summaryRow.setMinimumHeight(dp(64));summaryRow.setPadding(0,dp(8),0,dp(8));
         boolean weatherUnknown=!s().scenario.equals("normal");
-        LinearLayout proposalRow=settingsRow(box(R.id.home_weather_suggestion),getString(R.string.intent_home_weather),getString(weatherUnknown?R.string.intent_home_weather_unknown:s().condition.equals("rain")?R.string.intent_home_weather_rain:R.string.intent_home_weather_clear),R.drawable.ic_wash,() -> go("weather"));
-        proposalRow.setMinimumHeight(dp(64));proposalRow.setPadding(0,dp(8),0,dp(8));
+        Item suggested=null;
+        for(Item candidate:s().store.sorted())if(s().store.proposalTarget(candidate,s().condition.equals("rain"),!weatherUnknown)!=null){suggested=candidate;break;}
+        if(suggested!=null) {
+            LinearLayout proposal=box(R.id.home_weather_suggestion);gap(proposal,8);bindProposal(proposal,suggested,false);
+        } else {
+            LinearLayout proposalRow=settingsRow(box(R.id.home_weather_suggestion),getString(R.string.intent_home_weather),getString(weatherUnknown?R.string.intent_home_weather_unknown:s().condition.equals("rain")?R.string.intent_proposal_no_change:R.string.intent_home_weather_clear),R.drawable.ic_wash,() -> go("weather"));
+            proposalRow.setMinimumHeight(dp(64));proposalRow.setPadding(0,dp(8),0,dp(8));
+        }
         View reopen=screen.findViewById(R.id.home_reopen);
         summary.setVisibility(s().sheetHidden?View.GONE:View.VISIBLE);
         reopen.setVisibility(s().sheetHidden?View.VISIBLE:View.GONE);
@@ -345,7 +361,7 @@ public final class MainActivity extends AppCompatActivity {
         android.util.TypedValue closeFeedback=new android.util.TypedValue();getTheme().resolveAttribute(android.R.attr.selectableItemBackgroundBorderless,closeFeedback,true);close.setBackgroundResource(closeFeedback.resourceId);
         close.setPadding(dp(12),dp(12),dp(12),dp(12));close.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_HIDDEN));FluidMotion.press(close);
         LinearLayout.LayoutParams closeSize=new LinearLayout.LayoutParams(dp(48),dp(48));closeSize.leftMargin=dp(4);heading.addView(close,closeSize);
-        sheet.post(() -> {if(!sheet.isAttachedToWindow())return;int h=((View)sheet.getParent()).getHeight();int previousPeek=Math.min(Math.max(dp(265),h-dp(350)),Math.max(dp(220),h-dp(90)));behavior.setPeekHeight(Math.min(Math.max(dp(180),previousPeek/2),Math.max(dp(120),h-dp(48))),false);behavior.setState(s().sheetHidden?BottomSheetBehavior.STATE_HIDDEN:s().expanded?BottomSheetBehavior.STATE_EXPANDED:BottomSheetBehavior.STATE_COLLAPSED);});
+        sheet.post(() -> {if(!sheet.isAttachedToWindow())return;int h=((View)sheet.getParent()).getHeight();int previousPeek=Math.min(Math.max(dp(265),h-dp(350)),Math.max(dp(220),h-dp(90)));int peek=Math.min(Math.max(dp(180),previousPeek/2),Math.max(dp(120),h-dp(48)));behavior.setPeekHeight(peek,false);screen.findViewById(R.id.hero_scroll).setPadding(0,0,0,peek+dp(16));behavior.setState(s().sheetHidden?BottomSheetBehavior.STATE_HIDDEN:s().expanded?BottomSheetBehavior.STATE_EXPANDED:BottomSheetBehavior.STATE_COLLAPSED);});
         handle.setOnClickListener(v -> behavior.setState(behavior.getState()==BottomSheetBehavior.STATE_EXPANDED?BottomSheetBehavior.STATE_COLLAPSED:BottomSheetBehavior.STATE_EXPANDED));
         behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
             @Override public void onStateChanged(@NonNull View bottom,int state) {
@@ -456,12 +472,12 @@ public final class MainActivity extends AppCompatActivity {
         DesignPreviewViewModel.Draft d=s().draft;
         ((TextView)screen.findViewById(R.id.editor_heading)).setText(d.id.isEmpty()?getString(R.string.preview_copy_086):getString(R.string.preview_copy_009));
         chips(box(R.id.editor_kind),new String[]{getString(R.string.preview_copy_087),getString(R.string.preview_copy_088)},d.chore?getString(R.string.preview_copy_088):getString(R.string.preview_copy_087),value -> {
-            capture();d.chore=value.equals(getString(R.string.preview_copy_088));d.cycle=d.chore?"7":"60";d.category=d.chore?getString(R.string.preview_copy_089):getString(R.string.preview_copy_053);d.weather=d.chore;d.dirty=true;render();
+            capture();d.chore=value.equals(getString(R.string.preview_copy_088));d.cycle=d.chore?"7":"60";d.cycleEdited=false;d.category=d.chore?getString(R.string.preview_copy_089):getString(R.string.preview_copy_053);d.weather=d.chore;d.dirty=true;render();
         });
-        int[] ids={R.id.edit_name,R.id.edit_location,R.id.edit_cycle};String[] values={d.name,d.location,d.cycle};
+        int[] ids={R.id.edit_name,R.id.edit_cycle};String[] values={d.name,d.cycle};
         for(int i=0;i<ids.length;i++) {
             EditText field=screen.findViewById(ids[i]);field.setText(values[i]);final int id=ids[i];
-            field.addTextChangedListener(watcher(value -> {if(id==R.id.edit_name)d.name=value;else if(id==R.id.edit_location)d.location=value;else d.cycle=value;d.dirty=true;updateDraftDuePreview();}));
+            field.addTextChangedListener(watcher(value -> {if(id==R.id.edit_name)d.name=value;else {d.cycle=value;d.cycleEdited=true;}d.dirty=true;updateDraftDuePreview();}));
         }
         LinearLayout category=box(R.id.editor_category);gap(category,16);
         settingsRow(category,getString(R.string.preview_copy_090),d.category,0,() -> choose(getString(R.string.preview_copy_091),d.chore?new String[]{getString(R.string.preview_copy_089),getString(R.string.preview_copy_092),getString(R.string.preview_copy_053)}:new String[]{getString(R.string.preview_copy_023),getString(R.string.preview_copy_052),getString(R.string.preview_copy_053)},value -> {capture();d.category=value;d.dirty=true;render();}));line(category);
@@ -481,6 +497,18 @@ public final class MainActivity extends AppCompatActivity {
             });
             SwitchMaterial sensitive=new SwitchMaterial(this);sensitive.setText(getString(R.string.preview_copy_096));sensitive.setTextColor(color(R.color.ht_text));sensitive.setMinHeight(dp(52));sensitive.setChecked(d.weather);sensitive.setOnCheckedChangeListener((button,checked) -> {d.weather=checked;d.dirty=true;});chore.addView(sensitive);
         }
+        if(!d.chore) {
+            CyclePresetView presets=new CyclePresetView(this);
+            presets.bind(new String[]{getString(R.string.component_preset_brush),getString(R.string.component_preset_filter),getString(R.string.component_preset_sponge)},index -> {
+                String next=String.valueOf(new int[]{90,60,30}[index]);
+                Runnable apply=() -> {capture();d.cycle=next;d.cycleEdited=true;d.dirty=true;render();};
+                if(d.cycleEdited&&!d.cycle.equals(next))confirm(getString(R.string.component_preset_replace),getString(R.string.component_preset_replace_help,d.cycle,next),getString(R.string.component_preset_apply),apply);else apply.run();
+            });box(R.id.editor_presets).addView(presets);
+        }
+        OptionalItemFieldsView optional=screen.findViewById(R.id.editor_optional);
+        optional.bind(d.productName,d.location,d.memo,d.optionalExpanded,
+                value -> {d.productName=value;d.dirty=true;},value -> {d.location=value;d.dirty=true;},
+                value -> {d.memo=value;d.dirty=true;},value -> d.optionalExpanded=value);
         updateDraftDuePreview();
         MaterialButton submit=screen.findViewById(R.id.edit_submit);submit.setText(d.id.isEmpty()?getString(R.string.preview_copy_097):getString(R.string.preview_copy_098));
         if(s().scenario.equals("offline")){submit.setEnabled(false);fieldError(R.id.edit_cycle_error,getString(R.string.preview_copy_099));}
@@ -492,6 +520,7 @@ public final class MainActivity extends AppCompatActivity {
             if(!valid){focusFirstError();return;}
             if(s().scenario.equals("error")){notice(getString(R.string.preview_copy_102));return;}
             Item item=s().store.save(d.id,d.name.trim(),d.category,d.location.trim(),d.chore,cycle,d.date,d.weather,d.weekday);
+            item.productName=d.productName.trim();item.memo=d.memo.trim();
             hideKeyboard();s().draft=null;
             if(!s().back.isEmpty()&&s().back.peek().screen.equals("detail"))s().back.pop();s().route=new DesignPreviewViewModel.Route("detail",item.id);render();notice(getString(R.string.preview_copy_103));
         });
@@ -515,13 +544,24 @@ public final class MainActivity extends AppCompatActivity {
         TextView status=text(status(item),R.style.TextAppearance_HomeTiming_Number);status.setTextColor(color(statusColor(item)));body.addView(status);gap(body,6);
         body.addView(text(date(item.due),R.style.TextAppearance_HomeTiming_Title));gap(body,8);body.addView(caption(item.chore?getString(R.string.preview_copy_107):getString(R.string.preview_copy_108)));
         if(item.chore&&!item.due.equals(item.plannedDue)){gap(body,4);body.addView(caption(getString(R.string.intent_original_plan,date(item.plannedDue))));}gap(body,16);
-        MaterialButton complete=action(item.chore?getString(R.string.preview_copy_109):getString(R.string.preview_copy_110),true,() -> askComplete(item));body.addView(complete,new LinearLayout.LayoutParams(-1,-2));
-        boolean done=!item.history.isEmpty()&&item.history.get(0).date.equals(PreviewStore.today());
+        boolean done=s().store.completedToday(item);
+        LocalDate selected=s().completionDates.getOrDefault(item.id,PreviewStore.today());
+        if(selected.isBefore(s().store.earliestCompletion(item))||selected.isAfter(PreviewStore.today()))selected=PreviewStore.today();
+        final LocalDate completionDate=selected;
+        CompletionDateView dateControl=new CompletionDateView(this);
+        dateControl.bind(date(completionDate),!done&&!s().scenario.equals("offline"),() -> {
+            DatePickerDialog picker=new DatePickerDialog(this,(view,year,month,day) -> {s().completionDates.put(item.id,LocalDate.of(year,month+1,day));capture();render();},completionDate.getYear(),completionDate.getMonthValue()-1,completionDate.getDayOfMonth());
+            picker.getDatePicker().setMinDate(s().store.earliestCompletion(item).atStartOfDay(java.time.ZoneId.of("Asia/Seoul")).toInstant().toEpochMilli());
+            picker.getDatePicker().setMaxDate(System.currentTimeMillis());picker.show();
+        });body.addView(dateControl);
+        MaterialButton complete=action(item.chore?getString(R.string.preview_copy_109):getString(R.string.preview_copy_110),true,() -> recordCompletion(item,completionDate));body.addView(complete,new LinearLayout.LayoutParams(-1,-2));
         if(done||s().scenario.equals("offline")){complete.setEnabled(false);complete.setBackgroundTintList(ColorStateList.valueOf(color(R.color.ht_disabled)));complete.setTextColor(color(R.color.ht_on_disabled));gap(body,8);body.addView(caption(done?getString(R.string.preview_copy_111):getString(R.string.preview_copy_112)));}
         gap(body,32);line(body);gap(body,24);section(body,getString(R.string.preview_copy_113),"");
         settingsRow(body,getString(R.string.preview_copy_114),item.location.isEmpty()?getString(R.string.preview_copy_115):item.location,0,null);
         settingsRow(body,getString(R.string.preview_copy_116),item.chore?getString(R.string.preview_copy_117,java.time.DayOfWeek.of(item.weekday).getDisplayName(java.time.format.TextStyle.FULL,Locale.KOREAN)):item.cycle+getString(R.string.preview_copy_118),0,null);
         settingsRow(body,getString(R.string.preview_copy_094),date(item.start),0,null);
+        if(item.productName!=null&&!item.productName.isEmpty())settingsRow(body,getString(R.string.component_product_name),item.productName,0,null);
+        if(item.memo!=null&&!item.memo.isEmpty())settingsRow(body,getString(R.string.component_memo),item.memo,0,null);
         gap(body,24);section(body,item.chore?getString(R.string.preview_copy_119):getString(R.string.preview_copy_120),item.history.size()+getString(R.string.preview_copy_121));
         if(item.history.isEmpty()){gap(body,16);body.addView(label(getString(R.string.preview_copy_122)));}
         else for(PreviewStore.History event:item.history) {settingsRow(body,date(event.date),event.person+getString(R.string.preview_copy_123),R.drawable.ic_check,null);line(body);}
@@ -531,12 +571,16 @@ public final class MainActivity extends AppCompatActivity {
         if(!s().owner&&!s().person.equals(item.createdBy)){delete.setEnabled(false);gap(body,8);body.addView(caption(getString(R.string.intent_delete_permission)));}
         gap(body,20);body.addView(caption(getString(R.string.preview_copy_129)));
     }
-    private void askComplete(Item item) {
+    private void askComplete(Item item) { recordCompletion(item,PreviewStore.today()); }
+    private void recordCompletion(Item item,LocalDate actualDate) {
         if(s().scenario.equals("offline")){notice(getString(R.string.preview_copy_130));return;}
-        confirm(item.chore?getString(R.string.preview_copy_131):getString(R.string.preview_copy_132),item.name+getString(R.string.preview_copy_133)+"\n"+getString(item.chore?R.string.preview_complete_chore_help:R.string.preview_complete_item_help),getString(R.string.preview_copy_134),() -> {
-            if(s().scenario.equals("error")){notice(getString(R.string.preview_copy_135));return;}
-            boolean result=s().store.complete(item.id);capture();render();notice(result?getString(R.string.preview_copy_136):getString(R.string.preview_copy_137));
-        });
+        if(s().scenario.equals("error")){notice(getString(R.string.preview_copy_135));return;}
+        PreviewStore.CompletionReceipt receipt=s().store.complete(item.id,actualDate);
+        if(receipt==null){notice(getString(s().store.completedToday(item)?R.string.preview_copy_137:R.string.component_completion_invalid));return;}
+        s().completionDates.remove(item.id);capture();render();
+        Snackbar.make(binding.getRoot(),getString(R.string.component_completion_saved,item.name,date(actualDate)),Snackbar.LENGTH_LONG)
+                .setAnchorView(rootPage()?binding.navigationContainer:null)
+                .setAction(R.string.component_undo,v -> {boolean restored=s().store.undo(receipt);capture();render();notice(getString(restored?R.string.component_undone:R.string.component_undo_unavailable));}).show();
     }
     private void updateWeather() {
         if(screen==null)return;ImageView photo=screen.findViewById(R.id.weather_photo);if(photo==null)return;
@@ -591,21 +635,26 @@ public final class MainActivity extends AppCompatActivity {
         gap(content,28);section(content,getString(R.string.preview_copy_157),getString(R.string.preview_copy_158));
         for(Item item:s().store.sorted())if(item.chore&&item.weatherSensitive) {
             settingsRow(content,item.name,getString(R.string.preview_copy_159,date(item.due)),icon(item),() -> go("detail",item.id));
-            LocalDate target=PreviewStore.today().plusDays(1);
-            if(unknown)content.addView(caption(getString(R.string.preview_copy_154)));
-            else if(item.due.isBefore(PreviewStore.today())||item.due.isAfter(PreviewStore.today().plusDays(2)))content.addView(caption(getString(R.string.intent_proposal_outside)));
-            else if(item.proposalDismissed)content.addView(caption(getString(R.string.intent_proposal_kept)));
-            else if(!rain||item.due.equals(target))content.addView(caption(getString(R.string.intent_proposal_keep_schedule)));
-            else {
-                content.addView(caption(getString(R.string.intent_proposal_reason,date(item.due),date(target))));gap(content,12);
-                LinearLayout choices=horizontal();
-                MaterialButton change=action(getString(R.string.preview_copy_160),true,() -> confirm(getString(R.string.preview_copy_161),getString(R.string.intent_proposal_confirm,item.name,date(target)),getString(R.string.preview_copy_164),() -> {s().store.moveWeatherSuggestion(item.id,target);render();notice(getString(R.string.preview_copy_165));}));
-                MaterialButton keep=action(getString(R.string.intent_proposal_keep),false,() -> {s().store.dismissWeatherSuggestion(item.id);render();});
-                choices.addView(change,new LinearLayout.LayoutParams(0,-2,1));LinearLayout.LayoutParams keepSize=new LinearLayout.LayoutParams(0,-2,1);keepSize.leftMargin=dp(8);choices.addView(keep,keepSize);content.addView(choices);
-            }
+            bindProposal(content,item,false);
             gap(content,16);
         }
         gap(content,16);content.addView(caption(getString(R.string.preview_copy_166,ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))));
+    }
+    private void bindProposal(LinearLayout parent,Item item,boolean details) {
+        boolean available=s().scenario.equals("normal");
+        LocalDate target=s().store.proposalTarget(item,s().condition.equals("rain"),available);
+        WeatherProposalView.State state;
+        String reason;
+        if(!available){state=WeatherProposalView.State.UNAVAILABLE;reason=getString(R.string.preview_copy_154);}
+        else if(item.due.isBefore(PreviewStore.today())||item.due.isAfter(PreviewStore.today().plusDays(2))){state=WeatherProposalView.State.OUTSIDE_RANGE;reason=getString(R.string.intent_proposal_outside);}
+        else if(item.proposalDismissed){state=WeatherProposalView.State.KEPT;reason=getString(R.string.intent_proposal_kept);}
+        else if(target==null){state=WeatherProposalView.State.UNCHANGED;reason=getString(R.string.intent_proposal_keep_schedule);}
+        else {state=WeatherProposalView.State.SUGGESTED;reason=getString(R.string.component_proposal_dates,date(item.due),date(target));}
+        WeatherProposalView proposal=new WeatherProposalView(this);
+        proposal.bind(state,getString(R.string.component_proposal_title,item.name),reason,getString(R.string.preview_copy_160),false,
+                target==null?null:() -> confirm(getString(R.string.preview_copy_161),getString(R.string.intent_proposal_confirm,item.name,date(target)),getString(R.string.preview_copy_164),() -> {s().store.moveWeatherSuggestion(item.id,target);render();notice(getString(R.string.preview_copy_165));}),
+                () -> {s().store.dismissWeatherSuggestion(item.id);render();},details?() -> go("weather"):null);
+        parent.addView(proposal);
     }
     private void bindSettings() {
         LinearLayout body=box(R.id.settings_content);section(body,getString(R.string.preview_copy_168),"");
@@ -674,8 +723,25 @@ public final class MainActivity extends AppCompatActivity {
             fullAction(body,getString(R.string.preview_copy_258),true,() -> go("weather"));gap(body,20);body.addView(caption(getString(R.string.preview_copy_259)));
         }
     }
+    private void bindComponents() {
+        LinearLayout body=box(R.id.gallery_content);section(body,getString(R.string.component_catalog),getString(R.string.component_catalog_help));
+        for(WeatherProposalView.State state:WeatherProposalView.State.values()) {
+            gap(body,24);body.addView(caption(state.name()));gap(body,8);
+            WeatherProposalView proposal=new WeatherProposalView(this);
+            String reason=state==WeatherProposalView.State.SUGGESTED?getString(R.string.component_catalog_suggestion):getString(state==WeatherProposalView.State.KEPT?R.string.intent_proposal_kept:state==WeatherProposalView.State.UNCHANGED?R.string.intent_proposal_keep_schedule:state==WeatherProposalView.State.OUTSIDE_RANGE?R.string.intent_proposal_outside:R.string.preview_copy_154);
+            proposal.bind(state,getString(R.string.component_catalog_task),reason,getString(R.string.preview_copy_160),false,
+                    () -> notice(getString(R.string.component_catalog_event)),() -> notice(getString(R.string.component_catalog_event)),null);body.addView(proposal);gap(body,16);line(body);
+        }
+        gap(body,24);section(body,getString(R.string.component_preset_title),getString(R.string.component_preset_help));
+        CyclePresetView presets=new CyclePresetView(this);presets.bind(new String[]{getString(R.string.component_preset_brush),getString(R.string.component_preset_filter),getString(R.string.component_preset_sponge)},index -> notice(getString(R.string.component_catalog_event)));body.addView(presets);
+        gap(body,24);DesignPreviewViewModel.Draft draft=s().componentDraft;
+        OptionalItemFieldsView optional=new OptionalItemFieldsView(this);
+        optional.bind(draft.productName,draft.location,draft.memo,draft.optionalExpanded,value -> draft.productName=value,value -> draft.location=value,value -> draft.memo=value,value -> draft.optionalExpanded=value);body.addView(optional);
+        gap(body,24);CompletionDateView completion=new CompletionDateView(this);completion.bind(date(PreviewStore.today()),true,() -> notice(getString(R.string.component_catalog_event)));body.addView(completion);
+    }
     private void bindGallery() {
-        LinearLayout body=box(R.id.gallery_content);section(body,getString(R.string.preview_copy_260),getString(R.string.preview_copy_261));
+        LinearLayout body=box(R.id.gallery_content);
+        fullAction(body,getString(R.string.component_catalog),false,() -> go("components"));section(body,getString(R.string.preview_copy_260),getString(R.string.preview_copy_261));
         String[][] pages={{getString(R.string.preview_copy_262),"login",""},{getString(R.string.preview_copy_006),"signup",""},{getString(R.string.preview_copy_007),"reset",""},{getString(R.string.preview_copy_263),"home",""},{getString(R.string.preview_copy_264),"items",""},{getString(R.string.preview_copy_265),"editor",""},{getString(R.string.preview_copy_124),"editor","filter"},{getString(R.string.preview_copy_266),"detail","filter"},{getString(R.string.preview_copy_267),"calendar",""},{getString(R.string.preview_copy_268),"weather",""},{getString(R.string.preview_copy_269),"settings",""},{getString(R.string.preview_copy_012),"family",""},{getString(R.string.preview_copy_207),"preferences","join"},{getString(R.string.preview_copy_175),"preferences","notifications"},{getString(R.string.preview_copy_270),"preferences","region"}};
         for(String[] page:pages) {settingsRow(body,page[0],"",0,() -> {if(page[1].equals("editor"))edit(page[2]);else go(page[1],page[2]);});line(body);}
         gap(body,28);section(body,getString(R.string.preview_copy_271),getString(R.string.preview_copy_272));
@@ -685,7 +751,7 @@ public final class MainActivity extends AppCompatActivity {
         gap(body,24);section(body,getString(R.string.preview_copy_279),"");settingsRow(body,getString(R.string.preview_copy_280),getString(R.string.preview_copy_281),R.drawable.ic_sun,() -> go("preferences","weather"));
         SwitchMaterial owner=new SwitchMaterial(this);owner.setText(getString(R.string.preview_copy_282));owner.setMinHeight(dp(56));owner.setChecked(s().owner);owner.setTextColor(color(R.color.ht_text));owner.setOnCheckedChangeListener((button,value) -> s().owner=value);body.addView(owner);
         SwitchMaterial permission=new SwitchMaterial(this);permission.setText(getString(R.string.intent_permission_preview));permission.setMinHeight(dp(56));permission.setChecked(s().permissionGranted);permission.setTextColor(color(R.color.ht_text));permission.setOnCheckedChangeListener((button,value) -> s().permissionGranted=value);body.addView(permission);
-        fullAction(body,getString(R.string.preview_copy_283),false,() -> confirm(getString(R.string.preview_copy_284),getString(R.string.preview_copy_285),getString(R.string.preview_copy_286),() -> {s().store.reset();s().expanded=false;s().sheetHidden=false;s().scenario="normal";s().filter=getString(R.string.preview_copy_051);s().weather="auto";s().condition="clear";s().selected=PreviewStore.today();s().month=YearMonth.from(s().selected);s().owner=true;s().joined=false;s().members=2;s().joinCode="";s().draft=null;s().time="09:00";s().advanceDays=3;s().invite="284619";s().authFields.clear();s().notifications=false;s().permissionGranted=false;s().region=getString(R.string.preview_copy_223);s().scrolls.clear();render();}));
+        fullAction(body,getString(R.string.preview_copy_283),false,() -> confirm(getString(R.string.preview_copy_284),getString(R.string.preview_copy_285),getString(R.string.preview_copy_286),() -> {s().store.reset();s().completionDates.clear();s().expanded=false;s().sheetHidden=false;s().scenario="normal";s().filter=getString(R.string.preview_copy_051);s().weather="auto";s().condition="clear";s().selected=PreviewStore.today();s().month=YearMonth.from(s().selected);s().owner=true;s().joined=false;s().members=2;s().joinCode="";s().draft=null;s().time="09:00";s().advanceDays=3;s().invite="284619";s().authFields.clear();s().notifications=false;s().permissionGranted=false;s().region=getString(R.string.preview_copy_223);s().scrolls.clear();render();}));
         gap(body,24);body.addView(caption(getString(R.string.preview_copy_287)));
     }
     private void choose(String title,String[] values,java.util.function.Consumer<String> pick) {new MaterialAlertDialogBuilder(this).setTitle(title).setItems(values,(dialog,index) -> pick.accept(values[index])).setNegativeButton(getString(R.string.preview_copy_288),null).show();}

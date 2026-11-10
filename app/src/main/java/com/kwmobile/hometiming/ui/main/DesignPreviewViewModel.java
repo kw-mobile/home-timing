@@ -21,10 +21,10 @@ public final class DesignPreviewViewModel extends ViewModel {
     }
     public static final class Draft implements Serializable {
         private static final long serialVersionUID = 1L;
-        public String id="", name="", location="", category="기타", cycle="60";
+        public String id="", name="", location="", productName="", memo="", category="기타", cycle="60";
         public LocalDate date=PreviewStore.today();
         public int weekday=date.getDayOfWeek().getValue();
-        public boolean chore=false, weather=false, dirty=false;
+        public boolean chore=false, weather=false, dirty=false, optionalExpanded=false, cycleEdited=false;
     }
     public static final class State implements Serializable {
         private static final long serialVersionUID = 1L;
@@ -34,6 +34,8 @@ public final class DesignPreviewViewModel extends ViewModel {
         public Map<String,Integer> scrolls=new HashMap<>();
         public Map<String,String> authFields=new HashMap<>();
         public Draft draft;
+        public Draft componentDraft=new Draft();
+        public Map<String,LocalDate> completionDates=new HashMap<>();
         public String filter="전체", weather="auto", condition="clear", scenario="normal";
         public String region="서울 마포구", person="나", time="09:00", invite="284619", joinCode="";
         public int members=2;
@@ -52,6 +54,8 @@ public final class DesignPreviewViewModel extends ViewModel {
         }
         if(state.members==0)state.members=2;
         if(state.joinCode==null)state.joinCode="";
+        if(state.completionDates==null)state.completionDates=new HashMap<>();
+        if(state.componentDraft==null)state.componentDraft=new Draft();
         state.initialized=true;
     }
     public void save(Bundle out) { out.putSerializable("preview_state",state); }
@@ -66,6 +70,7 @@ public final class DesignPreviewViewModel extends ViewModel {
         Draft d=new Draft(); PreviewStore.Item item=state.store.find(id);
         if(item!=null) {
             d.id=item.id;d.name=item.name;d.location=item.location;d.category=item.category;
+            d.productName=item.productName==null?"":item.productName;d.memo=item.memo==null?"":item.memo;d.cycleEdited=true;
             d.weekday=item.weekday;d.chore=item.chore;d.weather=item.weatherSensitive;d.cycle=String.valueOf(item.cycle);d.date=item.start;
         }
         state.draft=d;state.scrolls.remove(new Route("editor",id).key());navigate("editor",id);

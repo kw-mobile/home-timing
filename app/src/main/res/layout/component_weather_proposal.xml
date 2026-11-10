@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
+    <TextView android:id="@+id/proposal_title" android:layout_width="match_parent" android:layout_height="wrap_content" android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
+    <TextView android:id="@+id/proposal_reason" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="4dp" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" />
+    <LinearLayout android:id="@+id/proposal_choices" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:layout_marginTop="12dp">
+        <com.google.android.material.button.MaterialButton android:id="@+id/proposal_change" style="@style/Widget.HomeTiming.Button" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:text="@string/preview_copy_160" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/proposal_keep" style="@style/Widget.HomeTiming.Button.Secondary" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:layout_marginStart="8dp" android:text="@string/intent_proposal_keep" />
+    </LinearLayout>
+    <com.google.android.material.button.MaterialButton android:id="@+id/proposal_details" style="@style/Widget.HomeTiming.TextButton" android:layout_width="wrap_content" android:layout_height="48dp" android:text="@string/component_proposal_details" android:layout_gravity="start" android:visibility="gone" />
+</merge>

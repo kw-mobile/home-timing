@@ -21,6 +21,9 @@ public final class PreviewStore implements Serializable {
         private static final long serialVersionUID = 1L;
         public final String id;
         public String name, category, location;
+        public String productName="", memo="";
+        public LocalDate completedOn;
+        public int revision;
         public String createdBy="나";
         public boolean chore, weatherSensitive, proposalDismissed;
         public int cycle, weekday;
@@ -73,7 +76,7 @@ public final class PreviewStore implements Serializable {
             item.name=name;item.category=category;item.location=location;item.chore=chore;
             item.cycle=cycle;item.start=start;
         }
-        item.weatherSensitive=weatherSensitive;item.weekday=weekday;
+        item.weatherSensitive=weatherSensitive;item.weekday=weekday;item.revision++;
         if(!keepProposal)item.proposalDismissed=false;
         if(!keepSchedule) {
             item.due=preview;
@@ -89,27 +92,60 @@ public final class PreviewStore implements Serializable {
         if(keepsWeeklySchedule(item,chore,start,weekday))return item.due;
         return chore?start.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(weekday))):start.plusDays(cycle);
     }
-    public boolean complete(String id) {
-        Item item=find(id); if(item==null) return false;
-        LocalDate today=today();
-        // A repeated tap on the same demo day cannot create duplicate history entries.
-        if(!item.history.isEmpty() && item.history.get(0).date.equals(today)) return false;
-        item.history.add(0,new History(today,"나")); item.start=today;item.proposalDismissed=false;
-        LocalDate anchor=today.isAfter(item.plannedDue)?today:item.plannedDue;
-        item.due=item.chore?anchor.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(item.weekday))):today.plusDays(item.cycle);
-        item.plannedDue=item.due;
-        return true;
+    public boolean completedToday(Item item) {
+        return today().equals(item.completedOn)||(item.completedOn==null&&!item.history.isEmpty()&&item.history.get(0).date.equals(today()));
+    }
+    public LocalDate earliestCompletion(Item item) {
+        LocalDate minimum=item.start;
+        for(History event:item.history)if(event.date.isAfter(minimum))minimum=event.date;
+        return minimum;
+    }
+    public boolean complete(String id) { return complete(id,today())!=null; }
+    /** Local design receipt. Production completion/undo needs a server transaction. */
+    public static final class CompletionReceipt {
+        private final Item item;
+        private final LocalDate start,due,plannedDue,completedOn;
+        private final boolean proposalDismissed;
+        private final int expectedRevision;
+        private CompletionReceipt(Item item) {
+            this.item=item;start=item.start;due=item.due;plannedDue=item.plannedDue;
+            completedOn=item.completedOn;proposalDismissed=item.proposalDismissed;expectedRevision=item.revision+1;
+        }
+    }
+    public CompletionReceipt complete(String id,LocalDate actualDate) {
+        Item item=find(id);
+        if(item==null||actualDate==null||actualDate.isAfter(today())
+                ||actualDate.isBefore(earliestCompletion(item))||completedToday(item))return null;
+        CompletionReceipt receipt=new CompletionReceipt(item);
+        item.history.add(0,new History(actualDate,"나"));item.start=actualDate;item.completedOn=today();
+        item.proposalDismissed=false;item.revision++;
+        LocalDate anchor=actualDate.isAfter(item.plannedDue)?actualDate:item.plannedDue;
+        item.due=item.chore?anchor.with(java.time.temporal.TemporalAdjusters.next(java.time.DayOfWeek.of(item.weekday))):actualDate.plusDays(item.cycle);
+        item.plannedDue=item.due;return receipt;
+    }
+    public boolean undo(CompletionReceipt receipt) {
+        if(receipt==null||find(receipt.item.id)!=receipt.item||receipt.item.revision!=receipt.expectedRevision)return false;
+        Item item=receipt.item;item.history.remove(0);item.start=receipt.start;item.due=receipt.due;
+        item.plannedDue=receipt.plannedDue;item.completedOn=receipt.completedOn;
+        item.proposalDismissed=receipt.proposalDismissed;item.revision++;return true;
+    }
+    /** Tomorrow is the sole dry day in the three-day rain fixture, not real forecasting. */
+    public LocalDate proposalTarget(Item item,boolean rain,boolean available) {
+        LocalDate target=today().plusDays(1);
+        if(item==null||!available||!rain||!item.chore||!item.weatherSensitive||item.proposalDismissed
+                ||item.due.isBefore(today())||item.due.isAfter(today().plusDays(2))||item.due.equals(target))return null;
+        return target;
     }
     public boolean delete(String id) { return items.removeIf(item -> item.id.equals(id)); }
     public boolean moveWeatherSuggestion(String id, LocalDate target) {
         Item item=find(id);
         if(item==null||!item.chore||!item.weatherSensitive||item.proposalDismissed
                 ||target.isBefore(today())||target.equals(item.due))return false;
-        item.due=target;return true;
+        item.due=target;item.revision++;return true;
     }
     public boolean dismissWeatherSuggestion(String id) {
         Item item=find(id);
         if(item==null||!item.chore||!item.weatherSensitive)return false;
-        item.proposalDismissed=true;return true;
+        item.proposalDismissed=true;item.revision++;return true;
     }
 }

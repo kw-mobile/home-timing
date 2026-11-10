@@ -84,4 +84,34 @@ public class PreviewStoreTest {
         store.save(item.id,"완료 뒤 이름 수정",item.category,item.location,true,7,item.start,item.weatherSensitive,item.weekday);
         assertEquals(next,item.due);assertEquals(next,item.plannedDue);assertEquals(next,store.previewDue(item.id,true,7,item.start,item.weekday));
     }
+    @Test public void actualPastCompletionUsesThatDateAndUndoRestoresEveryScheduleField() {
+        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("filter");
+        LocalDate start=item.start,due=item.due,planned=item.plannedDue;
+        int count=item.history.size();LocalDate actual=PreviewStore.today().minusDays(3);
+        PreviewStore.CompletionReceipt receipt=store.complete(item.id,actual);
+        assertNotNull(receipt);assertEquals(actual,item.history.get(0).date);
+        assertEquals(actual.plusDays(60),item.due);assertTrue(store.completedToday(item));
+        assertNull(store.complete(item.id,actual.minusDays(1)));
+        assertTrue(store.undo(receipt));assertEquals(start,item.start);assertEquals(due,item.due);
+        assertEquals(planned,item.plannedDue);assertEquals(count,item.history.size());
+        assertFalse(store.completedToday(item));assertFalse(store.undo(receipt));
+    }
+    @Test public void invalidCompletionCannotChangeHistoryAndStaleUndoCannotEraseLaterEdits() {
+        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("brush");int count=item.history.size();
+        assertNull(store.complete(item.id,PreviewStore.today().plusDays(1)));
+        assertNull(store.complete(item.id,item.start.minusDays(1)));assertEquals(count,item.history.size());
+        PreviewStore.CompletionReceipt receipt=store.complete(item.id,PreviewStore.today());assertNotNull(receipt);
+        store.save(item.id,"이름 수정",item.category,item.location,false,item.cycle,item.start,false,item.weekday);
+        assertFalse(store.undo(receipt));assertEquals("이름 수정",item.name);assertEquals(count+1,item.history.size());
+        store.reset();assertFalse(store.undo(receipt));
+    }
+    @Test public void homeAndWeatherProposalUseTheSameFixtureAvailabilityContract() {
+        PreviewStore store=new PreviewStore();PreviewStore.Item item=store.find("bedding");
+        assertEquals(PreviewStore.today().plusDays(1),store.proposalTarget(item,true,true));
+        assertNull(store.proposalTarget(item,false,true));assertNull(store.proposalTarget(item,true,false));
+        assertNull(store.proposalTarget(store.find("filter"),true,true));
+        assertTrue(store.dismissWeatherSuggestion(item.id));assertNull(store.proposalTarget(item,true,true));
+        item.proposalDismissed=false;item.due=PreviewStore.today().plusDays(3);
+        assertNull(store.proposalTarget(item,true,true));
+    }
 }

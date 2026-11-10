@@ -127,12 +127,7 @@
     <string name="preview_copy_128" formatted="false">미리보기에서 삭제했어요.</string>
     <string name="preview_copy_129" formatted="false">디자인 미리보기 · 실제 데이터는 변경되지 않아요.</string>
     <string name="preview_copy_130" formatted="false">연결 후 완료할 수 있어요.</string>
-    <string name="preview_copy_131" formatted="false">집안일을 마쳤나요?</string>
-    <string name="preview_copy_132" formatted="false">새것으로 교체했나요?</string>
-    <string name="preview_copy_133" formatted="false"> · 오늘 완료한 것으로 기록해요.</string>
-    <string name="preview_copy_134" formatted="false">완료 기록</string>
     <string name="preview_copy_135" formatted="false">기록하지 못했어요. 다시 시도해 주세요.</string>
-    <string name="preview_copy_136" formatted="false">완료했어요. 다음 일정을 준비했어요.</string>
     <string name="preview_copy_137" formatted="false">오늘 이미 완료한 항목이에요.</string>
     <string name="preview_copy_138" formatted="false">비</string>
     <string name="preview_copy_139" formatted="false">흐림</string>
@@ -283,8 +278,6 @@
     <string name="preview_weather_clock">예시 날씨 · %1$s 기기 시각</string>
     <string name="preview_start_help">최근 교체했거나 사용을 시작한 날이에요.</string>
     <string name="preview_next_due">다음 예정일: %1$s</string>
-    <string name="preview_complete_item_help">실제 교체한 오늘부터 주기를 다시 계산해요.</string>
-    <string name="preview_complete_chore_help">완료일 이후의 다음 반복 요일로 일정을 갱신해요.</string>
     <string name="preview_previous_month">이전 달</string>
     <string name="preview_next_month">다음 달</string>
     <string name="preview_chore_start_help">마지막으로 이 집안일을 마친 날이에요.</string>
@@ -307,12 +300,10 @@
     <string name="intent_home_loading">목록을 열어 상태를 확인해 주세요</string>
     <string name="intent_home_weather">날씨에 맞춘 집안일</string>
     <string name="intent_home_weather_clear">세탁 적합도와 작업 제안 보기 · 예시</string>
-    <string name="intent_home_weather_rain">비 예보, 세탁 일정 제안 확인 · 예시</string>
     <string name="intent_home_weather_unknown">예보 상태 확인 · 일정을 임의로 바꾸지 않아요</string>
     <string name="intent_proposal_keep">그대로 두기</string>
     <string name="intent_proposal_kept">이번 일정은 그대로 유지해요.</string>
     <string name="intent_proposal_keep_schedule">현재 일정을 유지해요. 필요한 날에 완료해 주세요.</string>
-    <string name="intent_proposal_reason">%1$s 비 예보 예시 · %2$s로 변경을 제안해요.</string>
     <string name="intent_proposal_confirm">%1$s 일정을 %2$s로 옮길까요? 원래 반복 요일은 유지해요.</string>
     <string name="intent_member_manage">구성원 · 눌러 관리</string>
     <string name="intent_member_remove_title">가족을 내보낼까요?</string>
