@@ -165,6 +165,9 @@ public final class MainActivity extends AppCompatActivity {
             if(autofill!=null)autofill.cancel();
         }
         String name=s().route.screen;
+        int pageColor=color(name.equals("home")?R.color.ht_grouped_background:R.color.ht_background);
+        binding.mainContent.setBackgroundColor(pageColor);
+        binding.topBar.setBackgroundColor(pageColor);
         int layout;
         switch(name) {
             case "login":layout=R.layout.screen_login;break;case "signup":layout=R.layout.screen_signup;break;
