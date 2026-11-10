@@ -49,7 +49,12 @@ public final class OptionalItemFieldsView extends LinearLayout {
     private void field(int id,String value,Consumer<String> changed) {
         EditText field=findViewById(id);
         Object previous=field.getTag();if(previous instanceof TextWatcher)field.removeTextChangedListener((TextWatcher)previous);
-        field.setText(value==null?"":value);
+        String next=value==null?"":value;
+        if(!field.getText().toString().equals(next)) {
+            int start=field.getSelectionStart(),end=field.getSelectionEnd();
+            field.setText(next);
+            if(start>=0&&end>=0)field.setSelection(Math.min(start,field.length()),Math.min(end,field.length()));
+        }
         TextWatcher watcher=new TextWatcher(){
             public void beforeTextChanged(CharSequence s,int start,int count,int after){}
             public void onTextChanged(CharSequence s,int start,int before,int count){changed.accept(s.toString());}
