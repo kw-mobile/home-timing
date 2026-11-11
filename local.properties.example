@@ -3,5 +3,5 @@
 # Windows paths: use C:/Users/your-name/AppData/Local/Android/Sdk (forward slashes).
 # sdk.dir=/absolute/path/to/Android/sdk
 
-# Public Data Portal service key, decoded form. Empty is OK for bootstrap builds.
+# KMA API Hub authKey (apihub.kma.go.kr), issued per teammate. Empty is OK for bootstrap builds.
 KMA_SERVICE_KEY=
