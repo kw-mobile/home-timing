@@ -9,6 +9,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Source;
@@ -18,6 +19,7 @@ import com.kwmobile.hometiming.domain.Item;
 import com.kwmobile.hometiming.domain.ReminderChange;
 import com.kwmobile.hometiming.domain.ReminderDecision;
 import com.kwmobile.hometiming.domain.ReminderKey;
+import com.kwmobile.hometiming.domain.ReminderPlanner;
 import com.kwmobile.hometiming.domain.ReminderRules;
 import com.kwmobile.hometiming.domain.ScheduleState;
 
@@ -151,6 +153,31 @@ public final class ReminderRepository {
                                     .onSuccessTask(chores -> Tasks.forResult(new ReminderSnapshot(houseId, notifyTime,
                                             advanceDays.intValue(), readItems(items), readChores(chores)))));
                 });
+        return task.continueWithTask(done -> done.isSuccessful()
+                ? done
+                : Tasks.forException(asItemException(done.getException())));
+    }
+
+    /** Saves the personal reminder settings. Online only, like every other change. */
+    @NonNull
+    public Task<Void> updateSettings(String notifyTime, int advanceDays) {
+        if (db == null) {
+            return fail(ItemError.NOT_CONFIGURED);
+        }
+        String uid = currentUid();
+        if (uid == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
+        if (!ReminderPlanner.isValidSettings(notifyTime, advanceDays)) {
+            return fail(ItemError.INVALID_INPUT);
+        }
+        FirebaseFirestore firestore = db;
+        DocumentReference user = firestore.collection(Schema.Users.COLLECTION).document(uid);
+        Task<Void> task = firestore.runTransaction(tx -> {
+            tx.update(user, Schema.Users.NOTIFY_TIME, notifyTime, Schema.Users.ADVANCE_DAYS, advanceDays,
+                    Schema.Users.UPDATED_AT, FieldValue.serverTimestamp());
+            return null;
+        });
         return task.continueWithTask(done -> done.isSuccessful()
                 ? done
                 : Tasks.forException(asItemException(done.getException())));

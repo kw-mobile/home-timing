@@ -50,6 +50,13 @@
     <string name="house_error_not_signed_in">로그인이 필요해요.</string>
     <string name="house_error_unknown">알 수 없는 문제가 생겼어요. 잠시 후 다시 시도해 주세요.</string>
 
+    <!-- Local reminders (notify) -->
+    <string name="reminder_channel_name">일정 알림</string>
+    <string name="reminder_item_due">교체할 때가 됐어요.</string>
+    <string name="reminder_item_advance">교체일까지 %1$d일 남았어요.</string>
+    <string name="reminder_chore_due">할 때가 됐어요.</string>
+    <string name="reminder_chore_advance">예정일까지 %1$d일 남았어요.</string>
+
     <!-- Weather errors (data/weather/WeatherError) -->
     <string name="weather_error_region_not_set">집 지역을 먼저 설정해 주세요.</string>
     <string name="weather_error_not_configured">기상청 키가 없어 예보를 불러올 수 없어요. 개발 환경 설정을 확인해 주세요.</string>

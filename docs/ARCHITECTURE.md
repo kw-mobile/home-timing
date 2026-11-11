@@ -28,7 +28,7 @@ Activity / Fragment → ViewModel → Repository → Firebase / 기상청 / 로�
 | `data/firestore` | 집·용품·집안일 저장, 트랜잭션, 리스너 수명 관리 | 화면별 중복 제품 규칙 |
 | `data/weather` | API DTO·파싱·예보 캐시·발표 회차 선택 | 화면 위젯 |
 | `data/local` | 개인 설정·로컬 저장·지역 표 | 집 권한 판정 |
-| `notify` | 알림 예약·취소, Receiver, Worker. 직전 서버 확인·동기화 읽기·변경 이벤트는 `data/firestore/ReminderRepository`를 호출 | Activity 참조와 별도의 완료 규칙 |
+| `notify` | 알림 예약·취소, Receiver, Worker. 화면은 `ReminderManager`만 호출(로그인·집 변경 `onSessionStarted`, 로그아웃 `onSessionEnded`, 설정 변경 `requestSync`). 직전 서버 확인·동기화 읽기·변경 이벤트는 `data/firestore/ReminderRepository`를 호출 | Activity 참조와 별도의 완료 규칙 |
 | `res/layout`, `res/values` | XML 화면, 문자열·색상·테마 | Java에 박아 넣은 사용자 문구·색상 |
 
 인터페이스나 공통 기반 클래스를 모든 클래스에 의무적으로 만들지 않습니다. 실제 교체 가능성·테스트 필요성이 있을 때 분리합니다.
