@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.function.Function;
 
 /**
  * Replacement items of one house (docs/MVP.md F-02~F-05, docs/DATA_MODEL.md items/history).
@@ -209,7 +210,7 @@ public final class ItemRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
-        return translate(firestore.runTransaction(tx -> {
+        return explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Item stored = requireStored(snapshot);
             rejectConflict(stored, shown);
@@ -219,7 +220,7 @@ public final class ItemRepository {
             Item next = ItemSchedule.edit(stored, draft);
             tx.set(ref, ItemDocuments.itemFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
 
     /**
@@ -244,7 +245,7 @@ public final class ItemRepository {
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
         DocumentReference member = houseRef(firestore, houseId).collection(Schema.Members.COLLECTION).document(uid);
         String nextOccurrence = newOccurrenceId();
-        return translate(firestore.runTransaction(tx -> {
+        return explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             DocumentSnapshot memberSnapshot = tx.get(member);
             Item stored = requireStored(snapshot);
@@ -262,7 +263,7 @@ public final class ItemRepository {
                     ItemDocuments.historyFields(entry, FieldValue.serverTimestamp()));
             tx.set(ref, ItemDocuments.itemFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
 
     /**
@@ -389,6 +390,51 @@ public final class ItemRepository {
 
     private static String newOccurrenceId() {
         return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Gives the conflict between the stored document and what the screen showed, or null when the
+     * document is malformed.
+     */
+    private static ItemSchedule.Conflict conflictOf(DocumentSnapshot snapshot, String occurrenceId, int revision) {
+        Item stored = read(snapshot);
+        return stored == null ? null : ItemSchedule.conflict(stored, occurrenceId, revision);
+    }
+
+    /**
+     * A change that loses a race may be refused by the security rules before the transaction is
+     * retried, which would read as "no permission". On a refusal, the document is read again from
+     * the server and the error says what actually changed.
+     */
+    static <T> Task<T> explainDenial(Task<T> task, DocumentReference ref,
+                                     Function<DocumentSnapshot, ItemSchedule.Conflict> conflictOf) {
+        return task.continueWithTask(done -> {
+            if (done.isSuccessful() || classify(done.getException()) != ItemError.PERMISSION_DENIED) {
+                return done;
+            }
+            return ref.get(Source.SERVER).continueWithTask(read -> {
+                if (!read.isSuccessful()) {
+                    return done;
+                }
+                DocumentSnapshot snapshot = read.getResult();
+                ItemError cause = denialCause(snapshot.exists(), snapshot.exists() ? conflictOf.apply(snapshot) : null);
+                return cause == ItemError.PERMISSION_DENIED ? done : Tasks.forException(new ItemException(cause));
+            });
+        });
+    }
+
+    /** What a refused change ran into, judged from the document as the server has it now. */
+    static ItemError denialCause(boolean exists, @Nullable ItemSchedule.Conflict conflict) {
+        if (!exists) {
+            return ItemError.NOT_FOUND;
+        }
+        if (conflict == ItemSchedule.Conflict.ALREADY_COMPLETED) {
+            return ItemError.ALREADY_COMPLETED;
+        }
+        if (conflict == ItemSchedule.Conflict.SCHEDULE_CHANGED) {
+            return ItemError.SCHEDULE_CHANGED;
+        }
+        return ItemError.PERMISSION_DENIED;
     }
 
     private static <T> Task<T> translate(Task<T> task) {

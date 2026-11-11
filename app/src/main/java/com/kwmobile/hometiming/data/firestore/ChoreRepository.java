@@ -207,14 +207,14 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
-        return translate(firestore.runTransaction(tx -> {
+        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, shown.occurrenceId, shown.revision);
             Chore next = ChoreSchedule.edit(stored, draft, today);
             tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
 
     /**
@@ -237,7 +237,7 @@ public final class ChoreRepository {
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
         DocumentReference member = memberRef(firestore, houseId, uid);
         String nextOccurrence = newOccurrenceId();
-        return translate(firestore.runTransaction(tx -> {
+        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -250,7 +250,7 @@ public final class ChoreRepository {
                     ChoreDocuments.doneLogFields(stored.occurrenceId, doneDate, uid, name, FieldValue.serverTimestamp()));
             tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
 
     /**
@@ -274,7 +274,7 @@ public final class ChoreRepository {
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
         DocumentReference member = memberRef(firestore, houseId, uid);
-        return translate(firestore.runTransaction(tx -> {
+        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -292,7 +292,7 @@ public final class ChoreRepository {
                             FieldValue.serverTimestamp()));
             tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
     }
 
     /** "그대로 두기": hides the suggestion for this occurrence only. */
@@ -307,7 +307,7 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
-        return translate(firestore.runTransaction(tx -> {
+        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, occurrenceId, revision);
@@ -316,7 +316,7 @@ public final class ChoreRepository {
                 tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
             }
             return next;
-        }));
+        })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
     }
 
     /**
@@ -411,6 +411,12 @@ public final class ChoreRepository {
             throw new ItemException.Rejection(ItemError.UNKNOWN);
         }
         return stored;
+    }
+
+    @Nullable
+    private static ItemSchedule.Conflict conflictOf(DocumentSnapshot snapshot, String occurrenceId, int revision) {
+        Chore stored = read(snapshot);
+        return stored == null ? null : ChoreSchedule.conflict(stored, occurrenceId, revision);
     }
 
     private static void rejectConflict(Chore stored, String occurrenceId, int revision) {
