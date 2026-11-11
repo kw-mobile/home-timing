@@ -22,6 +22,31 @@ public final class ChoreSchedule {
         return startDate.with(TemporalAdjusters.next(DayOfWeek.of(weekday)));
     }
 
+    /** A new chore: the first occurrence after the start date, revision 1. The draft must be valid. */
+    public static Chore register(String id, ChoreDraft draft, String uid, String occurrenceId) {
+        Objects.requireNonNull(draft, "draft");
+        LocalDate first = firstDue(draft.startDate, draft.weekday);
+        return new Chore(id, draft.name, draft.type, draft.weatherSensitive, draft.weekday, first, first,
+                occurrenceId, 1, null, null, draft.location, draft.memo, uid);
+    }
+
+    /**
+     * An edit keeps the occurrence. Changing the weekday restarts this occurrence on the next such
+     * weekday after today; otherwise the dates stay. Revision goes up by one only when the weekday
+     * or weather sensitivity changes.
+     */
+    public static Chore edit(Chore current, ChoreDraft draft, LocalDate today) {
+        Objects.requireNonNull(current, "current");
+        Objects.requireNonNull(draft, "draft");
+        boolean weekdayChanged = current.weekday != draft.weekday;
+        LocalDate planned = weekdayChanged ? firstDue(today, draft.weekday) : current.plannedDueDate;
+        LocalDate next = weekdayChanged ? planned : current.nextDueDate;
+        boolean scheduleChanged = weekdayChanged || current.weatherSensitive != draft.weatherSensitive;
+        return new Chore(current.id, draft.name, draft.type, draft.weatherSensitive, draft.weekday, planned, next,
+                current.occurrenceId, current.revision + (scheduleChanged ? 1 : 0),
+                current.dismissedOccurrenceId, current.lastDoneDate, draft.location, draft.memo, current.createdBy);
+    }
+
     /**
      * The next occurrence: from the week after the original date, the first original weekday after
      * the completion date. Missed weeks are skipped, not created.

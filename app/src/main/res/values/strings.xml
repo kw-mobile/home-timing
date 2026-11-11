@@ -24,7 +24,7 @@
 
     <!-- Item errors (data/firestore/ItemError) -->
     <string name="item_error_invalid_input">입력한 내용을 다시 확인해 주세요.</string>
-    <string name="item_error_already_completed">이미 교체 완료된 항목이에요. 화면을 새로 불러왔어요.</string>
+    <string name="item_error_already_completed">이미 완료된 항목이에요. 최신 내용을 확인해 주세요.</string>
     <string name="item_error_schedule_changed">그사이 일정이 바뀌었어요. 최신 내용을 확인한 뒤 다시 시도해 주세요.</string>
     <string name="item_error_not_found">이미 삭제된 항목이에요.</string>
     <string name="item_error_not_allowed">등록한 사람이나 집장만 삭제할 수 있어요.</string>

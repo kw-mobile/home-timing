@@ -1,8 +1,8 @@
 rules_version = '2';
 
 // Security rules v2 for docs/DATA_MODEL.md: personal replacement tracking (v1) plus family
-// sharing (invites, join, leave, remove, region) and account deletion. Anything not matched below
-// stays denied, including chores/logs. Tests: firestore-rules/ (docs/TESTING.md).
+// sharing (invites, join, leave, remove, region), account deletion and weekly chores. Anything not
+// matched below stays denied. Tests: firestore-rules/ (docs/TESTING.md).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -49,6 +49,8 @@ service cloud.firestore {
     }
     // Midnight of the date is not later than the current Seoul wall-clock time.
     function notFuture(d) { return day(d) <= request.time + duration.value(9, 'h'); }
+    // The date is today or later in Seoul: its end is after the current Seoul wall-clock time.
+    function notPast(d) { return day(d) + duration.value(1, 'd') > request.time + duration.value(9, 'h'); }
 
     // ---- users/{uid}: profile, settings, current house pointer ----
     function isNotifyTime(v) { return v is string && v.matches('([01][0-9]|2[0-3]):[0-5][0-9]'); }
@@ -145,6 +147,12 @@ service cloud.firestore {
               && request.resource.data.itemCount >= 0
               && (request.resource.data.itemCount == resource.data.itemCount + 1
                   || request.resource.data.itemCount == resource.data.itemCount - 1))
+          // choreCount moves by one with each chore create/delete (checked on the chore).
+          || (isMember(houseId)
+              && changed().hasOnly(['choreCount'])
+              && request.resource.data.choreCount >= 0
+              && (request.resource.data.choreCount == resource.data.choreCount + 1
+                  || request.resource.data.choreCount == resource.data.choreCount - 1))
           // Join: +1 exactly when the caller's member document appears in this commit (max 6).
           || (memberCountMovesBy(1)
               && request.resource.data.memberCount <= 6
@@ -328,6 +336,152 @@ service cloud.firestore {
           // Removed only while deleting the item, by those who may delete it.
           allow delete: if isMember(houseId)
               && (get(itemDoc(houseId, itemId)).data.createdBy == me() || isOwner(houseId));
+        }
+      }
+
+      // ---- chores/{choreId}: weekly chores ----
+      match /chores/{choreId} {
+        function choreDoc() {
+          return /databases/$(database)/documents/houses/$(houseId)/chores/$(choreId);
+        }
+        function logDoc(logId) {
+          return /databases/$(database)/documents/houses/$(houseId)/chores/$(choreId)/logs/$(logId);
+        }
+
+        function validChore(d) {
+          return d.keys().hasAll(['name', 'type', 'weatherSensitive', 'weekday', 'plannedDueDate',
+                  'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
+                  'createdAt', 'updatedAt'])
+              && d.keys().hasOnly(['name', 'type', 'weatherSensitive', 'weekday', 'plannedDueDate',
+                  'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
+                  'createdAt', 'updatedAt', 'dismissedOccurrenceId', 'lastDoneDate', 'location', 'memo'])
+              && isText(d.name, 60)
+              && d.type in ['BEDDING_WASH', 'OUTDOOR_DRY', 'VENTILATION', 'CLEANING', 'ETC']
+              && d.weatherSensitive is bool
+              && d.weekday is int && d.weekday >= 1 && d.weekday <= 7
+              && isDate(d.plannedDueDate)
+              && isDate(d.nextDueDate)
+              && isId(d.occurrenceId)
+              && d.revision is int
+              && (!('dismissedOccurrenceId' in d) || d.dismissedOccurrenceId == d.occurrenceId)
+              && (!('lastDoneDate' in d) || (isDate(d.lastDoneDate) && notFuture(d.lastDoneDate)))
+              && optionalText(d, 'location', 30)
+              && optionalText(d, 'memo', 500)
+              && d.updatedBy == me()
+              && d.updatedAt == request.time;
+        }
+
+        function onWeekday(d, weekday) { return day(d).dayOfWeek() == weekday; }
+
+        function choreCountAfterIs(delta) {
+          return getAfter(houseDoc(houseId)).data.choreCount == get(houseDoc(houseId)).data.choreCount + delta;
+        }
+
+        // Same occurrence: an edit, moving this occurrence, or dismissing its suggestion. Revision
+        // +1 exactly when schedule or suggestion fields change.
+        function isSameOccurrence() {
+          let next = request.resource.data;
+          let old = resource.data;
+          return next.occurrenceId == old.occurrenceId
+              && !changed().hasAny(['lastDoneDate'])
+              && next.revision == old.revision
+                  + (changed().hasAny(['weekday', 'plannedDueDate', 'nextDueDate', 'weatherSensitive',
+                      'dismissedOccurrenceId']) ? 1 : 0)
+              && (next.weekday != old.weekday
+                  // A new weekday restarts this occurrence on that weekday.
+                  ? (next.plannedDueDate == next.nextDueDate
+                      && onWeekday(next.plannedDueDate, next.weekday)
+                      && notPast(next.plannedDueDate))
+                  // Otherwise the original date stays; moving needs today or later and its log.
+                  : (next.plannedDueDate == old.plannedDueDate
+                      && (next.nextDueDate == old.nextDueDate
+                          || (notPast(next.nextDueDate)
+                              && existsAfter(logDoc('moved_' + next.occurrenceId + '_' + string(next.revision)))))));
+        }
+
+        // Completion: a new occurrence on the first original weekday after the done date, from
+        // the week after the original date, with the finished occurrence's log (once only).
+        function isCompletion() {
+          let next = request.resource.data;
+          let old = resource.data;
+          let planned = day(next.plannedDueDate);
+          let previous = day(old.plannedDueDate);
+          let done = day(next.lastDoneDate);
+          return changed().hasOnly(['plannedDueDate', 'nextDueDate', 'occurrenceId', 'revision',
+                  'lastDoneDate', 'dismissedOccurrenceId', 'updatedBy', 'updatedAt'])
+              && next.occurrenceId != old.occurrenceId
+              && next.revision == old.revision + 1
+              && next.plannedDueDate == next.nextDueDate
+              && planned > previous
+              && planned > done
+              && (planned - previous).seconds() % 604800 == 0
+              && (planned - duration.value(7, 'd') <= done || planned - duration.value(7, 'd') == previous)
+              && !exists(logDoc('done_' + old.occurrenceId))
+              && existsAfter(logDoc('done_' + old.occurrenceId));
+        }
+
+        allow read: if isMember(houseId);
+
+        allow create: if isMember(houseId)
+            && validChore(request.resource.data)
+            && request.resource.data.createdBy == me()
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.revision == 1
+            && request.resource.data.plannedDueDate == request.resource.data.nextDueDate
+            && onWeekday(request.resource.data.plannedDueDate, request.resource.data.weekday)
+            && !('dismissedOccurrenceId' in request.resource.data)
+            && !('lastDoneDate' in request.resource.data)
+            && choreCountAfterIs(1);
+
+        allow update: if isMember(houseId)
+            && validChore(request.resource.data)
+            && request.resource.data.createdBy == resource.data.createdBy
+            && request.resource.data.createdAt == resource.data.createdAt
+            && (isSameOccurrence() || isCompletion());
+
+        // Registrant or owner, like items. Logs are deleted in the same or earlier commits.
+        allow delete: if isMember(houseId)
+            && (resource.data.createdBy == me() || isOwner(houseId))
+            && choreCountAfterIs(-1);
+
+        // ---- chores/{choreId}/logs/{logId} ----
+        match /logs/{logId} {
+          function isDoneLog(data) {
+            let before = get(choreDoc()).data;
+            let after = getAfter(choreDoc()).data;
+            return data.action == 'DONE'
+                && logId == 'done_' + before.occurrenceId
+                && data.occurrenceId == before.occurrenceId
+                && after.occurrenceId != before.occurrenceId
+                && data.date == after.lastDoneDate
+                && hasExactly(data, ['action', 'occurrenceId', 'date', 'actorId', 'actorName', 'createdAt']);
+          }
+
+          function isMovedLog(data) {
+            let before = get(choreDoc()).data;
+            let after = getAfter(choreDoc()).data;
+            return data.action == 'RESCHEDULED'
+                && logId == 'moved_' + after.occurrenceId + '_' + string(after.revision)
+                && data.occurrenceId == before.occurrenceId
+                && after.occurrenceId == before.occurrenceId
+                && data.date == after.nextDueDate
+                && data.fromDate == before.nextDueDate
+                && data.reason in ['RAIN_FORECAST', 'USER']
+                && hasExactly(data, ['action', 'occurrenceId', 'date', 'fromDate', 'reason', 'actorId',
+                    'actorName', 'createdAt']);
+          }
+
+          allow read: if isMember(houseId);
+
+          allow create: if isMember(houseId)
+              && request.resource.data.actorId == me()
+              && request.resource.data.actorName == get(memberDoc(houseId, me())).data.displayName
+              && request.resource.data.createdAt == request.time
+              && (isDoneLog(request.resource.data) || isMovedLog(request.resource.data));
+
+          // Removed only while deleting the chore, by those who may delete it.
+          allow delete: if isMember(houseId)
+              && (get(choreDoc()).data.createdBy == me() || isOwner(houseId));
         }
       }
     }

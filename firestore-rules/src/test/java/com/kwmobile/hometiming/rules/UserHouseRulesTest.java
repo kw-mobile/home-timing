@@ -184,10 +184,10 @@ public class UserHouseRulesTest extends RulesTestBase {
     }
 
     @Test
-    public void choresStayClosedAndBareInvitesAreDenied() {
+    public void bareInvitesAndUnknownCollectionsAreDenied() {
         seedHouse("house-a", 0, "alice");
 
-        assertDenied(firestore.get(ALICE, "houses/house-a/chores/c1"));
+        assertDenied(firestore.get(ALICE, "houses/house-a/unknown/x"));
         assertDenied(firestore.set(ALICE, "invites/123456", Fields.of().str("houseId", "house-a")));
     }
 }
