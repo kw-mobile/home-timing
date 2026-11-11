@@ -253,7 +253,7 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 | 위치 | 내용 |
 | --- | --- |
 | SharedPreferences | 격자·발표 회차별 예보 요약 캐시, 테스트 날씨 모드 여부 |
-| `assets/regions.json` | 시·군·구 → 격자 좌표 표 |
+| `assets/regions.json` | 시·군·구 → 격자 좌표 표. 기상청 단기예보 활용가이드 격자 파일(2610)의 2단계 행 |
 | `assets/test_forecast.json` | 테스트 날씨 모드 예보 |
 | 기기 알림 예약 | AlarmManager 예약 상태 (항목 종류·집·회차·알림 종류로 식별) |
 

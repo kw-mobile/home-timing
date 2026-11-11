@@ -112,9 +112,11 @@ firebase deploy --only firestore:rules --project kw-mobile-home-timing --account
 
 ### 기상청
 
-`local.properties.example`을 참고해 자신의 `local.properties`에 `KMA_SERVICE_KEY`를 추가합니다. Android Studio가 만든 `sdk.dir`을 덮어쓰지 마세요. 공공데이터포털의 디코딩 키를 사용하며 URL 인코딩은 네트워크 계층에서 처리합니다. CI나 터미널에서는 같은 이름의 환경 변수로 주입할 수 있고 환경 변수가 우선합니다.
+기상청 [API허브](https://apihub.kma.go.kr/)에 가입해 **각자** 인증키(`authKey`)를 발급받고, [예·특보 API](https://apihub.kma.go.kr/apiList.do?seqApi=10)의 단기예보 탭에서 "4.3 단기예보조회"(`VilageFcstInfoService_2.0/getVilageFcst`)를 **활용신청**합니다. 신청하지 않은 키는 HTTP 403("활용신청이 필요한 API")으로 거부됩니다. 공공데이터포털 키가 아닙니다.
 
-키는 `BuildConfig.KMA_SERVICE_KEY`로 제공됩니다. Git에서 제외해도 APK에 넣은 키는 비밀 저장소처럼 보호되지 않습니다. HTTP 로그에는 키가 포함된 URL을 남기지 않아야 합니다. 실제 API 호출·키 유효성 검증은 후속 날씨 기능 범위입니다.
+`local.properties.example`을 참고해 자신의 `local.properties`에 `KMA_SERVICE_KEY`로 인증키를 넣습니다. 변수 이름은 기존 설정을 유지하며 값은 API허브 `authKey`입니다. Android Studio가 만든 `sdk.dir`을 덮어쓰지 마세요. URL 인코딩은 네트워크 계층에서 처리합니다. CI나 터미널에서는 같은 이름의 환경 변수로 주입할 수 있고 환경 변수가 우선합니다.
+
+키는 `BuildConfig.KMA_SERVICE_KEY`로 제공됩니다. Git에서 제외해도 APK에 넣은 키는 비밀 저장소처럼 보호되지 않습니다. HTTP 로그에는 키가 포함된 URL을 남기지 않아야 합니다. `data/weather`는 HTTP 로깅을 설치하지 않고, 실패 예외에 원인 예외를 담지 않습니다.
 
 ## 검증 안내
 

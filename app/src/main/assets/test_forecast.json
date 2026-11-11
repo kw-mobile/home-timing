@@ -1,0 +1,10 @@
+{
+ "note": "테스트 날씨 모드 전용 예보입니다. 실제 기상청 응답이 아닙니다.",
+ "days": [
+  {"dayOffset": 0, "pop": 10, "pty": 0, "reh": 45},
+  {"dayOffset": 1, "pop": 80, "pty": 1, "reh": 90},
+  {"dayOffset": 2, "pop": 10, "pty": 0, "reh": 50},
+  {"dayOffset": 3, "pop": 40, "pty": 0, "reh": 70},
+  {"dayOffset": 4, "pop": null, "pty": 0, "reh": 60}
+ ]
+}
