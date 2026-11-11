@@ -4,7 +4,7 @@
 
 앱 진입점은 [MainActivity](../app/src/main/java/com/kwmobile/hometiming/ui/main/MainActivity.java)입니다. 아래 계층은 기능을 배치할 기준이며 실제 파일 목록이나 구현 완료 목록이 아닙니다. 실제 구현은 `app/src/`에서 확인합니다.
 
-현재 디자인 미리보기는 단일 Activity에서 XML 화면을 전환합니다. `DesignPreviewViewModel`이 화면 이동·스크롤·선택 날짜·폼 초안·예시 설정을 유지하고, `data/preview/PreviewStore`가 메모리 내 항목·이력을 공급합니다. UI는 문서 ID로 같은 예시 항목을 찾아 표시하며 Firebase·HTTP를 직접 호출하지 않습니다. 회전·시스템 테마 변경에는 상태를 복원합니다. 시스템이 저장 상태를 복원하면 예시 데이터도 복원될 수 있으며 서버 영속 저장을 뜻하지 않습니다. 화면 모음의 초기화로 기본 예시를 되돌립니다. debug의 화면 모음 메뉴와 Intent 미리보기 인자는 실제 인증·권한을 대신하지 않습니다.
+인증·용품·가족·탈퇴 Repository와 Firestore 보안 규칙은 main에 구현되어 있지만 현재 미리보기 UI와는 연결되지 않았습니다. 현재 디자인 미리보기는 단일 Activity에서 XML 화면을 전환합니다. `DesignPreviewViewModel`이 화면 이동·스크롤·선택 날짜·폼 초안·예시 설정을 유지하고, `data/preview/PreviewStore`가 메모리 내 항목·이력을 공급합니다. UI는 문서 ID로 같은 예시 항목을 찾아 표시하며 Firebase·HTTP를 직접 호출하지 않습니다. 회전·시스템 테마 변경에는 상태를 복원합니다. 시스템이 저장 상태를 복원하면 예시 데이터도 복원될 수 있으며 서버 영속 저장을 뜻하지 않습니다. 화면 모음의 초기화로 기본 예시를 되돌립니다. debug의 화면 모음 메뉴와 Intent 미리보기 인자는 실제 인증·권한을 대신하지 않습니다.
 
 기본 패키지는 `com.kwmobile.hometiming`, UI는 Java + XML입니다. 앱 식별자는 [app/build.gradle](../app/build.gradle), 버전은 [환경 설정](SETUP.md)의 기준 파일에서 확인합니다.
 
@@ -44,7 +44,7 @@ Activity / Fragment → ViewModel → Repository → Firebase / 기상청 / 로�
 
 날짜·회차·집 소속·권한·오프라인·알림 동작은 [MVP의 계약](MVP.md)에서 관리합니다. 저장 필드나 규칙을 구현하기 전에 해당 계약과 기존 기획을 대조하고, 미확정인 참여 문서·원자성 설계는 관련 이슈/PR에서 확정합니다.
 
-스키마·enum·이력 구조를 바꾸면 기존 데이터 영향과 권한 검증을 함께 검토합니다. 새 서버·서비스·계층을 도입하거나 의존 방향을 바꿀 때는 PR에 이유·대안·영향을 남기고 이 문서를 갱신합니다.
+Firestore 경로·필드·회차·revision과 함께 커밋할 문서는 [데이터 모델](DATA_MODEL.md)이 기준입니다. 스키마·enum·이력 구조를 바꾸면 그 문서를 갱신하고, 기존 데이터 영향과 권한 검증을 함께 검토합니다. 새 서버·서비스·계층을 도입하거나 의존 방향을 바꿀 때는 PR에 이유·대안·영향을 남기고 이 문서를 갱신합니다.
 
 ## 사진·바코드 등록 연결 계획 (미구현)
 

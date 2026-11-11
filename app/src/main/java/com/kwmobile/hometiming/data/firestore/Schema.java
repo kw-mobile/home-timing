@@ -1,0 +1,97 @@
+package com.kwmobile.hometiming.data.firestore;
+
+/** Firestore collection and field names from docs/DATA_MODEL.md. Change both together. */
+public final class Schema {
+    private Schema() {
+    }
+
+    public static final class Users {
+        public static final String COLLECTION = "users";
+        public static final String CURRENT_HOUSE_ID = "currentHouseId";
+        public static final String DISPLAY_NAME = "displayName";
+        public static final String NOTIFY_TIME = "notifyTime";
+        public static final String ADVANCE_DAYS = "advanceDays";
+        public static final String CREATED_AT = "createdAt";
+        public static final String UPDATED_AT = "updatedAt";
+
+        public static final String DEFAULT_NOTIFY_TIME = "09:00";
+        public static final int DEFAULT_ADVANCE_DAYS = 3;
+
+        private Users() {
+        }
+    }
+
+    public static final class Houses {
+        public static final String COLLECTION = "houses";
+        public static final String OWNER_ID = "ownerId";
+        public static final String MEMBER_COUNT = "memberCount";
+        public static final String ITEM_COUNT = "itemCount";
+        public static final String CHORE_COUNT = "choreCount";
+        public static final String REGION_NAME = "regionName";
+        public static final String NX = "nx";
+        public static final String NY = "ny";
+        public static final String ACTIVE_INVITE_CODE = "activeInviteCode";
+        public static final String CREATED_AT = "createdAt";
+        public static final String UPDATED_AT = "updatedAt";
+
+        public static final int MAX_MEMBERS = 6;
+
+        private Houses() {
+        }
+    }
+
+    public static final class Members {
+        public static final String COLLECTION = "members";
+        public static final String DISPLAY_NAME = "displayName";
+        public static final String JOINED_AT = "joinedAt";
+        public static final String INVITE_CODE = "inviteCode";
+
+        private Members() {
+        }
+    }
+
+    public static final class Invites {
+        public static final String COLLECTION = "invites";
+        public static final String HOUSE_ID = "houseId";
+        public static final String CREATED_BY = "createdBy";
+        public static final String CREATED_AT = "createdAt";
+
+        private Invites() {
+        }
+    }
+
+    public static final class Items {
+        public static final String COLLECTION = "items";
+        public static final String NAME = "name";
+        public static final String CATEGORY = "category";
+        public static final String START_DATE = "startDate";
+        public static final String CYCLE_DAYS = "cycleDays";
+        public static final String LAST_REPLACED_DATE = "lastReplacedDate";
+        public static final String NEXT_DUE_DATE = "nextDueDate";
+        public static final String OCCURRENCE_ID = "occurrenceId";
+        public static final String REVISION = "revision";
+        public static final String PRODUCT_NAME = "productName";
+        public static final String LOCATION = "location";
+        public static final String MEMO = "memo";
+        public static final String CREATED_BY = "createdBy";
+        public static final String UPDATED_BY = "updatedBy";
+        public static final String CREATED_AT = "createdAt";
+        public static final String UPDATED_AT = "updatedAt";
+
+        private Items() {
+        }
+    }
+
+    public static final class History {
+        public static final String COLLECTION = "history";
+        public static final String REPLACED_DATE = "replacedDate";
+        public static final String PREVIOUS_DUE_DATE = "previousDueDate";
+        public static final String CYCLE_DAYS_USED = "cycleDaysUsed";
+        public static final String COMPLETED_BY = "completedBy";
+        public static final String COMPLETED_BY_NAME = "completedByName";
+        public static final String CREATED_AT = "createdAt";
+
+        private History() {
+        }
+    }
+}
