@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="component_proposal_details">날씨와 제안 자세히 보기</string>
+    <string name="component_proposal_title">%1$s · 일정 제안</string>
+    <string name="component_proposal_dates">%1$s 비 예보 → %2$s로 제안 · 예시</string>
+    <string name="component_optional_title">추가 정보 (선택)</string>
+    <string name="component_optional_empty">제품명·장소·메모</string>
+    <string name="component_optional_filled">입력한 추가 정보 보기</string>
+    <string name="component_product_name">제품명 (선택)</string>
+    <string name="component_product_hint">예: 제품 포장에 적힌 이름</string>
+    <string name="component_location">장소 (선택)</string>
+    <string name="component_location_hint">예: 안방 욕실</string>
+    <string name="component_memo">메모 (선택)</string>
+    <string name="component_memo_hint">규격이나 기억해 둘 내용을 적어주세요</string>
+    <string name="component_completion_date">실제 완료일</string>
+    <string name="component_completion_date_help">기본 오늘 · 날짜를 눌러 변경할 수 있어요</string>
+    <string name="component_quick_complete">%1$s 오늘 완료</string>
+    <string name="component_undo">되돌리기</string>
+    <string name="component_undone">완료 기록을 되돌렸어요.</string>
+    <string name="component_undo_unavailable">항목이 변경되어 되돌릴 수 없어요. 상세를 확인해 주세요.</string>
+    <string name="component_completion_invalid">선택한 날짜를 확인해 주세요. 마지막 기록 이후부터 오늘까지 선택할 수 있어요.</string>
+    <string name="component_completion_saved">%1$s · %2$s 완료 기록</string>
+    <string name="component_preset_title">주기 예시</string>
+    <string name="component_preset_help">실제 권장값은 제품 설명서에서 확인하세요</string>
+    <string name="component_preset_brush">칫솔 · 90일 예시</string>
+    <string name="component_preset_filter">샤워기 필터 · 60일 예시</string>
+    <string name="component_preset_sponge">수세미 · 30일 예시</string>
+    <string name="component_preset_replace">입력한 주기를 바꿀까요?</string>
+    <string name="component_preset_replace_help">%1$s일을 %2$s일 예시로 바꿉니다. 이름과 추가 정보는 유지해요.</string>
+    <string name="component_preset_apply">예시 적용</string>
+    <string name="component_expand">펼쳐짐</string>
+    <string name="component_collapse">접힘</string>
+    <string name="component_catalog">컴포넌트 모음</string>
+    <string name="component_catalog_help">공통 스타일·상태·입력 예시 · 실제 데이터에 연결되지 않아요</string>
+    <string name="component_catalog_task">침구 세탁 · 일정 제안</string>
+    <string name="component_catalog_suggestion">11월 12일 비 예보 → 11월 11일로 제안 · 예시</string>
+    <string name="component_catalog_event">컴포넌트 이벤트 예시입니다.</string>
+    <string name="intent_proposal_no_change">지금은 변경할 일정이 없어요 · 날씨와 제안 보기</string>
+</resources>

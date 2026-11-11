@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Solid disc and eight equal-length rays share one optical center. -->
+    <path
+        android:fillColor="@color/ht_accent"
+        android:pathData="M12,7.75 A4.25,4.25 0,1 0,12,16.25 A4.25,4.25 0,1 0,12,7.75 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="@color/ht_accent"
+        android:strokeWidth="1.4"
+        android:strokeLineCap="round"
+        android:pathData="M12,2.75 L12,5 M12,19 L12,21.25 M2.75,12 L5,12 M19,12 L21.25,12 M5.459,5.459 L7.05,7.05 M16.95,16.95 L18.541,18.541 M5.459,18.541 L7.05,16.95 M16.95,7.05 L18.541,5.459" />
+</vector>

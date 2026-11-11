@@ -1,0 +1,40 @@
+Weather background photographs (downloaded 2026-11-10)
+
+Morning: Dieu Mien, Clouds in the Sky
+https://www.pexels.com/photo/clouds-in-the-sky-14583320/
+https://www.pexels.com/license/
+
+Day: Diana, Clouds on Blue Sky
+https://www.pexels.com/photo/clouds-on-blue-sky-8175412/
+https://www.pexels.com/license/
+
+Evening: Ilya Klimenko, Clouds on Sky at Sunset
+https://www.pexels.com/photo/clouds-on-sky-at-sunset-5674495/
+https://www.pexels.com/license/
+
+Night: Camille Cox, Full moon in cloudy sky at night
+https://www.pexels.com/photo/full-moon-in-cloudy-sky-at-night-7275996/
+https://www.pexels.com/license/
+
+Cloudy: Enrique, Rain Clouds on Sky
+https://www.pexels.com/photo/rain-clouds-on-sky-15938544/
+https://www.pexels.com/license/
+
+Rain: Berke Can, Raindrops on Window Against Cloudy Sky
+https://unsplash.com/id/foto/tetesan-hujan-di-jendela-dengan-langit-mendung-di-latar-belakang-9ASQuNGsa5k
+https://images.unsplash.com/photo-1714428132463-16aa457790c1
+https://unsplash.com/license
+
+Downloaded from original image hosts at 1200px width; displayed with native
+centerCrop (night: enlarged, repositioned crop) and a uniform scrim. No generative image assets, fabricated stars,
+animated particles or glow were added. These are representative stock skies,
+not photographs of the user's location or a live weather camera.
+
+Pexels License: photos may be downloaded, used and modified free for personal
+and commercial use. Attribution is appreciated. Restrictions include selling
+unaltered copies, implied endorsements and redistribution on stock platforms.
+See the linked license for the complete terms.
+
+Unsplash License: free download, copying, modification and use, including
+commercial use, without required attribution. Selling without significant
+modification and compiling a competing image service are excluded. See link.

@@ -6,7 +6,11 @@
 
 | 알고 싶은 것 | 기준 위치 |
 | --- | --- |
-| 화면 시안을 어떻게 확인하는가 | [HTML 프로토타입](prototype/README.md) |
+| 확정 화면 JPG | [라이트 요약](design-jpg/overview-light.jpg) · [다크 요약](design-jpg/overview-dark.jpg) · [전체 보드](design-jpg) |
+| 팀 공유용 전체 화면 HTML | [오프라인 화면 갤러리](design-review.html) |
+| PRD 의도·화면별 대응·업그레이드 기준 | [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) |
+| 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
+| 현재 화면 시안을 어떻게 확인하는가 | [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
 | Firestore에 무엇을 어떤 구조로 저장하는가 | [DATA_MODEL.md](DATA_MODEL.md) |
@@ -24,13 +28,15 @@
 ```text
 docs/
 ├─ README.md             문서 안내와 관리 원칙
+├─ DESIGN_SYSTEM.md       컬러·로고·글자·컴포넌트 규격
 ├─ MVP.md                제출 범위·사용자 흐름·제품 규칙
 ├─ ARCHITECTURE.md       패키지 책임·의존 방향·구조 변경 기준
 ├─ DATA_MODEL.md         Firestore 경로·필드·회차·함께 커밋할 문서
 ├─ SETUP.md              도구 버전·개인 설정·외부 서비스 준비
 ├─ TESTING.md            변경별 검증·결과 기록
 ├─ SKILLS.md             최초 환경 설정·작업 시작·완료 스킬
-├─ prototype/           브라우저에서 여는 모바일 화면 시안
+├─ design-review.html   확정 화면 HTML
+├─ design-jpg/          확정 화면 JPG 보드
 └─ report/
    ├─ README.md          참여자 기록·PR/댓글 기준·최종 보고서 목차
    ├─ WORKLOG.md         작업별 참여자·결과·근거 색인

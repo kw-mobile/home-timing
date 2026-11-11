@@ -26,6 +26,9 @@ JDK·SDK 준비는 [SETUP](SETUP.md)을 따릅니다. Windows에서는 `./gradle
 
 JUnit 클래스만 빠르게 확인할 때는 `./gradlew :app:testDebugUnitTest --tests '전체.패키지.TestClass'`로 범위를 좁힙니다. 관련 테스트 성공과 전체 기본 검증은 구분해 기록합니다.
 
+## 식품안전나라 바코드 API 개별 확인
+
+[로컬 I2570 조회 도구](../scripts/foodsafety/README.md)를 사용합니다. 기본 번호는 `4902430597241`이며 `.env.foodsafety.local`에 본인 키를 넣고 실행합니다. 모의 응답 테스트와 실제 인증키 조회 결과를 구분합니다. 제품 앱 등록·사진 인식의 구현을 뜻하지 않습니다.
 ## Firestore 규칙 테스트
 
 `firestore-rules` 모듈의 JUnit 테스트가 Firestore emulator의 REST API로 `firestore.rules`를 검증합니다. 외부 라이브러리나 npm 패키지 없이 JDK `HttpClient`만 씁니다. 테스트는 항상 `demo-home-timing` emulator 프로젝트에서만 실행되며 공용 Firebase 프로젝트에 접근하지 않습니다.

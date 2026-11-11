@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="ht_glass_surface">#3D242428</color>
+    <color name="ht_glass_border">#20FFFFFF</color>
+    <color name="ht_glass_highlight">#00FFFFFF</color>
+</resources>

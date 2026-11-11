@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<merge xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+    <LinearLayout android:id="@+id/optional_toggle" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="64dp" android:gravity="center_vertical" android:orientation="horizontal" android:background="?attr/selectableItemBackground" android:clickable="true" android:focusable="true">
+        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/component_optional_title" android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" />
+            <TextView android:id="@+id/optional_summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/component_optional_empty" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:layout_marginTop="4dp" />
+        </LinearLayout>
+        <androidx.appcompat.widget.AppCompatImageView android:id="@+id/optional_arrow" android:layout_width="16dp" android:layout_height="16dp" app:srcCompat="@drawable/ic_arrow" app:tint="@color/ht_text_secondary" android:importantForAccessibility="no" />
+    </LinearLayout>
+    <LinearLayout android:id="@+id/optional_fields" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:visibility="gone">
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/component_product_name" android:labelFor="@id/edit_product_name" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="12dp" />
+        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_product_name" style="@style/Widget.HomeTiming.Field" android:hint="@string/component_product_hint" android:inputType="textCapSentences" android:maxLength="120" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/component_location" android:labelFor="@id/edit_location" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" />
+        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_location" style="@style/Widget.HomeTiming.Field" android:hint="@string/component_location_hint" android:inputType="text" android:maxLength="60" />
+        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/component_memo" android:labelFor="@id/edit_memo" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" />
+        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_memo" style="@style/Widget.HomeTiming.Field" android:hint="@string/component_memo_hint" android:inputType="textMultiLine|textCapSentences" android:minLines="3" android:singleLine="false" android:maxLength="500" android:gravity="top|start" />
+    </LinearLayout>
+</merge>

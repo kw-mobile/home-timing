@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto" android:id="@+id/preview_scroll" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/page_body" android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="20dp" android:paddingBottom="@dimen/ht_space_32">
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_013" android:textAppearance="@style/TextAppearance.HomeTiming.Display" android:id="@+id/editor_heading"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_014" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="@dimen/ht_space_8"/>
+        <Space android:layout_width="1dp" android:layout_height="20dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_kind"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_015" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" android:labelFor="@id/edit_name"/>
+        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_name" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_016" android:inputType="text" android:imeOptions="actionNext"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/edit_name_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_category"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_date"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/cycle_label" android:text="@string/design_020" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" android:labelFor="@id/edit_cycle"/>
+        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_cycle" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_021" android:inputType="number" android:imeOptions="actionNext"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/edit_cycle_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_chore"/>
+        <LinearLayout android:id="@+id/editor_presets" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/cycle_help" android:text="@string/design_022" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:layout_marginTop="@dimen/ht_space_12"/>
+        <com.google.android.material.textview.MaterialTextView
+            android:id="@+id/next_due_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textAppearance="@style/TextAppearance.HomeTiming.Label"
+            android:accessibilityLiveRegion="polite" />
+        <com.kwmobile.hometiming.ui.component.OptionalItemFieldsView android:id="@+id/editor_optional" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="20dp"/>
+        <com.google.android.material.button.MaterialButton android:id="@+id/edit_submit" style="@style/Widget.HomeTiming.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_023" android:layout_marginTop="@dimen/ht_space_12"/>
+        <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_024" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:layout_marginTop="@dimen/ht_space_12" android:gravity="center"/>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>

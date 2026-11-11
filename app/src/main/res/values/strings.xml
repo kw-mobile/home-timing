@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">때맞춤</string>
-    <string name="bootstrap_message">팀 공통 개발 환경이 준비됐어요.\n기능은 순서대로 추가합니다.</string>
+    <string name="nav_home">홈</string>
+    <string name="nav_items">용품</string>
+    <string name="nav_settings">설정</string>
+    <string name="nav_calendar">캘린더</string>
 
     <!-- Account errors (data/auth/AuthError) -->
     <string name="auth_error_invalid_input">입력한 내용을 다시 확인해 주세요.</string>

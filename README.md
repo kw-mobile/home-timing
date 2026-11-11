@@ -2,7 +2,7 @@
 
 생활용품 교체일과 날씨에 맞춘 집안일을 관리하는 Android 앱입니다. Java + XML, Firebase, 기상청 API를 사용하며 가족이 목록과 완료 이력을 공유합니다.
 
-> 현재 공통 개발 환경과 기본 화면을 준비한 단계입니다. 제품 기능과 Firestore 보안 규칙은 후속 작업으로 구현합니다.
+> 현재 공통 개발 환경과 Android XML 기반 S1~S8 전체 화면·라이트/다크 디자인 미리보기를 준비한 단계입니다. 화면은 예시 데이터입니다. main에 구현된 인증·용품·가족·탈퇴 Repository와 Firestore 보안 규칙은 이 미리보기 UI에 아직 연결하지 않았습니다.
 
 ## 시작하기
 
@@ -19,7 +19,13 @@ clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정�
 
 Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상청 키 없이도 기본 빌드가 가능하며, 실제 연동 준비는 [외부 서비스 설정](docs/SETUP.md#외부-서비스)을 따릅니다.
 
-화면 구성은 [HTML 프로토타입](docs/prototype/README.md)에서 확인할 수 있습니다.
+현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. Android Studio에서 앱을 실행하면 홈이 열립니다. 상단 **화면 모음**에서 로그인·회원가입·등록·상세·캘린더·날씨·가족 관리까지 확인할 수 있습니다. 에뮬레이터 실행 후 `./scripts/design/preview.sh`로 빌드·설치할 수도 있습니다. [미리보기 실행 안내](docs/DESIGN_SYSTEM.md#미리보기-실행)를 참고하세요.
+
+[PRD 의도 점검과 업그레이드 기준](docs/report/PRD_DESIGN_AUDIT.md)에서 화면별 대응, 예시 동작과 실제 연동의 경계, 후속 연결 순서를 확인합니다.
+
+공유용 [전체 화면 HTML](docs/design-review.html)은 파일 하나로 전달하고 인터넷 없이 열 수 있습니다. 라이트/다크·S1~S8·가입/설정 하위 화면·컴포넌트와 상태 예시를 포함합니다. 팀원이 구현에 적용할 입력·상태·이벤트 계약은 [디자인 시스템](docs/DESIGN_SYSTEM.md#팀원-적용용-컴포넌트-계약)을 참고하세요.
+
+확정된 화면의 JPG는 [라이트 요약](docs/design-jpg/overview-light.jpg)·[다크 요약](docs/design-jpg/overview-dark.jpg)과 [전체 페이지 보드](docs/design-jpg)에서 확인합니다. 저장소에는 현재 승인된 시안만 두고 중간 디자인은 Git 이력으로 보존합니다.
 
 ## 팀 작업 안내
 

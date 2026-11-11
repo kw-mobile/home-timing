@@ -28,6 +28,36 @@
 | 2026-11-11 | 전주용: 8번 범위 결정·배포 승인 예정; Claude Code (도구): 규칙 v2·규칙 테스트·HouseRepository·문서 작성 및 검증 | 가족 공유(F-14): 초대 발급·재발급·중지, 참여(정원·유효 초대·빈 집 삭제), 나가기, 내보내기, 지역 변경 규칙 v2와 HouseRepository. 초대 만료를 서버 createdAt+24시간으로 설계 수정. 단위 79·규칙 71 통과, 배포 전, 리뷰 대기 | [이슈 #38](https://github.com/kw-mobile/home-timing/issues/38), [PR #39](https://github.com/kw-mobile/home-timing/pull/39) |
 | 2026-11-11 | 전주용: 9번 범위 결정·배포 승인 예정; Claude Code (도구): 탈퇴 흐름·규칙·테스트·문서 작성 및 검증 | 회원 탈퇴(재인증 → 데이터 정리 → 사용자 문서 → Auth 삭제, 다시 호출하면 이어서), 탈퇴 규칙, 정리 정책 문서화, SETUP 배포 상태 정정. 단위 85·규칙 80 통과, 배포 전, 리뷰 대기 | [이슈 #40](https://github.com/kw-mobile/home-timing/issues/40), [PR #41](https://github.com/kw-mobile/home-timing/pull/41) |
 
+| 2026-11-09 | 사용자(성명 확인 필요): 레퍼런스·단색 평면 디자인 방향·Android XML 제작 지정; Codex (도구): XML·Java·규격 작성, 빌드·에뮬레이터 검증 | 딥 그린 상단·밝은 목록 구조의 홈·용품·설정 네이티브 미리보기, 공통 색상·글자·치수·로고와 3탭 전환, 단색 태양·실제 드래그 패널·핸들·뒤로가기·회전 상태 복원, 중성 유리 바·배경 전용 블러, Pretendard·Apple 참고 글자 위계, 기한 초과 우선 목록·압축한 날씨·설정 그룹·무채색 유리 바, 글래스 캡처 후 화면 누락 보정. 홈만 드래그 패널 유지, 용품·설정 일반 스크롤 화면 전환, 집 실루엣·원형 시계 로고와 1024px 앱 아이콘 제작. 기기 시간대별 홈 색·해/달, 분·시간대 변경 갱신, 측면 칫솔, 투명도·배경 블러 조정. 사진 OCR·바코드의 무료 조건·수동 복귀·독립 표본 검증을 P1 계획에 기록(미구현). 실제 제품 데이터 미연결 | [디자인 규격](../DESIGN_SYSTEM.md), [검증·스크린샷](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/native-time-glass/verification.md). 로컬 `feature/design-system-foundations`, 원격 접근 실패로 이슈·PR 미생성 |
+
+| 2026-11-09 | 사용자(성명 확인 필요): 사진·바코드 등록의 무료 조건과 실행 계획 요청; Codex (도구): 공식 자료 확인·계획 구체화·문서 검증 | 무료 실기기 PoC를 먼저 수행하는 S0–S5 단계, 사용자 확인·수동 복귀, 바코드와 초안 연결·서버 성공 뒤 기기 내 이름 기억, 독립 표본·채택/폐기 Gate 정의. 국내 코리안넷 API의 유료 계약 조건과 식약처 I2570 갱신 중단을 공식 자료로 확인해 무료 채택 대상에서 제외. 실제 카메라·OCR·바코드·등록은 미구현이며 이번 변경은 문서만 검증 | [MVP 실행 계획](../MVP.md#사진바코드-등록-탐색-계획-p1-미구현), [기술 배치](../ARCHITECTURE.md#사진바코드-등록-연결-계획-미구현). 기준 `606a7eb`, 원격 접근 실패로 이슈·PR 미생성 |
+
+| 2026-11-09 | 사용자(성명 확인 필요): I2570 직접 발급 키 입력·바코드 `4902430597241` 테스트 준비 요청; Codex (도구): CLI·가림 처리·테스트·문서 작성 | 외부 패키지 없는 Python 1회 조회, 로컬 키 파일·숨김 입력, 정확한 바코드 일치와 인증/신청/미조회 구분. 모의 응답 12개 통과·공개 샘플 HTTPS/JSON 확인. 사용자 직접 실행 결과 `INFO-200`·종료 3으로 해당 번호 미조회 확인. 키 값은 기록하지 않음 | [도구·실행법](../../scripts/foodsafety/README.md), [검증](../TESTING.md#식품안전나라-바코드-api-개별-확인). 원격 접근 실패로 이슈·PR 미생성 |
+
+| 2026-11-09 | 사용자(성명 확인 필요): I2570 미조회 결과 제공·사진 방식으로 방향 전환; Codex (도구): 계획·기술 배치·검증 상태 정리 | 사진 OCR→이름 후보 확인·수정→등록 폼→직접 입력 복귀를 1차 경로로 확정. 바코드 촬영·상품 DB·이름 대응표를 1차 범위에서 제외하고 기존 CLI는 조사용 보존. 문서 검증만 수행, 실제 촬영·OCR은 미구현 | [현재 계획](../MVP.md#사진바코드-등록-탐색-계획-p1-미구현), [API 시험 결과](../../scripts/foodsafety/README.md#검증-상태). 원격 접근 실패로 PR 미생성 |
+
+| 2026-11-09 | 사용자(성명 확인 필요): 사진 OCR은 계획 유지·기존 디자인 마무리 요청; Codex (도구): 최종 UI 정돈·규격·화면 검증 | 홈·용품·설정 기본 글씨 시안 확정, 날씨 문구 중복 축소·기울인 칫솔·선택 항목명이 보이는 안내창, 공통 목록/유리 바 치수 연결. 실제 OCR·등록 기능 추가 없음 | [최종 규격](../DESIGN_SYSTEM.md), [화면·검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/native-final/verification.md). 원격 접근 실패로 이슈·PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·전체 화면·화이트·유리·실사 날씨·모션·다크 모드 원칙 지정; Codex (도구): XML·Java·예시 상태·검증·문서 구현 | S1~S8과 인증·설정 하위 화면, 4개 탭, 시스템 테마, 실제 하늘 사진·출처, 공통 버튼 스프링·직접 드래그, 로컬 예시 등록·수정·완료·이력·가족 상태 및 미리보기 메뉴. 실제 인증·저장·날씨·알림·OCR 미연결 | [디자인 규격](../DESIGN_SYSTEM.md), [전체 화면·검증·기여](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/native-complete/verification.md). 로컬 `feature/design-system-foundations`; 원격 접근 오류로 이슈·PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 실제 날씨 감성 사진 방향 지정; Codex (도구): 사진 선정·출처 확인·구도·분기 구현·검증 | 아침·낮·저녁·밤·흐림·비 실사 6종 구분. 별 사진을 달빛 사진으로 교체하고 달을 기온에서 분리. 실제 예보 연결 없음 | [사진·검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/weather-photos/verification.md). 기존 디자인 브랜치 재개; 원격 접근 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 실사 날씨 방향 승인·전체 화면 디자인 통일 지정; Codex (도구): 공통 UI·아이콘·문구·검증·기록 | S1~S8 라이트/다크 재검토, 중성 유리 바 그림자 정리, 행동 행 ripple·청소/권한 아이콘·용품 개수·예보 열 표기 통일 | [최신 전체 화면·검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/cohesive-design/verification.md). 기존 디자인 브랜치 재개, 원격 접근 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): iOS식 무색 유리 하단 바 요구; Codex (도구): 광학 셰이더·작은 버퍼 블러·캡슐·검증·기록 | API 33+ 실시간 본문 샘플·가장자리 굴절·중성 반사광, API 31~32/26~30 대체 표면 유지. 아이콘·글자는 효과에서 분리 | [최신 전체 화면·유리 검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/glass-lens/verification.md). Android용 근사 재질이며 iOS와 동일성 미검증. 원격 접근 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 패널 아래로 닫기·기본 높이 절반 요구; Codex (도구): 숨김/복귀 상태·닫기·높이·네이티브 검증 | 기본 압축 패널 약 218dp, 위로 펼침·아래로 닫힘, 다시 보기·닫기·Back, 숨김의 테마/회전 유지, 작은 화면 확인. 유리 배경 표본 범위와 화면 표시 재검증 | [최신 화면·패널·검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/glass-lens/verification.md). 로컬 커밋, 원격 접근 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 승인 디자인을 유지한 PRD 의도 점검·업그레이드 요청; Codex (도구): 명세/MVP 대조·홈 행동·제안/권한/가족·회차 예시 보완·검증 | S1~S8 추적표와 후속 연결 기준, 홈 요약/작업 제안, 예보 범위·유지 선택, 주간 조기/지연 완료와 메타데이터 수정 일정 보존, 역할/참여 조건·알림 상태 분리. 실제 서비스 미연결 | [의도 점검](PRD_DESIGN_AUDIT.md), [화면·검증](https://github.com/kw-mobile/home-timing/blob/800c5ebf3445cd739e0050c97c333628b54e2ae9/docs/report/evidence/prd-intent/verification.md). Notion 원문 접근 실패·주간 범위 확인 대기·원격 접근 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): PRD PDF 제공·디자인 담당; Codex (도구): 7쪽 원문/렌더·MVP·코드 대조·기록 | 홈 제안 직접 노출·선택 제품명/메모·주기 프리셋·실제 완료일/탭 수 부족 확인. 가족 이전 등 MVP 의도적 차이와 미연동 구분. 앱 변경 없음 | [원문 대조·업그레이드 수용 기준](PRD_DESIGN_AUDIT.md). PDF·TRD 실시간 Notion 동기화 아님, 원격 오류로 PR 미생성 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·컴포넌트/최신 스타일/폰트 유지·전체 공유 HTML/업로드·테두리 대신 패널 상단 그림자 요청; Codex (도구): Java/XML 컴포넌트·로컬 사용 예시·규격·캡처/HTML·검증 | 기존 S1~S8 전체 디자인에 제안/추가 정보/주기 예시/완료일 컴포넌트 추가. 기본 글자 크기만 확인, 실제 서비스 미연결 | [작업 #18](https://github.com/kw-mobile/home-timing/issues/18), [디자인 시스템](../DESIGN_SYSTEM.md), [검증](evidence/component-system/verification.md). [PR #19](https://github.com/kw-mobile/home-timing/pull/19) · 기존 화면 작업 함께 업로드, 미병합 |
+
+| 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·에뮬레이터 라이트/다크 시안 확인·현 방식 업로드 승인; Codex (도구): 통합 날씨 영역·날짜 제목 정리·외부 모서리 그림자·전체 재촬영/HTML·검증 | 상단 바 아래부터 사진에 날짜/날씨 통합, 고정 오늘 제거, 핸들 아래가 아닌 모달 위 모서리 바깥 그림자. 기본 폰트 유지, 입력 예시 포함79장 모두 재생성 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), [검증·화면](evidence/component-system/verification.md), [HTML](../design-review.html). 사용자 승인은 디자인/업로드이며 팀 코드 리뷰·병합 아님 |
+| 2026-11-10 | 사용자(성명 확인 필요): 확정 디자인만 공유·JPG 변환 요청; Codex (도구): 변환 도구·공유 파일 생성·이전 시안 정리·검증 | 승인 캡처79장의 JPG와 요약/전체 보드7장 생성. 현재 트리에는 승인된 화면·컴포넌트·HTML·JPG만 유지하고 과거 근거는 고정 Git 링크로 보존. 앱·폰트 변경 없음. JPG 배치·개수·ZIP 중복·스크립트 구문·로컬 문서 링크 확인 | [승인 JPG](../design-jpg), [검증](evidence/component-system/verification.md), [PR #19](https://github.com/kw-mobile/home-timing/pull/19) |
+| 2026-11-11 | 사용자(성명 확인 필요): PR 범위 분석·병합 준비·필수 팀원 리뷰 규칙 제거 요청; Codex (도구): 코드 검토·main 충돌 해결·문서 보정·리뷰 규칙 변경·재검증 | main `1cb4c0b`의 인증/용품/가족/탈퇴 코드·규칙·기여 기록 보존, 문자열/문서 충돌 3곳 해결. Android 빌드·JUnit 105·Lint 오류 0/버전 경고 15, Python 28 통과. 팀원 리뷰는 선택 사항으로 변경, 실기기 검증 미수행 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), 최종 검증 SHA·CI는 PR 본문 |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.

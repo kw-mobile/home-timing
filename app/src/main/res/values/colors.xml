@@ -1,4 +1,32 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="launcher_background">#235C4B</color>
+    <color name="ht_primary">#0C3B2E</color>
+    <color name="ht_secondary">#0C3B2E</color>
+    <color name="ht_on_primary">#FFFFFF</color>
+    <color name="ht_background">#FFFFFF</color>
+    <color name="ht_surface">#FFFFFF</color>
+    <color name="ht_container">#F4F4F5</color>
+    <color name="ht_text">#1C1C1E</color>
+    <color name="ht_text_secondary">#66666D</color>
+    <color name="ht_divider">#E9E9EC</color>
+    <color name="ht_accent">#91601C</color>
+    <color name="ht_error">#B42318</color>
+    <color name="ht_due_soon">#9B5700</color>
+    <color name="ht_icon_secondary">#74747C</color>
+    <color name="ht_glass_surface">#D9FFFFFF</color>
+    <color name="ht_glass_border">#14000000</color>
+    <color name="ht_glass_ripple">#10000000</color>
+    <color name="ht_glass_unselected">#66666D</color>
+    <color name="ht_glass_selected">#1C1C1E</color>
+    <color name="ht_glass_highlight">#99FFFFFF</color>
+    <color name="ht_night">#142A35</color>
+    <color name="ht_photo_text">#FFFFFF</color>
+    <color name="ht_photo_muted">#FFFFFF</color>
+    <color name="ht_photo_scrim">#8C000000</color>
+    <color name="ht_field">#F4F4F5</color>
+    <color name="ht_disabled">#DADADD</color>
+    <color name="ht_on_disabled">#606066</color>
+    <color name="launcher_background">#0C3B2E</color>
+    <color name="ht_sheet_edge">#33000000</color>
+    <color name="ht_sheet_shadow">#4D000000</color>
 </resources>
