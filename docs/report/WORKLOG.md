@@ -57,6 +57,7 @@
 | 2026-11-10 | 사용자(성명 확인 필요): 디자인 담당·에뮬레이터 라이트/다크 시안 확인·현 방식 업로드 승인; Codex (도구): 통합 날씨 영역·날짜 제목 정리·외부 모서리 그림자·전체 재촬영/HTML·검증 | 상단 바 아래부터 사진에 날짜/날씨 통합, 고정 오늘 제거, 핸들 아래가 아닌 모달 위 모서리 바깥 그림자. 기본 폰트 유지, 입력 예시 포함79장 모두 재생성 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), [검증·화면](evidence/component-system/verification.md), [HTML](../design-review.html). 사용자 승인은 디자인/업로드이며 팀 코드 리뷰·병합 아님 |
 | 2026-11-10 | 사용자(성명 확인 필요): 확정 디자인만 공유·JPG 변환 요청; Codex (도구): 변환 도구·공유 파일 생성·이전 시안 정리·검증 | 승인 캡처79장의 JPG와 요약/전체 보드7장 생성. 현재 트리에는 승인된 화면·컴포넌트·HTML·JPG만 유지하고 과거 근거는 고정 Git 링크로 보존. 앱·폰트 변경 없음. JPG 배치·개수·ZIP 중복·스크립트 구문·로컬 문서 링크 확인 | [승인 JPG](../design-jpg), [검증](evidence/component-system/verification.md), [PR #19](https://github.com/kw-mobile/home-timing/pull/19) |
 | 2026-11-11 | 사용자(성명 확인 필요): PR 범위 분석·병합 준비·필수 팀원 리뷰 규칙 제거 요청; Codex (도구): 코드 검토·main 충돌 해결·문서 보정·리뷰 규칙 변경·재검증 | main `1cb4c0b`의 인증/용품/가족/탈퇴 코드·규칙·기여 기록 보존, 문자열/문서 충돌 3곳 해결. Android 빌드·JUnit 105·Lint 오류 0/버전 경고 15, Python 28 통과. 팀원 리뷰는 선택 사항으로 변경, 실기기 검증 미수행 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), 최종 검증 SHA·CI는 PR 본문 |
+| 2026-11-11 | 전주용: 11번 범위 결정; Claude Code (도구): domain 규칙·JUnit 작성 및 로컬 검증 | 날씨·집안일 domain(F-07·F-09): 세탁 판정·판정 불가, 대체일, 제안 카드, 기상청 발표 회차, 주간 집안일 회차·이동·그대로 두기. JUnit 146 통과, 실제 예보·저장 연결 전 | [이슈 #42](https://github.com/kw-mobile/home-timing/issues/42), [PR #43](https://github.com/kw-mobile/home-timing/pull/43) |
 
 ## 기록 예시
 
