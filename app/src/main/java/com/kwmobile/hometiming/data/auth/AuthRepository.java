@@ -7,6 +7,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.FirebaseTooManyRequestsException;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthException;
 import com.google.firebase.auth.FirebaseUser;
@@ -19,9 +21,18 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Source;
 import com.google.firebase.firestore.Transaction;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.firestore.HouseDocuments;
 import com.kwmobile.hometiming.data.firestore.HouseholdSetup;
+import com.kwmobile.hometiming.data.firestore.ItemException;
+import com.kwmobile.hometiming.data.firestore.ItemRepository;
 import com.kwmobile.hometiming.data.firestore.Schema;
+import com.kwmobile.hometiming.domain.AccountDeletion;
 import com.kwmobile.hometiming.domain.AccountInputValidator;
+import com.kwmobile.hometiming.domain.House;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Email accounts (docs/MVP.md F-01) and the one-person house every signed-in user belongs to.
@@ -156,6 +167,143 @@ public final class AuthRepository {
         }
     }
 
+    /** Auth deletion attempts after the data is cleaned up (network failures only). */
+    static final int AUTH_DELETE_ATTEMPTS = 3;
+
+    /**
+     * Deletes the account (docs/DATA_MODEL.md 정리 정책): re-authenticates with the password, cleans
+     * up the user's house data and user document, and only then deletes the Auth account.
+     *
+     * <p>Each step reads the stored state first, so after any failure calling this again continues
+     * where it stopped. An owner whose house still has other members gets
+     * {@link AuthError#OWNER_HAS_MEMBERS}; if only the Auth deletion fails the result is
+     * {@link AuthError#DELETE_INCOMPLETE}. Items a member registered in a shared house stay there.
+     */
+    @NonNull
+    public Task<Void> deleteAccount(String password) {
+        if (auth == null || db == null) {
+            return fail(AuthError.NOT_CONFIGURED);
+        }
+        FirebaseUser user = auth.getCurrentUser();
+        if (user == null) {
+            return fail(AuthError.NOT_SIGNED_IN);
+        }
+        String email = user.getEmail();
+        if (email == null || password == null || password.isEmpty()) {
+            return fail(AuthError.INVALID_INPUT);
+        }
+        AuthCredential credential = EmailAuthProvider.getCredential(email, password);
+        Task<Void> task = user.reauthenticate(credential)
+                .onSuccessTask(ignored -> cleanUpAccountData(db, user.getUid()))
+                .onSuccessTask(ignored -> deleteAuth(user, AUTH_DELETE_ATTEMPTS));
+        return translate(task);
+    }
+
+    private static Task<Void> deleteAuth(FirebaseUser user, int attemptsLeft) {
+        return user.delete().continueWithTask(done -> {
+            if (done.isSuccessful()) {
+                return done;
+            }
+            if (attemptsLeft > 1 && classify(done.getException()) == AuthError.NETWORK) {
+                return deleteAuth(user, attemptsLeft - 1);
+            }
+            return Tasks.forException(new AuthException(AuthError.DELETE_INCOMPLETE, done.getException()));
+        });
+    }
+
+    private static Task<Void> cleanUpAccountData(FirebaseFirestore firestore, String uid) {
+        DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(uid);
+        return userRef.get(Source.SERVER).onSuccessTask(userSnapshot -> {
+            String houseId = userSnapshot.exists() ? userSnapshot.getString(Schema.Users.CURRENT_HOUSE_ID) : null;
+            if (!userSnapshot.exists()) {
+                return Tasks.forResult(null);
+            }
+            if (houseId == null || houseId.isEmpty()) {
+                return deleteUserOnly(firestore, userRef);
+            }
+            DocumentReference houseRef = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
+            DocumentReference memberRef = memberRef(firestore, houseId, uid);
+            return memberRef.get(Source.SERVER).onSuccessTask(memberSnapshot -> {
+                if (!memberSnapshot.exists()) {
+                    return deleteUserOnly(firestore, userRef);
+                }
+                return houseRef.get(Source.SERVER).onSuccessTask(houseSnapshot -> {
+                    Map<String, Object> data = houseSnapshot.getData();
+                    House house = data == null ? null : HouseDocuments.toHouse(houseId, data);
+                    switch (AccountDeletion.plan(true, house, true, uid)) {
+                        case BLOCKED_OWNER_WITH_MEMBERS:
+                            return fail(AuthError.OWNER_HAS_MEMBERS);
+                        case LEAVE_SHARED_HOUSE:
+                            return firestore.runTransaction(tx -> {
+                                tx.delete(memberRef);
+                                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+                                tx.delete(userRef);
+                                return null;
+                            });
+                        case DISSOLVE_OWN_HOUSE:
+                            return deleteAllItems(firestore, houseId)
+                                    .onSuccessTask(ignored -> dissolveOwnHouse(firestore, houseRef, memberRef, userRef));
+                        case DELETE_USER_ONLY:
+                        case DELETE_AUTH_ONLY:
+                        default:
+                            return deleteUserOnly(firestore, userRef);
+                    }
+                });
+            });
+        });
+    }
+
+    private static Task<Void> deleteUserOnly(FirebaseFirestore firestore, DocumentReference userRef) {
+        return firestore.runTransaction(tx -> {
+            tx.delete(userRef);
+            return null;
+        });
+    }
+
+    /** Items one by one through ItemRepository (history first, itemCount −1 with each item). */
+    private static Task<Void> deleteAllItems(FirebaseFirestore firestore, String houseId) {
+        return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
+                .collection(Schema.Items.COLLECTION).get(Source.SERVER)
+                .onSuccessTask(items -> {
+                    List<String> ids = new ArrayList<>();
+                    for (DocumentSnapshot document : items.getDocuments()) {
+                        ids.add(document.getId());
+                    }
+                    Task<Void> chain = Tasks.forResult(null);
+                    for (String itemId : ids) {
+                        chain = chain.onSuccessTask(ignored -> ItemRepository.getInstance().delete(houseId, itemId));
+                    }
+                    return chain;
+                });
+    }
+
+    /** The empty one-person house, its invite, member and the user document in one transaction. */
+    private static Task<Void> dissolveOwnHouse(FirebaseFirestore firestore, DocumentReference houseRef,
+                                               DocumentReference memberRef, DocumentReference userRef) {
+        return firestore.runTransaction(tx -> {
+            DocumentSnapshot houseSnapshot = tx.get(houseRef);
+            Map<String, Object> data = houseSnapshot.getData();
+            House house = data == null ? null : HouseDocuments.toHouse(houseRef.getId(), data);
+            DocumentReference inviteRef = house == null || house.activeInviteCode == null ? null
+                    : firestore.collection(Schema.Invites.COLLECTION).document(house.activeInviteCode);
+            DocumentSnapshot invite = inviteRef == null ? null : tx.get(inviteRef);
+            if (house != null && !house.isEmptyOnePerson()) {
+                // Something was added meanwhile; calling again deletes it first. Not a retryable
+                // Firestore error, so the transaction stops instead of retrying the same state.
+                throw new IllegalStateException("house not empty");
+            }
+            if (invite != null && invite.exists() && houseRef.getId().equals(invite.getString(Schema.Invites.HOUSE_ID))) {
+                tx.delete(inviteRef);
+            }
+            tx.delete(memberRef);
+            if (house != null) {
+                tx.delete(houseRef);
+            }
+            tx.delete(userRef);
+            return null;
+        });
+    }
+
     private Task<Session> prepareHouse(FirebaseUser user) {
         return prepareHouse(user.getUid(),
                 HouseholdSetup.fallbackDisplayName(user.getDisplayName(), user.getEmail()));
@@ -259,6 +407,10 @@ public final class AuthRepository {
             }
             if (t instanceof FirebaseFirestoreException) {
                 return AuthErrorMapper.fromFirestoreCode(((FirebaseFirestoreException) t).getCode().name());
+            }
+            // Item deletion during account deletion reports ItemException.
+            if (t instanceof ItemException) {
+                return AuthErrorMapper.fromItemError(((ItemException) t).error.name());
             }
             if (t.getCause() == t) {
                 break;

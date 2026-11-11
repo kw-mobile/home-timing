@@ -35,6 +35,15 @@ public class AuthErrorMapperTest {
     }
 
     @Test
+    public void itemDeletionErrorsMapForAccountDeletion() {
+        assertEquals(AuthError.NETWORK, AuthErrorMapper.fromItemError("NETWORK"));
+        assertEquals(AuthError.PERMISSION_DENIED, AuthErrorMapper.fromItemError("NOT_ALLOWED"));
+        assertEquals(AuthError.PERMISSION_DENIED, AuthErrorMapper.fromItemError("PERMISSION_DENIED"));
+        assertEquals(AuthError.UNKNOWN, AuthErrorMapper.fromItemError("ALREADY_COMPLETED"));
+        assertEquals(AuthError.UNKNOWN, AuthErrorMapper.fromItemError(null));
+    }
+
+    @Test
     public void unknownCodesAreUnknown() {
         assertEquals(AuthError.UNKNOWN, AuthErrorMapper.fromAuthCode("ERROR_SOMETHING_NEW"));
         assertEquals(AuthError.UNKNOWN, AuthErrorMapper.fromAuthCode(null));

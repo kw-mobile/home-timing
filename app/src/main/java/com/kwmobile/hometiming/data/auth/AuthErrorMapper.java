@@ -36,6 +36,26 @@ final class AuthErrorMapper {
         }
     }
 
+    /** {@code ItemError.name()} from item deletion inside account deletion. */
+    static AuthError fromItemError(String itemError) {
+        if (itemError == null) {
+            return AuthError.UNKNOWN;
+        }
+        switch (itemError) {
+            case "NETWORK":
+                return AuthError.NETWORK;
+            case "PERMISSION_DENIED":
+            case "NOT_ALLOWED":
+                return AuthError.PERMISSION_DENIED;
+            case "NOT_CONFIGURED":
+                return AuthError.NOT_CONFIGURED;
+            case "NOT_SIGNED_IN":
+                return AuthError.NOT_SIGNED_IN;
+            default:
+                return AuthError.UNKNOWN;
+        }
+    }
+
     /** {@code FirebaseFirestoreException.getCode().name()}. */
     static AuthError fromFirestoreCode(String code) {
         if (code == null) {
