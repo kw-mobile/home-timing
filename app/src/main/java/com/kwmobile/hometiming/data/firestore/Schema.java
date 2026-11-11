@@ -82,6 +82,49 @@ public final class Schema {
         }
     }
 
+    public static final class Chores {
+        public static final String COLLECTION = "chores";
+        public static final String NAME = "name";
+        public static final String TYPE = "type";
+        public static final String WEATHER_SENSITIVE = "weatherSensitive";
+        public static final String WEEKDAY = "weekday";
+        public static final String PLANNED_DUE_DATE = "plannedDueDate";
+        public static final String NEXT_DUE_DATE = "nextDueDate";
+        public static final String OCCURRENCE_ID = "occurrenceId";
+        public static final String REVISION = "revision";
+        public static final String DISMISSED_OCCURRENCE_ID = "dismissedOccurrenceId";
+        public static final String LAST_DONE_DATE = "lastDoneDate";
+        public static final String LOCATION = "location";
+        public static final String MEMO = "memo";
+        public static final String CREATED_BY = "createdBy";
+        public static final String UPDATED_BY = "updatedBy";
+        public static final String CREATED_AT = "createdAt";
+        public static final String UPDATED_AT = "updatedAt";
+
+        private Chores() {
+        }
+    }
+
+    public static final class Logs {
+        public static final String COLLECTION = "logs";
+        public static final String ACTION = "action";
+        public static final String OCCURRENCE_ID = "occurrenceId";
+        public static final String DATE = "date";
+        public static final String FROM_DATE = "fromDate";
+        public static final String REASON = "reason";
+        public static final String ACTOR_ID = "actorId";
+        public static final String ACTOR_NAME = "actorName";
+        public static final String CREATED_AT = "createdAt";
+
+        public static final String ACTION_DONE = "DONE";
+        public static final String ACTION_RESCHEDULED = "RESCHEDULED";
+        public static final String REASON_RAIN_FORECAST = "RAIN_FORECAST";
+        public static final String REASON_USER = "USER";
+
+        private Logs() {
+        }
+    }
+
     public static final class History {
         public static final String COLLECTION = "history";
         public static final String REPLACED_DATE = "replacedDate";

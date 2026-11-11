@@ -29,6 +29,48 @@ public class ChoreScheduleTest {
         assertEquals(LocalDate.of(2026, 11, 14), ChoreSchedule.firstDue(SAT_NOV_7, SATURDAY));
     }
 
+    private static ChoreDraft draft(String name, boolean sensitive, int weekday) {
+        return new ChoreDraft(name, "BEDDING_WASH", sensitive, weekday, LocalDate.of(2026, 11, 4), "베란다", "");
+    }
+
+    @Test
+    public void registerStartsOnTheFirstOccurrence() {
+        Chore chore = ChoreSchedule.register("wash", draft("침구 세탁", true, SATURDAY), "alice", "occ-1");
+
+        assertEquals(SAT_NOV_7, chore.plannedDueDate);
+        assertEquals(SAT_NOV_7, chore.nextDueDate);
+        assertEquals(1, chore.revision);
+        assertEquals("alice", chore.createdBy);
+        assertEquals("베란다", chore.location);
+    }
+
+    @Test
+    public void displayEditKeepsDatesAndRevision() {
+        Chore edited = ChoreSchedule.edit(saturdayChore(), draft("이불 빨래", true, SATURDAY), LocalDate.of(2026, 11, 6));
+
+        assertEquals("이불 빨래", edited.name);
+        assertEquals(SAT_NOV_7, edited.nextDueDate);
+        assertEquals(1, edited.revision);
+    }
+
+    @Test
+    public void weatherSwitchBumpsRevision() {
+        Chore edited = ChoreSchedule.edit(saturdayChore(), draft("침구 세탁", false, SATURDAY), LocalDate.of(2026, 11, 6));
+
+        assertEquals(2, edited.revision);
+        assertEquals(SAT_NOV_7, edited.plannedDueDate);
+    }
+
+    @Test
+    public void weekdayEditRestartsThisOccurrenceOnTheNewWeekday() {
+        Chore edited = ChoreSchedule.edit(saturdayChore(), draft("침구 세탁", true, 7), LocalDate.of(2026, 11, 6));
+
+        assertEquals(LocalDate.of(2026, 11, 8), edited.plannedDueDate);
+        assertEquals(LocalDate.of(2026, 11, 8), edited.nextDueDate);
+        assertEquals("occ-1", edited.occurrenceId);
+        assertEquals(2, edited.revision);
+    }
+
     @Test
     public void mvpExampleMovedToSundayThenCompleted() {
         Chore moved = ChoreSchedule.reschedule(saturdayChore(), LocalDate.of(2026, 11, 8));

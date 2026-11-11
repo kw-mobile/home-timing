@@ -67,6 +67,13 @@ public class AccountDeletionRulesTest extends RulesTestBase {
     }
 
     @Test
+    public void houseWithChoresCannotBeDissolved() {
+        assertAllowed(firestore.commit(Auth.admin(), Write.merge("houses/house-c", Fields.of().num("choreCount", 1))));
+
+        assertDenied(firestore.commit(CAROL, dissolveAndDelete("carol", "house-c")));
+    }
+
+    @Test
     public void ownerOfASharedHouseCannotDissolveIt() {
         assertDenied(firestore.commit(ALICE, dissolveAndDelete("alice", "house-a")));
         // Nor leave it as a member would.

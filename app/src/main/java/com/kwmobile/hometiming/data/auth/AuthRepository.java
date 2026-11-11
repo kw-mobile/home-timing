@@ -21,6 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Source;
 import com.google.firebase.firestore.Transaction;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.firestore.ChoreRepository;
 import com.kwmobile.hometiming.data.firestore.HouseDocuments;
 import com.kwmobile.hometiming.data.firestore.HouseholdSetup;
 import com.kwmobile.hometiming.data.firestore.ItemException;
@@ -242,6 +243,7 @@ public final class AuthRepository {
                             });
                         case DISSOLVE_OWN_HOUSE:
                             return deleteAllItems(firestore, houseId)
+                                    .onSuccessTask(ignored -> deleteAllChores(firestore, houseId))
                                     .onSuccessTask(ignored -> dissolveOwnHouse(firestore, houseRef, memberRef, userRef));
                         case DELETE_USER_ONLY:
                         case DELETE_AUTH_ONLY:
@@ -272,6 +274,23 @@ public final class AuthRepository {
                     Task<Void> chain = Tasks.forResult(null);
                     for (String itemId : ids) {
                         chain = chain.onSuccessTask(ignored -> ItemRepository.getInstance().delete(houseId, itemId));
+                    }
+                    return chain;
+                });
+    }
+
+    /** Chores one by one through ChoreRepository (logs first, choreCount −1 with each chore). */
+    private static Task<Void> deleteAllChores(FirebaseFirestore firestore, String houseId) {
+        return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
+                .collection(Schema.Chores.COLLECTION).get(Source.SERVER)
+                .onSuccessTask(chores -> {
+                    List<String> ids = new ArrayList<>();
+                    for (DocumentSnapshot document : chores.getDocuments()) {
+                        ids.add(document.getId());
+                    }
+                    Task<Void> chain = Tasks.forResult(null);
+                    for (String choreId : ids) {
+                        chain = chain.onSuccessTask(ignored -> ChoreRepository.getInstance().delete(houseId, choreId));
                     }
                     return chain;
                 });
