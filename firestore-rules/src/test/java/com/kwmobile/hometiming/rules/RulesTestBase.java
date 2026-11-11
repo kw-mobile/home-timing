@@ -152,6 +152,64 @@ abstract class RulesTestBase {
         };
     }
 
+    // ---- Family sharing (docs/DATA_MODEL.md 가족 공유) ----
+
+    /** An invite created at {@code createdAt}; it is live for 24 hours from then. */
+    static void seedInvite(String code, String houseId, String createdBy, Instant createdAt) {
+        firestore.seed("invites/" + code, Fields.of()
+                .str("houseId", houseId)
+                .str("createdBy", createdBy)
+                .time("createdAt", createdAt));
+    }
+
+    /** Marks {@code code} as the house's active invite (admin). */
+    static void seedActiveInvite(String houseId, String code) {
+        assertAllowed(firestore.commit(Auth.admin(),
+                Write.merge("houses/" + houseId, Fields.of().str("activeInviteCode", code))));
+    }
+
+    /** Issue or reissue: the invite plus the house's active code; deletes {@code previousCode} if given. */
+    static Write[] issueInvite(String houseId, String ownerId, String code, String previousCode) {
+        Write invite = Write.set("invites/" + code, Fields.of().str("houseId", houseId).str("createdBy", ownerId))
+                .serverTime("createdAt");
+        Write house = Write.merge("houses/" + houseId, Fields.of().str("activeInviteCode", code));
+        return previousCode == null
+                ? new Write[] {invite, house}
+                : new Write[] {invite, house, Write.delete("invites/" + previousCode)};
+    }
+
+    /** Join: member in the new house, its count +1, user moved, and the old empty house removed. */
+    static Write[] join(String uid, String houseId, String code, String oldHouseId) {
+        return new Write[] {
+            Write.create("houses/" + houseId + "/members/" + uid,
+                    Fields.of().str("displayName", nameOf(uid)).str("inviteCode", code))
+                    .serverTime("joinedAt"),
+            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", 1),
+            Write.merge("users/" + uid, Fields.of().str("currentHouseId", houseId)).serverTime("updatedAt"),
+            Write.delete("houses/" + oldHouseId + "/members/" + uid),
+            Write.delete("houses/" + oldHouseId)
+        };
+    }
+
+    /** Leave: own member removed, count -1, and a new one-person house for the leaver. */
+    static Write[] leave(String uid, String houseId, String newHouseId) {
+        return new Write[] {
+            Write.delete("houses/" + houseId + "/members/" + uid),
+            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1),
+            newHouse(newHouseId, uid),
+            newMember(newHouseId, uid, nameOf(uid)),
+            Write.merge("users/" + uid, Fields.of().str("currentHouseId", newHouseId)).serverTime("updatedAt")
+        };
+    }
+
+    /** Remove: the member document and the count -1 (the owner's request). */
+    static Write[] removeMember(String houseId, String uid) {
+        return new Write[] {
+            Write.delete("houses/" + houseId + "/members/" + uid),
+            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1)
+        };
+    }
+
     static void assertAllowed(Response response) {
         assertEquals(response.toString(), OK, response.status());
     }

@@ -25,6 +25,7 @@
 | 2026-11-11 | 전주용: 소유자에게 배포 권한 요청·추가 확인; Claude Code (도구): dry-run 확인·문서 수정 | `serviceusage.services.use` 추가 후 규칙 배포 `--dry-run` 통과(게시 없음), SETUP 권한 상태와 배포 전 dry-run 단계 반영. 리뷰 대기 | [이슈 #32](https://github.com/kw-mobile/home-timing/issues/32), [PR #33](https://github.com/kw-mobile/home-timing/pull/33) |
 | 2026-11-11 | 전주용: 6번 범위 결정; Claude Code (도구): 용품 domain·저장소·테스트·문서 작성 및 로컬 검증 | ItemRepository(F-02~F-05): 목록·상세·이력 구독, 트랜잭션 전용 등록·수정·완료·삭제, 이미 완료/일정 변경 충돌 구분, #20 교체일 하한·규칙 글자 수 검증. 단위 62·규칙 45 통과, 실기기 미확인, 리뷰 대기 | [이슈 #34](https://github.com/kw-mobile/home-timing/issues/34), [PR #35](https://github.com/kw-mobile/home-timing/pull/35) |
 | 2026-11-11 | 전주용: 한 코드 여러 명 사용·참여 시 빈 집 삭제 결정; Claude Code (도구): 설계 초안·문서 작성 및 정합성 검토 | 초대·참여·나가기·내보내기 설계(F-14): invites 확정, 작업별 한 트랜잭션 쓰기 묶음과 규칙 조건, 정원 전후 비교, 빈 집 삭제로 참여 조건 증명. 규칙 구현 전, 리뷰 대기 | [이슈 #36](https://github.com/kw-mobile/home-timing/issues/36), [PR #37](https://github.com/kw-mobile/home-timing/pull/37) |
+| 2026-11-11 | 전주용: 8번 범위 결정·배포 승인 예정; Claude Code (도구): 규칙 v2·규칙 테스트·HouseRepository·문서 작성 및 검증 | 가족 공유(F-14): 초대 발급·재발급·중지, 참여(정원·유효 초대·빈 집 삭제), 나가기, 내보내기, 지역 변경 규칙 v2와 HouseRepository. 초대 만료를 서버 createdAt+24시간으로 설계 수정. 단위 79·규칙 71 통과, 배포 전, 리뷰 대기 | [이슈 #38](https://github.com/kw-mobile/home-timing/issues/38), [PR #39](https://github.com/kw-mobile/home-timing/pull/39) |
 
 ## 기록 예시
 

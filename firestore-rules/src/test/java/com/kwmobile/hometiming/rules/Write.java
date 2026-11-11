@@ -15,6 +15,7 @@ final class Write {
     private final String path;
     private final Fields fields;
     private final List<String> transforms = new ArrayList<>();
+    private final List<String> removed = new ArrayList<>();
 
     private Write(Kind kind, String path, Fields fields) {
         this.kind = kind;
@@ -49,6 +50,15 @@ final class Write {
         return this;
     }
 
+    /** {@code FieldValue.delete()} for a merge: the field is masked but not sent, so it is removed. */
+    Write remove(String field) {
+        if (kind != Kind.MERGE) {
+            throw new IllegalStateException("Only a merge can remove a field");
+        }
+        removed.add(field);
+        return this;
+    }
+
     /** {@code FieldValue.serverTimestamp()} applied in the same write. */
     Write serverTime(String field) {
         requireUpdate();
@@ -80,6 +90,7 @@ final class Write {
     private String fieldNames() {
         StringJoiner joined = new StringJoiner(",", "[", "]");
         fields.names().forEach(name -> joined.add(Json.quote(name)));
+        removed.forEach(name -> joined.add(Json.quote(name)));
         return joined.toString();
     }
 
