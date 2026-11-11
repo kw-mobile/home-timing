@@ -59,6 +59,7 @@
 | 2026-11-11 | 사용자(성명 확인 필요): PR 범위 분석·병합 준비·필수 팀원 리뷰 규칙 제거 요청; Codex (도구): 코드 검토·main 충돌 해결·문서 보정·리뷰 규칙 변경·재검증 | main `1cb4c0b`의 인증/용품/가족/탈퇴 코드·규칙·기여 기록 보존, 문자열/문서 충돌 3곳 해결. Android 빌드·JUnit 105·Lint 오류 0/버전 경고 15, Python 28 통과. 팀원 리뷰는 선택 사항으로 변경, 실기기 검증 미수행 | [PR #19](https://github.com/kw-mobile/home-timing/pull/19), 최종 검증 SHA·CI는 PR 본문 |
 | 2026-11-11 | 전주용: 11번 범위 결정; Claude Code (도구): domain 규칙·JUnit 작성 및 로컬 검증 | 날씨·집안일 domain(F-07·F-09): 세탁 판정·판정 불가, 대체일, 제안 카드, 기상청 발표 회차, 주간 집안일 회차·이동·그대로 두기. JUnit 146 통과, 실제 예보·저장 연결 전 | [이슈 #42](https://github.com/kw-mobile/home-timing/issues/42), [PR #43](https://github.com/kw-mobile/home-timing/pull/43) |
 | 2026-11-11 | 전주용: 12번 진행 요청·배포 승인 예정; Claude Code (도구): 규칙·저장소·테스트·문서 작성 및 검증 | 주간 집안일(F-07·F-09): chores·logs 규칙, ChoreRepository(구독, 트랜잭션 등록·수정·완료·날짜 변경·그대로 두기, 기록 포함 삭제), 회차·revision 충돌 구분, 탈퇴 시 집안일 정리. 단위 165·규칙 111 통과, 배포 전, 실기기 미확인 | [이슈 #44](https://github.com/kw-mobile/home-timing/issues/44), [PR #45](https://github.com/kw-mobile/home-timing/pull/45) |
+| 2026-11-11 | 전주용: 13번 진행 요청·API허브 키 발급·활용신청; Claude Code (도구): 데이터 계층·테스트·문서 작성, 격자표 추출, 실제 API 호출 검증 | 날씨 데이터 계층(F-08·F-13): 기상청 API허브 호출, 응답 검사, 격자·발표 회차 캐시와 6시간 대체, 시·군·구 256곳 격자표, 테스트 날씨 모드, SETUP API허브 안내. 실제 응답 확인, 단위 203 통과, 3일 뒤부터 판정 불가(3시간 간격 예보), 실기기 미확인 | [이슈 #46](https://github.com/kw-mobile/home-timing/issues/46), [PR #47](https://github.com/kw-mobile/home-timing/pull/47) |
 
 ## 기록 예시
 
