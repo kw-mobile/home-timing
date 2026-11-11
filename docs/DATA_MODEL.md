@@ -24,7 +24,7 @@ invites/{code}                       초대 코드 (집 밖, 코드로 get만)
 | 항목 | 규약 |
 | --- | --- |
 | 날짜 | 제품 날짜는 `yyyy-MM-dd` 문자열(Asia/Seoul). 변환은 `domain.DateRules`만 사용. 문자열 비교 = 날짜 비교 |
-| 시각 | `createdAt`·`updatedAt`·`expiresAt`은 Firestore timestamp. 작성 시각은 서버 시각(`serverTimestamp`)이며 규칙에서 `request.time`과 비교 |
+| 시각 | `createdAt`·`updatedAt`·`joinedAt`은 Firestore timestamp. 작성 시각은 서버 시각(`serverTimestamp`)이며 규칙에서 `request.time`과 비교 |
 | 작성자 | `createdBy`·`updatedBy`·`completedBy`는 `request.auth.uid`와 같아야 함 |
 | `occurrenceId` | 현재 회차의 무작위 ID. 등록과 완료 때만 새로 발급하고, 수정·일정 이동에는 유지 |
 | `revision` | 1부터 시작. 일정·제안 상태 필드가 바뀔 때마다 정확히 +1. 이름·메모 같은 표시 필드만 바뀌면 유지 |
@@ -54,8 +54,8 @@ invites/{code}                       초대 코드 (집 밖, 코드로 get만)
 | `ownerId` | string | ✓ | 집장 uid. 생성 후 변경 불가(집장 양도는 P0 제외) |
 | `memberCount` | number | ✓ | 1~6. 참여·나가기·내보내기와 같은 쓰기에서 ±1 |
 | `itemCount`, `choreCount` | number | ✓ | 현재 항목 수. 등록·삭제와 같은 쓰기에서 ±1. 1인 집 참여 조건 검사용 |
-| `regionName` | string | | 표시용 시·군·구 |
-| `nx`, `ny` | number | | 기상청 격자. 지역을 정하기 전에는 없음 |
+| `regionName` | string | | 표시용 시·군·구(30자 이하). 집장만 변경 |
+| `nx`, `ny` | number | | 기상청 격자(1~149, 1~253). 지역을 정하기 전에는 없음 |
 | `activeInviteCode` | string | | 지금 유효한 초대 코드. 집장만 바꾸며, 재발급하면 이전 코드가 무효 |
 | `createdAt`, `updatedAt` | timestamp | ✓ | |
 
@@ -143,8 +143,7 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 | --- | --- | --- | --- |
 | `houseId` | string | ✓ | 참여할 집 |
 | `createdBy` | string | ✓ | 발급한 집장(= 그 집 `ownerId`) |
-| `createdAt` | timestamp | ✓ | 발급 시각(서버) |
-| `expiresAt` | timestamp | ✓ | 발급 시각 + 정확히 24시간 |
+| `createdAt` | timestamp | ✓ | 발급 시각(서버). 만료는 이 시각 + 24시간이며 따로 저장하지 않음 |
 
 - 코드는 `000000`~`999999` 중 `SecureRandom`으로 고른 6자리 문자열입니다.
 - **한 코드로 24시간 동안 여러 명이 참여할 수 있습니다**(최대 6명, 2026-11-11 결정 [#36](https://github.com/kw-mobile/home-timing/issues/36)). 집의 `activeInviteCode`와 같아야 유효하므로, 재발급하면 이전 코드는 즉시 무효입니다.
@@ -156,7 +155,7 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 
 | 작업 | 함께 쓰는 문서 | 규칙이 확인할 것 |
 | --- | --- | --- |
-| 초대 발급·재발급 (집장) | `invites/{새 코드}` 생성(또는 만료 코드 덮어쓰기), 집 `activeInviteCode` = 새 코드, 이전 `invites/{이전 코드}` 삭제 | 발급자 = 집장, `expiresAt` = `request.time` + 24시간, 커밋 후 집의 `activeInviteCode` = 이 코드, 덮어쓰기는 기존 초대가 만료됐을 때만 |
+| 초대 발급·재발급 (집장) | `invites/{새 코드}` 생성(또는 만료 코드 덮어쓰기), 집 `activeInviteCode` = 새 코드, 이전 `invites/{이전 코드}` 삭제 | 발급자 = 집장, `createdAt` = `request.time`(만료는 규칙이 `createdAt` + 24시간으로 계산), 커밋 후 집의 `activeInviteCode` = 이 코드, 덮어쓰기는 기존 초대가 만료됐을 때만 |
 | 초대 중지 (집장) | 집 `activeInviteCode` 제거, `invites/{코드}` 삭제 | 집장 |
 | 참여 (J) | `H/members/J` 생성(`inviteCode` 포함), H `memberCount` +1, `users/J`의 `currentHouseId` = H, `E/members/J`·`E` 삭제, E에 초대가 있으면 그 초대 삭제 | 아래 참여 조건 |
 | 나가기 (집장이 아닌 M) | `H/members/M` 삭제, H `memberCount` −1, 새 1인 집 N·`N/members/M` 생성, `users/M`의 `currentHouseId` = N | M ≠ 집장, 커밋 후 H 인원 = 이전 −1, N은 최초 로그인과 같은 새 집 조건 |
@@ -165,7 +164,7 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 **참여 조건** (member 문서 생성 규칙이 모두 확인):
 
 - J 본인이 자기 member 문서를 만들고, 이름은 `users/J`의 `displayName`과 같습니다.
-- `get(invites/{inviteCode})`의 `houseId` = H, `expiresAt` > `request.time`, H의 `activeInviteCode` = 그 코드.
+- `get(invites/{inviteCode})`의 `houseId` = H, `request.time` < `createdAt` + 24시간, H의 `activeInviteCode` = 그 코드.
 - 참여 전 H 인원 < 6, 커밋 후 H 인원 = 이전 + 1. H 문서 갱신 규칙은 J의 member 문서가 커밋 전에는 없고 커밋 후에 있을 때만 +1을 허용합니다.
 - E ≠ H이고 E가 같은 커밋에서 삭제됩니다. **E 삭제 규칙**: 요청자가 E의 집장, `memberCount` = 1, `itemCount` = 0, `choreCount` = 0, 커밋 후 J의 E member 문서가 없고 `currentHouseId` ≠ E. 이것으로 MVP의 "항목·이력이 없는 1인 집에서만 참여"를 보장합니다(이력은 항목 아래에만 있음). 여러 명인 집의 구성원은 먼저 나가서 새 1인 집을 받은 뒤 참여합니다.
 
@@ -181,7 +180,8 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 
 - 6자리 코드는 추측할 수 있습니다. 로그인 사용자는 `get`으로 코드를 하나씩 시험할 수 있지만, 유효 기간 24시간과 Spark 무료 읽기 한도(일 5만 건) 때문에 무작위 시도로 맞히기는 어렵습니다. 대신 대량 시도는 프로젝트 읽기 한도를 소진할 수 있습니다. App Check 등은 P1로 둡니다.
 - 집장이 member 삭제 없이 `memberCount`만 −1 하는 쓰기는 규칙이 막지 못합니다(어느 구성원이 빠졌는지 집 문서 규칙이 알 수 없음). 집장 본인의 집 숫자만 틀어집니다.
-- 이 표의 규칙은 아직 `firestore.rules`에 없습니다(v1은 기본 거부). 다음 가족 공유 작업에서 규칙·거부 테스트와 함께 구현합니다.
+- 앱이 서버 시각을 미리 알 수 없어 만료 시각을 쓰지 않고, 규칙이 서버의 `createdAt`으로 만료를 계산합니다([#38](https://github.com/kw-mobile/home-timing/issues/38)에서 설계 수정).
+- 위 표는 `firestore.rules` v2와 `HouseRepository`로 구현되어 있습니다([#38](https://github.com/kw-mobile/home-timing/issues/38)).
 
 ## 함께 커밋하는 작업
 
@@ -200,9 +200,9 @@ P0는 매주 요일 반복만 지원합니다(N일 간격은 P1).
 
 용품 등록·수정·완료·삭제는 모두 트랜잭션으로 커밋합니다(`ItemRepository`). 트랜잭션은 서버가 필요하므로 오프라인 변경이 로컬 대기열에 쌓여 저장된 것처럼 보이지 않고 네트워크 오류로 돌아옵니다. 수정·완료는 화면이 보여준 항목의 `occurrenceId`·`revision`을 저장된 문서와 비교해, 회차가 다르면 "이미 완료", 회차는 같고 revision이 다르면 "일정 변경"으로 거부합니다. 수정은 문서 전체를 다시 쓰되 저장된 `createdAt`을 그대로 넣습니다. 완료 전이면(`lastReplacedDate` = `startDate`) 시작일 수정이 마지막 교체일도 함께 옮기고, 완료 후에는 마지막 교체일을 유지하며 시작일이 그보다 늦을 수 없습니다. 앱은 `domain` 규칙으로 다음 예정일을 계산하고, 규칙도 `nextDueDate = lastReplacedDate + cycleDays`와 미래 날짜 금지(서울 기준)를 다시 확인합니다. 이력이 500개를 넘으면 삭제를 여러 번에 나눠 커밋합니다. 참여·나가기·내보내기·초대의 쓰기 묶음은 [가족 공유](#가족-공유-초대참여나가기내보내기) 절에, 회원 탈퇴는 정리 정책 작업에서 정합니다.
 
-## 보안 규칙 범위 (v1)
+## 보안 규칙 범위 (v2)
 
-`firestore.rules` v1은 위 표의 최초 로그인·소속 복구·용품 등록·수정·완료·삭제만 허용합니다. 나머지는 기본 거부입니다: 집안일(`chores`·`logs`), 초대(`invites`), 기존 집 참여·나가기·내보내기, 지역 변경, 사용자·집 삭제. 각 작업에서 규칙과 테스트를 함께 추가합니다.
+`firestore.rules` v2는 최초 로그인·소속 복구·용품 등록·수정·완료·삭제(v1)에 더해 초대 발급·재발급·중지, 참여, 나가기, 내보내기, 빈 1인 집 해체(참여할 때), 집장의 지역 변경을 허용합니다. 나머지는 기본 거부입니다: 집안일(`chores`·`logs`), 사용자 삭제, 구성원이 남은 집의 삭제. 각 작업에서 규칙과 테스트를 함께 추가합니다.
 
 - 집 `itemCount`는 구성원이 ±1씩만 바꿀 수 있고, 용품 생성·삭제는 같은 커밋의 ±1을 요구합니다. 항목 없이 개수만 올리는 쓰기는 막지 못하며, 이 경우 그 집이 참여 조건(빈 1인 집)을 잃을 뿐입니다.
 - 수정(F-03)은 같은 회차에서 `lastReplacedDate`를 고칠 수 있습니다. 이전 교체일 하한(#20)은 회차가 바뀌는 완료에만 적용됩니다.

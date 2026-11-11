@@ -27,6 +27,10 @@ public final class Schema {
         public static final String MEMBER_COUNT = "memberCount";
         public static final String ITEM_COUNT = "itemCount";
         public static final String CHORE_COUNT = "choreCount";
+        public static final String REGION_NAME = "regionName";
+        public static final String NX = "nx";
+        public static final String NY = "ny";
+        public static final String ACTIVE_INVITE_CODE = "activeInviteCode";
         public static final String CREATED_AT = "createdAt";
         public static final String UPDATED_AT = "updatedAt";
 
@@ -40,8 +44,19 @@ public final class Schema {
         public static final String COLLECTION = "members";
         public static final String DISPLAY_NAME = "displayName";
         public static final String JOINED_AT = "joinedAt";
+        public static final String INVITE_CODE = "inviteCode";
 
         private Members() {
+        }
+    }
+
+    public static final class Invites {
+        public static final String COLLECTION = "invites";
+        public static final String HOUSE_ID = "houseId";
+        public static final String CREATED_BY = "createdBy";
+        public static final String CREATED_AT = "createdAt";
+
+        private Invites() {
         }
     }
 

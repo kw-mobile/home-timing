@@ -1,8 +1,8 @@
 rules_version = '2';
 
-// Security rules v1 for docs/DATA_MODEL.md, phase 1 (personal replacement tracking).
-// Anything not matched below stays denied: chores/logs, invites, joining or leaving a house,
-// region changes and deletes of users or houses. Tests: firestore-rules/ (docs/TESTING.md).
+// Security rules v2 for docs/DATA_MODEL.md: personal replacement tracking (v1) plus family
+// sharing (invites, join, leave, remove, region). Anything not matched below stays denied:
+// chores/logs and deleting users. Tests: firestore-rules/ (docs/TESTING.md).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -22,6 +22,11 @@ service cloud.firestore {
     function historyDoc(houseId, itemId, occurrenceId) {
       return /databases/$(database)/documents/houses/$(houseId)/items/$(itemId)/history/$(occurrenceId);
     }
+    function inviteDoc(code) { return /databases/$(database)/documents/invites/$(code); }
+
+    // Six-digit invite code; valid for 24 hours from its server creation time.
+    function isInviteCode(v) { return v is string && v.matches('[0-9]{6}'); }
+    function inviteLive(invite) { return request.time < invite.createdAt + duration.value(24, 'h'); }
 
     // Membership is the member document (DATA_MODEL: 소속의 기준).
     function isMember(houseId) { return signedIn() && exists(memberDoc(houseId, me())); }
@@ -78,6 +83,32 @@ service cloud.firestore {
           );
     }
 
+    // ---- invites/{code}: outside houses so non-members can join without reading the house ----
+    match /invites/{code} {
+      // Anyone signed in may look up a code they were given; listing codes is denied.
+      allow get: if signedIn();
+
+      // The owner issues a code for their house and makes it the house's active code in the same
+      // commit. Expiry is createdAt + 24 h, so clients never write the expiry themselves.
+      function isIssue() {
+        let data = request.resource.data;
+        return signedIn()
+            && isInviteCode(code)
+            && hasExactly(data, ['houseId', 'createdBy', 'createdAt'])
+            && isId(data.houseId)
+            && data.createdBy == me()
+            && get(houseDoc(data.houseId)).data.ownerId == me()
+            && data.createdAt == request.time
+            && getAfter(houseDoc(data.houseId)).data.activeInviteCode == code;
+      }
+
+      allow create: if isIssue();
+      // A code still live for any house is never overwritten; an expired one may be reused.
+      allow update: if isIssue() && !inviteLive(resource.data);
+      // The owner of the invite's house removes it (reissue, stop, or dissolving that house).
+      allow delete: if signedIn() && get(houseDoc(resource.data.houseId)).data.ownerId == me();
+    }
+
     // ---- houses/{houseId} ----
     match /houses/{houseId} {
       allow get: if isMember(houseId);
@@ -96,12 +127,54 @@ service cloud.firestore {
           && existsAfter(memberDoc(houseId, me()))
           && getAfter(userDoc(me())).data.currentHouseId == houseId;
 
-      // itemCount moves by one with each item create/delete (checked on the item).
-      allow update: if isMember(houseId)
-          && changed().hasOnly(['itemCount'])
-          && request.resource.data.itemCount >= 0
-          && (request.resource.data.itemCount == resource.data.itemCount + 1
-              || request.resource.data.itemCount == resource.data.itemCount - 1);
+      function memberCountMovesBy(delta) {
+        return changed().hasOnly(['memberCount'])
+            && request.resource.data.memberCount == resource.data.memberCount + delta;
+      }
+
+      // Each branch changes only its own fields.
+      allow update: if signedIn() && (
+          // itemCount moves by one with each item create/delete (checked on the item).
+          (isMember(houseId)
+              && changed().hasOnly(['itemCount'])
+              && request.resource.data.itemCount >= 0
+              && (request.resource.data.itemCount == resource.data.itemCount + 1
+                  || request.resource.data.itemCount == resource.data.itemCount - 1))
+          // Join: +1 exactly when the caller's member document appears in this commit (max 6).
+          || (memberCountMovesBy(1)
+              && request.resource.data.memberCount <= 6
+              && !exists(memberDoc(houseId, me()))
+              && existsAfter(memberDoc(houseId, me())))
+          // Leave: -1 when a non-owner caller's own member document disappears.
+          || (memberCountMovesBy(-1)
+              && resource.data.ownerId != me()
+              && exists(memberDoc(houseId, me()))
+              && !existsAfter(memberDoc(houseId, me())))
+          // Remove: the owner lowers the count; the member delete rule requires this -1.
+          || (memberCountMovesBy(-1)
+              && resource.data.ownerId == me()
+              && request.resource.data.memberCount >= 1)
+          // Invite: the owner points at an invite for this house, or stops inviting.
+          || (resource.data.ownerId == me()
+              && changed().hasOnly(['activeInviteCode'])
+              && (!('activeInviteCode' in request.resource.data)
+                  || (isInviteCode(request.resource.data.activeInviteCode)
+                      && getAfter(inviteDoc(request.resource.data.activeInviteCode)).data.houseId == houseId)))
+          // Region (F-08): the owner sets the area and its forecast grid.
+          || (resource.data.ownerId == me()
+              && changed().hasOnly(['regionName', 'nx', 'ny'])
+              && isText(request.resource.data.regionName, 30)
+              && request.resource.data.nx is int && request.resource.data.nx >= 1 && request.resource.data.nx <= 149
+              && request.resource.data.ny is int && request.resource.data.ny >= 1 && request.resource.data.ny <= 253)
+      );
+
+      // The owner dissolves their own empty one-person house while moving elsewhere (joining).
+      allow delete: if isOwner(houseId)
+          && resource.data.memberCount == 1
+          && resource.data.itemCount == 0
+          && resource.data.choreCount == 0
+          && !existsAfter(memberDoc(houseId, me()))
+          && getAfter(userDoc(me())).data.currentHouseId != houseId;
 
       // ---- members/{uid} ----
       match /members/{memberId} {
@@ -109,14 +182,51 @@ service cloud.firestore {
         allow get: if isSelf(memberId) || isMember(houseId);
         allow list: if isMember(houseId);
 
-        // Only while founding a new house; joining an existing house is not open yet.
+        // Founding a new house (first sign-in, recovery, leaving).
+        function isFounding() {
+          return !exists(houseDoc(houseId))
+              && getAfter(houseDoc(houseId)).data.ownerId == me()
+              && hasExactly(request.resource.data, ['displayName', 'joinedAt'])
+              && request.resource.data.displayName == getAfter(userDoc(me())).data.displayName;
+        }
+
+        // Joining with a live invite that is the house's active one, into a house with room, while
+        // the caller's empty one-person house is deleted in the same commit (docs/DATA_MODEL.md).
+        function isJoining() {
+          let data = request.resource.data;
+          let house = get(houseDoc(houseId)).data;
+          let previousHouse = get(userDoc(me())).data.currentHouseId;
+          return exists(houseDoc(houseId))
+              && hasExactly(data, ['displayName', 'joinedAt', 'inviteCode'])
+              && isInviteCode(data.inviteCode)
+              && house.activeInviteCode == data.inviteCode
+              && get(inviteDoc(data.inviteCode)).data.houseId == houseId
+              && inviteLive(get(inviteDoc(data.inviteCode)).data)
+              && house.memberCount < 6
+              && getAfter(houseDoc(houseId)).data.memberCount == house.memberCount + 1
+              && data.displayName == get(userDoc(me())).data.displayName
+              && previousHouse != houseId
+              && !existsAfter(houseDoc(previousHouse))
+              && getAfter(userDoc(me())).data.currentHouseId == houseId;
+        }
+
         allow create: if isSelf(memberId)
-            && !exists(houseDoc(houseId))
-            && getAfter(houseDoc(houseId)).data.ownerId == me()
-            && hasExactly(request.resource.data, ['displayName', 'joinedAt'])
             && isText(request.resource.data.displayName, 20)
-            && request.resource.data.displayName == getAfter(userDoc(me())).data.displayName
-            && request.resource.data.joinedAt == request.time;
+            && request.resource.data.joinedAt == request.time
+            && (isFounding() || isJoining());
+
+        function houseCountDropsByOne() {
+          return getAfter(houseDoc(houseId)).data.memberCount == get(houseDoc(houseId)).data.memberCount - 1;
+        }
+
+        allow delete: if signedIn() && (
+            // Leaving: a non-owner removes themself.
+            (isSelf(memberId) && get(houseDoc(houseId)).data.ownerId != me() && houseCountDropsByOne())
+            // Dissolving: the owner removes themself while deleting the house in the same commit.
+            || (isSelf(memberId) && get(houseDoc(houseId)).data.ownerId == me() && !existsAfter(houseDoc(houseId)))
+            // Removing: the owner removes another member.
+            || (isOwner(houseId) && memberId != me() && houseCountDropsByOne())
+        );
       }
 
       // ---- items/{itemId} ----
