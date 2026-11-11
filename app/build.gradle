@@ -74,6 +74,7 @@ dependencies {
     implementation libs.androidx.lifecycle.livedata
     implementation libs.androidx.recyclerview
     implementation libs.androidx.work.runtime
+    implementation libs.guava
     implementation platform(libs.firebase.bom)
     implementation libs.firebase.auth
     implementation libs.firebase.firestore

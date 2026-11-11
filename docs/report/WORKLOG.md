@@ -61,6 +61,7 @@
 | 2026-11-11 | 전주용: 12번 진행 요청·배포 승인 예정; Claude Code (도구): 규칙·저장소·테스트·문서 작성 및 검증 | 주간 집안일(F-07·F-09): chores·logs 규칙, ChoreRepository(구독, 트랜잭션 등록·수정·완료·날짜 변경·그대로 두기, 기록 포함 삭제), 회차·revision 충돌 구분, 탈퇴 시 집안일 정리. 단위 165·규칙 111 통과, 배포 전, 실기기 미확인 | [이슈 #44](https://github.com/kw-mobile/home-timing/issues/44), [PR #45](https://github.com/kw-mobile/home-timing/pull/45) |
 | 2026-11-11 | 전주용: 13번 진행 요청·API허브 키 발급·활용신청; Claude Code (도구): 데이터 계층·테스트·문서 작성, 격자표 추출, 실제 API 호출 검증 | 날씨 데이터 계층(F-08·F-13): 기상청 API허브 호출, 응답 검사, 격자·발표 회차 캐시와 6시간 대체, 시·군·구 256곳 격자표, 테스트 날씨 모드, SETUP API허브 안내. 실제 응답 확인, 단위 203 통과, 3일 뒤부터 판정 불가(3시간 간격 예보), 실기기 미확인 | [이슈 #46](https://github.com/kw-mobile/home-timing/issues/46), [PR #47](https://github.com/kw-mobile/home-timing/pull/47) |
 | 2026-11-11 | 전주용: 10번 진행 요청·notify 담당 확정·PR 순서 결정; Claude Code (도구): 데이터 API·테스트·문서 작성 및 로컬 검증 | 알림용 데이터 API(F-06): 회차 포함 식별자, 알림 직전 5초 서버 확인(실패 시 저장된 일정), 서버 전용 동기화 읽기, 완료·일정 변경·추가·삭제 이벤트. 단위 222 통과, Firebase 호출·실기기 미확인, notify 구현 전 | [이슈 #48](https://github.com/kw-mobile/home-timing/issues/48), [PR #49](https://github.com/kw-mobile/home-timing/pull/49) |
+| 2026-11-11 | 전주용: 의존성 PR 분리 결정; Claude Code (도구): 카탈로그·잠금 변경 및 로컬 검증 | WorkManager `Worker` 컴파일용 Guava 추가. 런타임 버전 변경 없음, 컴파일 구성에만 추가. 단위 222 통과, Lint 오류 0 | [이슈 #51](https://github.com/kw-mobile/home-timing/issues/51), [PR #52](https://github.com/kw-mobile/home-timing/pull/52) |
 
 ## 기록 예시
 
