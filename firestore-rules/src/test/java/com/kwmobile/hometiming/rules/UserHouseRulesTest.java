@@ -175,7 +175,7 @@ public class UserHouseRulesTest extends RulesTestBase {
     }
 
     @Test
-    public void usersAndHousesCannotBeDeletedYet() {
+    public void usersAndHousesCannotBeDeletedWhileInUse() {
         seedHouse("house-a", 0, "alice");
 
         assertDenied(firestore.delete(ALICE, "users/alice"));

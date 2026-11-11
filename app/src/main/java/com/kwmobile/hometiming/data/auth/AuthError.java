@@ -19,6 +19,10 @@ public enum AuthError {
     /** Built without app/google-services.json. */
     NOT_CONFIGURED(R.string.auth_error_not_configured),
     NOT_SIGNED_IN(R.string.auth_error_not_signed_in),
+    /** Account deletion: the owner must remove the other members first (no owner transfer in P0). */
+    OWNER_HAS_MEMBERS(R.string.auth_error_owner_has_members),
+    /** Account deletion: data is cleaned up but the Auth account is not deleted yet; call again. */
+    DELETE_INCOMPLETE(R.string.auth_error_delete_incomplete),
     UNKNOWN(R.string.auth_error_unknown);
 
     @StringRes

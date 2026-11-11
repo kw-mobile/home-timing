@@ -1,8 +1,8 @@
 rules_version = '2';
 
 // Security rules v2 for docs/DATA_MODEL.md: personal replacement tracking (v1) plus family
-// sharing (invites, join, leave, remove, region). Anything not matched below stays denied:
-// chores/logs and deleting users. Tests: firestore-rules/ (docs/TESTING.md).
+// sharing (invites, join, leave, remove, region) and account deletion. Anything not matched below
+// stays denied, including chores/logs. Tests: firestore-rules/ (docs/TESTING.md).
 service cloud.firestore {
   match /databases/{database}/documents {
 
@@ -77,10 +77,15 @@ service cloud.firestore {
             (changed().hasOnly(['notifyTime', 'advanceDays', 'updatedAt'])
                 && isNotifyTime(request.resource.data.notifyTime)
                 && isAdvanceDays(request.resource.data.advanceDays))
-            // Moving to another house (recovery now; joining later) needs membership there.
+            // Moving to another house (recovery, joining, leaving) needs membership there.
             || (changed().hasOnly(['currentHouseId', 'updatedAt'])
                 && memberAfter(request.resource.data.currentHouseId))
           );
+
+      // Account deletion: the user leaves (or dissolves) their current house in the same commit,
+      // so no member document points at a deleted user. Auth is deleted afterwards by the app.
+      allow delete: if isSelf(userId)
+          && !existsAfter(memberDoc(resource.data.currentHouseId, me()));
     }
 
     // ---- invites/{code}: outside houses so non-members can join without reading the house ----
@@ -168,13 +173,14 @@ service cloud.firestore {
               && request.resource.data.ny is int && request.resource.data.ny >= 1 && request.resource.data.ny <= 253)
       );
 
-      // The owner dissolves their own empty one-person house while moving elsewhere (joining).
+      // The owner dissolves their own empty one-person house while moving elsewhere (joining) or
+      // deleting their account (the user document goes in the same commit).
       allow delete: if isOwner(houseId)
           && resource.data.memberCount == 1
           && resource.data.itemCount == 0
           && resource.data.choreCount == 0
           && !existsAfter(memberDoc(houseId, me()))
-          && getAfter(userDoc(me())).data.currentHouseId != houseId;
+          && (!existsAfter(userDoc(me())) || getAfter(userDoc(me())).data.currentHouseId != houseId);
 
       // ---- members/{uid} ----
       match /members/{memberId} {
