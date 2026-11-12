@@ -65,6 +65,10 @@
 | 2026-11-11 | 전주용: notify 담당 확정·의존성 PR 분리 결정; Claude Code (도구): notify·테스트·문서 작성, 로컬·에뮬레이터 검증 | 로컬 알림(F-06): 서울 기준 사전·당일 예약, 직전 서버 확인 후 표시(실패 시 저장된 일정), 같은 회차 반복 방지, 다른 기기 완료 시 취소, 부정확 알람 대체, 재부팅 재예약, 서버 전용 동기화 Worker, 로그아웃 정리, 개인 설정 저장. 단위 246 통과, Pixel 7 에뮬레이터(Android 14)에서 발화·표시·취소·권한 없음 확인, 실제 Firebase·두 기기·실기기 재부팅 미확인, 화면 연결 전 | [이슈 #50](https://github.com/kw-mobile/home-timing/issues/50), [PR #53](https://github.com/kw-mobile/home-timing/pull/53) |
 | 2026-11-12 | 전주용: 14번 방식(에뮬레이터 백엔드 검증) 결정; Claude Code (도구): 임시 하네스 작성·실행·기록 | 두 기기 시연 A·B를 Firebase Emulator Suite와 Android 에뮬레이터 2대(Android 14)로 저장소 단위 실행: 공유 반영·다른 기기 완료 후 알림 취소·완료자 이력·날씨 제안 이동·원래 요일 다음 회차 확인, 동시 완료는 판정 보류. 실제 화면·실기기 시연 전 | [이슈 #54](https://github.com/kw-mobile/home-timing/issues/54), [결과](https://github.com/kw-mobile/home-timing/issues/54#issuecomment-6799749862) |
 | 2026-11-12 | 전주용: 보강 진행 결정; Claude Code (도구): 원인 발견·수정·테스트 작성 및 로컬 검증 | 동시 변경에 진 쪽이 '권한 없음' 대신 서버 재확인으로 '이미 완료/일정 변경/삭제됨'을 받도록 용품·집안일 저장소 보강. 단위 250 통과, 실제 경쟁 재현 미확인 | [이슈 #55](https://github.com/kw-mobile/home-timing/issues/55), [PR #56](https://github.com/kw-mobile/home-timing/pull/56) |
+| 2026-11-12 | 사용자(성명 확인 필요): 백엔드 범위·실행 승인·흐름 단위 테스트 원칙 결정; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | 개수·대상 문서 양방향 규칙, 삭제 동결·재개, 같은 날 완료 보존, Auth·알림 세션 경쟁 차단, 공통 오류·삭제 절차, 관리자 전환 도구. 단위 255·규칙 115·전환 모의 흐름 2 및 로컬 REST 전환 확인. 공용 배포·실기기 미수행 | [이슈 #57](https://github.com/kw-mobile/home-timing/issues/57), [PR #58](https://github.com/kw-mobile/home-timing/pull/58) |
+| 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 개선 승인; Codex (도구): 취약점 확인·의존성 패치·검증 | Guava32.1.3-android의 CVE-2026-102554 영향 범위를 공식 권고로 확인하고33.7.2-android로 패치. Wrapper로 잠금 재생성, 기본 빌드·단위255·Lint 통과, 출시 런타임147좌표 OSV 재조회 매칭0. 원격 악용 재현은 아님, AGP 내부 도구 매칭은 별도 | [이슈 #60](https://github.com/kw-mobile/home-timing/issues/60), [PR #61](https://github.com/kw-mobile/home-timing/pull/61) |
+| 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 수정 승인·흐름 단위 테스트 요구; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | 서버의 계정 삭제·집 정리 수명, 이전 소속 제거, 회차 ID·초대 요청 제한, 공통 작업 세대·캐시 구독 경계, 알림 설정 즉시 반영·중복 방지, 누락 예보·초대 오류 수정. 단위 258·규칙 121·전환 흐름 3, 로컬 Auth/Firestore 정리→복원 거부→Auth 삭제 후 고아 없음 확인. 사용자 지정 계정으로 운영 메타데이터 6항목 조회 확인, 배포·전환·실기기 미수행 | [이슈 #59](https://github.com/kw-mobile/home-timing/issues/59), [PR #62](https://github.com/kw-mobile/home-timing/pull/62); [운영 점검](SECURITY_OPERATIONS.md) |
+| 2026-11-12 | 사용자(성명 확인 필요): UI까지 정리 범위·흐름 검증·작업 단위 CI 게시 원칙 결정; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | MainActivity 화면 바인딩을 기능별로 분리하고 공통 표시 도구 추출. Auth 계정 데이터 삭제·House 초대 절차 분리, Item/Chore 실행 합성·Reminder 서버 읽기 단계 정리. 공개 API·화면·저장 상태 유지. 단위258·규칙121·전환3·UI79상태 및 회전/이탈4흐름 확인, 28화면 구조 비교 동일. 구현·검증·리뷰 후 모아서 push/PR하는 지침 추가. 실제 Firebase·실기기 미검증 | [이슈 #63](https://github.com/kw-mobile/home-timing/issues/63), [PR #64](https://github.com/kw-mobile/home-timing/pull/64) |
 
 ## 기록 예시
 
@@ -75,11 +79,3 @@ YYYY-MM-DD | @구현자: 교체일 계산 구현; @검증자: 윤년/월말 검�
 ```
 
 PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 항목은 보고서 작성 전에 실제 참여자에게 확인합니다. 기록을 채우기 위해 수행하지 않은 작업이나 사람을 추가하지 않습니다.
-
-| 2026-11-12 | 사용자(성명 확인 필요): 백엔드 범위·실행 승인·흐름 단위 테스트 원칙 결정; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | 개수·대상 문서 양방향 규칙, 삭제 동결·재개, 같은 날 완료 보존, Auth·알림 세션 경쟁 차단, 공통 오류·삭제 절차, 관리자 전환 도구. 단위 255·규칙 115·전환 모의 흐름 2 및 로컬 REST 전환 확인. 공용 배포·실기기 미수행 | [이슈 #57](https://github.com/kw-mobile/home-timing/issues/57), [PR #58](https://github.com/kw-mobile/home-timing/pull/58) |
-
-| 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 개선 승인; Codex (도구): 취약점 확인·의존성 패치·검증 | Guava32.1.3-android의 CVE-2026-102554 영향 범위를 공식 권고로 확인하고33.7.2-android로 패치. Wrapper로 잠금 재생성, 기본 빌드·단위255·Lint 통과, 출시 런타임147좌표 OSV 재조회 매칭0. 원격 악용 재현은 아님, AGP 내부 도구 매칭은 별도 | [이슈 #60](https://github.com/kw-mobile/home-timing/issues/60), [PR #61](https://github.com/kw-mobile/home-timing/pull/61) |
-
-| 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 수정 승인·흐름 단위 테스트 요구; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | 서버의 계정 삭제·집 정리 수명, 이전 소속 제거, 회차 ID·초대 요청 제한, 공통 작업 세대·캐시 구독 경계, 알림 설정 즉시 반영·중복 방지, 누락 예보·초대 오류 수정. 단위 258·규칙 121·전환 흐름 3, 로컬 Auth/Firestore 정리→복원 거부→Auth 삭제 후 고아 없음 확인. 사용자 지정 계정으로 운영 메타데이터 6항목 조회 확인, 배포·전환·실기기 미수행 | [이슈 #59](https://github.com/kw-mobile/home-timing/issues/59), [PR #62](https://github.com/kw-mobile/home-timing/pull/62); [운영 점검](SECURITY_OPERATIONS.md) |
-
-| 2026-11-12 | 사용자(성명 확인 필요): UI까지 정리 범위·흐름 단위 검증 원칙 결정; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | MainActivity 화면 바인딩을 기능별로 분리하고 공통 표시 도구 추출. Auth 계정 데이터 삭제·House 초대 절차 분리, Item/Chore 실행 합성·Reminder 서버 읽기 단계 정리. 공개 API·화면·저장 상태 유지 | [이슈 #63](https://github.com/kw-mobile/home-timing/issues/63) |
