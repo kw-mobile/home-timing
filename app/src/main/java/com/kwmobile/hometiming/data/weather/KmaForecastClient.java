@@ -70,10 +70,10 @@ final class KmaForecastClient implements ForecastSource {
             Response<ResponseBody> response =
                     api.forecast(1, ROWS, "JSON", base.baseDate(), base.baseTime(), nx, ny).execute();
             if (response.code() == 401 || response.code() == 403) {
-                throw new WeatherException(WeatherError.NOT_AUTHORIZED);
+                throw new WeatherException(WeatherError.NOT_AUTHORIZED, "HTTP_" + response.code());
             }
             if (!response.isSuccessful()) {
-                throw new WeatherException(WeatherError.SERVER);
+                throw new WeatherException(WeatherError.SERVER, "HTTP_" + response.code());
             }
             ResponseBody body = response.body();
             if (body == null) {

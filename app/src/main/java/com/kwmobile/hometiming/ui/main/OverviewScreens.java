@@ -32,6 +32,7 @@ import java.util.Locale;
 /** Binds local fixture screens without owning lifecycle or saved state. */
 final class OverviewScreens {
     private final Context context;
+    private final DesignPreviewViewModel vm;
     private final View screen;
     private final DesignPreviewViewModel.State preview;
     private final PreviewHost host;
@@ -41,6 +42,7 @@ final class OverviewScreens {
 
     OverviewScreens(View root, DesignPreviewViewModel vm, PreviewHost host, PreviewWidgets ui) {
         this.context = root.getContext();
+        this.vm = vm;
         this.screen = root;
         this.preview = vm.state;
         this.host = host;
@@ -69,6 +71,7 @@ final class OverviewScreens {
         LinearLayout photoCopy =
                 (LinearLayout) screen.findViewById(R.id.weather_location).getParent();
         photoCopy.setPadding(ui.dp(20), ui.dp(16), ui.dp(20), ui.dp(16));
+        host.prepareHomeBackdrop(homePhoto);
         updateWeather();
         screen.findViewById(R.id.weather_hero).setOnClickListener(v -> host.go("weather"));
         screen.findViewById(R.id.weather_hero)
@@ -159,34 +162,18 @@ final class OverviewScreens {
     }
 
     private void bindHomeWeatherSuggestion() {
-        boolean weatherUnknown = !preview.scenario.equals("normal");
-        Item suggested = null;
-        for (Item candidate : preview.store.sorted())
-            if (preview.store.proposalTarget(
-                            candidate, preview.condition.equals("rain"), !weatherUnknown)
-                    != null) {
-                suggested = candidate;
+        LinearLayout proposal = ui.box(R.id.home_weather_suggestion);
+        LinearLayout row = ui.settingsRow(proposal,
+                context.getString(R.string.intent_home_weather),
+                weather.weatherSummary(), R.drawable.ic_wash, () -> host.go("weather"));
+        row.setMinimumHeight(ui.dp(64));
+        row.setPadding(0, ui.dp(8), 0, ui.dp(8));
+        for (Item item : preview.store.sorted()) {
+            if (weather.weatherProposalTarget(item) != null) {
+                proposal.addView(ui.caption(context.getString(R.string.weather_ui_fixture_suggestions)));
+                weather.bindProposal(proposal, item, false);
                 break;
             }
-        if (suggested != null) {
-            LinearLayout proposal = ui.box(R.id.home_weather_suggestion);
-            ui.gap(proposal, 8);
-            weather.bindProposal(proposal, suggested, false);
-        } else {
-            LinearLayout proposalRow =
-                    ui.settingsRow(
-                            ui.box(R.id.home_weather_suggestion),
-                            context.getString(R.string.intent_home_weather),
-                            context.getString(
-                                    weatherUnknown
-                                            ? R.string.intent_home_weather_unknown
-                                            : preview.condition.equals("rain")
-                                                    ? R.string.intent_proposal_no_change
-                                                    : R.string.intent_home_weather_clear),
-                            R.drawable.ic_wash,
-                            () -> host.go("weather"));
-            proposalRow.setMinimumHeight(ui.dp(64));
-            proposalRow.setPadding(0, ui.dp(8), 0, ui.dp(8));
         }
     }
 
@@ -293,20 +280,24 @@ final class OverviewScreens {
                 ui.smallAction(context.getString(R.string.preview_copy_037), () -> host.edit("")));
         controls.addView(add);
         ui.gap(controls, 16);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        List<String> filters = vm.categories(false, categories.defaults(false));
+        filters.add(0, context.getString(R.string.preview_copy_051));
+        if (!filters.contains(preview.filter)) preview.filter = filters.get(0);
         ui.chips(
                 controls,
-                new String[] {
-                    context.getString(R.string.preview_copy_051),
-                    context.getString(R.string.preview_copy_023),
-                    context.getString(R.string.preview_copy_052),
-                    context.getString(R.string.preview_copy_053)
-                },
+                filters.toArray(new String[0]),
                 preview.filter,
                 value -> {
                     host.capture();
                     preview.filter = value;
                     host.render();
-                });
+                },
+                () -> categories.add(false, value -> {
+                    host.capture();
+                    preview.filter = value;
+                    host.render();
+                }));
         LinearLayout rows = ui.box(R.id.item_rows);
         if (ui.stateMessage(rows, preview, host::render, () -> host.edit(""))) return;
         int countItems = 0;
@@ -486,106 +477,6 @@ final class OverviewScreens {
     }
 
     void bindWeather() {
-        updateWeather();
-        LinearLayout content = ui.box(R.id.weather_content);
-        if (ui.stateMessage(content, preview, host::render, () -> host.edit(""))) return;
-        ui.section(
-                content,
-                context.getString(R.string.preview_copy_144),
-                context.getString(R.string.preview_copy_145, preview.region));
-        LinearLayout forecastHead = ui.horizontal();
-        TextView dayHeading = ui.caption(context.getString(R.string.preview_forecast_day));
-        forecastHead.addView(dayHeading, new LinearLayout.LayoutParams(0, -2, 1));
-        TextView temperatureHeading =
-                ui.caption(context.getString(R.string.preview_forecast_temperatures));
-        temperatureHeading.setGravity(Gravity.END);
-        forecastHead.addView(temperatureHeading, new LinearLayout.LayoutParams(0, -2, 1));
-        content.addView(forecastHead);
-        ui.gap(content, 4);
-        for (int i = 0; i < 3; i++) {
-            LinearLayout row = ui.horizontal();
-            row.setMinimumHeight(ui.dp(62));
-            TextView day =
-                    ui.text(
-                            i == 0
-                                    ? context.getString(R.string.preview_copy_017)
-                                    : i == 1
-                                            ? context.getString(R.string.preview_copy_146)
-                                            : context.getString(R.string.preview_copy_147),
-                            R.style.TextAppearance_HomeTiming_BodyStrong);
-            day.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-            row.addView(day);
-            ImageView icon = new androidx.appcompat.widget.AppCompatImageView(context);
-            icon.setImageResource(
-                    i == 1
-                            ? R.drawable.ic_cloud
-                            : preview.condition.equals("rain")
-                                    ? R.drawable.ic_rain
-                                    : R.drawable.ic_sun);
-            icon.setImageTintList(ColorStateList.valueOf(ui.color(R.color.ht_text)));
-            icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            row.addView(icon, new LinearLayout.LayoutParams(ui.dp(22), ui.dp(22)));
-            TextView degrees = ui.label(i == 0 ? "12°   21°" : i == 1 ? "11°   19°" : "10°   20°");
-            degrees.setGravity(Gravity.END);
-            row.addView(degrees, new LinearLayout.LayoutParams(0, -2, 1));
-            row.setContentDescription(
-                    (i == 0
-                                    ? context.getString(R.string.preview_copy_017)
-                                    : i == 1
-                                            ? context.getString(R.string.preview_copy_146)
-                                            : context.getString(R.string.preview_copy_147))
-                            + (i == 1
-                                    ? context.getString(R.string.preview_copy_148)
-                                    : ", "
-                                            + (preview.condition.equals("rain")
-                                                    ? context.getString(R.string.preview_copy_138)
-                                                    : context.getString(R.string.preview_copy_141)))
-                            + ", "
-                            + degrees.getText());
-            content.addView(row);
-            ui.line(content);
-        }
-        ui.gap(content, 28);
-        boolean rain = preview.condition.equals("rain"),
-                unknown = preview.scenario.equals("offline");
-        ui.section(
-                content,
-                context.getString(
-                        R.string.preview_copy_149,
-                        unknown
-                                ? context.getString(R.string.preview_copy_150)
-                                : rain
-                                        ? context.getString(R.string.preview_copy_151)
-                                        : context.getString(R.string.preview_copy_152)),
-                context.getString(R.string.preview_copy_153));
-        content.addView(
-                ui.label(
-                        unknown
-                                ? context.getString(R.string.preview_copy_154)
-                                : rain
-                                        ? context.getString(R.string.preview_copy_155)
-                                        : context.getString(R.string.preview_copy_156)));
-        ui.gap(content, 28);
-        ui.section(
-                content,
-                context.getString(R.string.preview_copy_157),
-                context.getString(R.string.preview_copy_158));
-        for (Item item : preview.store.sorted())
-            if (item.chore && item.weatherSensitive) {
-                ui.settingsRow(
-                        content,
-                        item.name,
-                        context.getString(R.string.preview_copy_159, ui.date(item.due)),
-                        ui.icon(item),
-                        () -> host.go("detail", item.id));
-                weather.bindProposal(content, item, false);
-                ui.gap(content, 16);
-            }
-        ui.gap(content, 16);
-        content.addView(
-                ui.caption(
-                        context.getString(
-                                R.string.preview_copy_166,
-                                ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))));
+        weather.bindWeather();
     }
 }

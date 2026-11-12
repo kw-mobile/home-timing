@@ -112,19 +112,9 @@ final class ItemScreens {
                 d.category,
                 0,
                 () ->
-                        ui.choose(
-                                context.getString(R.string.preview_copy_091),
-                                d.chore
-                                        ? new String[] {
-                                            context.getString(R.string.preview_copy_089),
-                                            context.getString(R.string.preview_copy_092),
-                                            context.getString(R.string.preview_copy_053)
-                                        }
-                                        : new String[] {
-                                            context.getString(R.string.preview_copy_023),
-                                            context.getString(R.string.preview_copy_052),
-                                            context.getString(R.string.preview_copy_053)
-                                        },
+                        new CategoryDialog(context, vm, ui).choose(
+                                d.chore,
+                                d.category,
                                 value -> {
                                     host.capture();
                                     d.category = value;

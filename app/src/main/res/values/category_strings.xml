@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="category_add_title">분류 추가</string>
+    <string name="category_add_option">+ 직접 입력</string>
+    <string name="category_name_hint">분류명 (예: 침실, 베란다, 서재)</string>
+    <string name="category_add_action">추가</string>
+    <string name="category_invalid">분류명을 1~30자로 입력해 주세요. ‘전체’는 사용할 수 없어요.</string>
+    <string name="category_duplicate">이미 있는 분류예요. 다른 이름을 입력해 주세요.</string>
+</resources>

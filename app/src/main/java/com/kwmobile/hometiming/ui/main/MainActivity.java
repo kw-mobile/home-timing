@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
+import android.content.res.ColorStateList;
+import android.widget.FrameLayout;
 import android.graphics.Outline;
 import android.os.Bundle;
 import android.view.View;
@@ -40,18 +42,28 @@ import java.time.LocalDate;
 public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
+    private WeatherViewModel weatherVm;
+    private WeatherViewModel.State shownWeatherState;
     private View screen;
     private boolean syncingNavigation;
     private final BroadcastReceiver clock =
             new BroadcastReceiver() {
                 @Override
                 public void onReceive(Context context, Intent intent) {
-                    if (overview != null) overview.updateWeather();
+                    weatherVm.refresh(false);
+                    if (s().route.screen.equals("weather")) { capture(); render(); }
+                    else if (overview != null) overview.updateWeather();
                 }
             };
     private OverviewScreens overview;
     private final PreviewHost host =
             new PreviewHost() {
+                public WeatherViewModel weatherViewModel() { return weatherVm; }
+
+                public android.widget.ImageView homeWeatherBackdrop() { return binding.homeWeatherBackdrop; }
+
+                public void prepareHomeBackdrop(View hero) { MainActivity.this.prepareHomeBackdrop(hero); }
+
                 public void go(String name, String id) {
                     MainActivity.this.go(name, id);
                 }
@@ -123,6 +135,8 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         vm = new ViewModelProvider(this).get(DesignPreviewViewModel.class);
         vm.restore(saved);
+        weatherVm = new ViewModelProvider(this).get(WeatherViewModel.class);
+        s().region = weatherVm.regionName();
         configureInsets();
         binding.mainContent.setBackgroundColor(color(R.color.ht_background));
         binding.systemNavigationBackdrop.getLayoutParams().height = dp(16);
@@ -170,6 +184,18 @@ public final class MainActivity extends AppCompatActivity {
                         });
         if (saved == null) readPreviewIntent(getIntent());
         render();
+        shownWeatherState=weatherVm.current();
+        weatherVm.state().observe(this,state -> {
+            if(state==shownWeatherState)return;
+            shownWeatherState=state;
+            s().region=weatherVm.regionName();
+            if(screen==null)return;
+            String page=s().route.screen;
+            if(page.equals("home")||page.equals("weather")||page.equals("settings")
+                    ||page.equals("preferences")&&(s().route.id.equals("weather")||s().route.id.equals("region"))) {
+                capture();render();
+            }
+        });
     }
 
     @Override
@@ -345,8 +371,17 @@ public final class MainActivity extends AppCompatActivity {
         }
         String name = s().route.screen;
         int pageColor = color(R.color.ht_background);
-        binding.mainContent.setBackgroundColor(pageColor);
-        binding.topBar.setBackgroundColor(pageColor);
+        boolean home = name.equals("home");
+        binding.mainContent.setBackgroundColor(home ? android.graphics.Color.TRANSPARENT : pageColor);
+        binding.topBar.setBackgroundColor(home ? android.graphics.Color.TRANSPARENT : pageColor);
+        binding.homeWeatherBackdrop.setVisibility(home ? View.VISIBLE : View.GONE);
+        int toolbarColor = color(home ? R.color.ht_photo_text : R.color.ht_text);
+        binding.toolbarTitle.setTextColor(toolbarColor);
+        binding.brandIcon.setImageTintList(ColorStateList.valueOf(toolbarColor));
+        binding.galleryButton.setTextColor(toolbarColor);
+        boolean light = (getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK)
+                != Configuration.UI_MODE_NIGHT_YES;
+        WindowCompat.getInsetsController(getWindow(), binding.getRoot()).setAppearanceLightStatusBars(!home && light);
         screen = getLayoutInflater().inflate(layoutFor(name), binding.screenContainer, false);
         binding.screenContainer.removeAllViews();
         binding.screenContainer.addView(screen);
@@ -354,9 +389,37 @@ public final class MainActivity extends AppCompatActivity {
         restoreScroll();
         bindScreen(name, new PreviewWidgets(screen));
         motion(screen);
-        FluidMotion.enter(screen, binding.glassBackdrop::refresh);
+        if (!home) FluidMotion.enter(screen, binding.glassBackdrop::refresh);
         binding.glassBackdrop.refresh();
         ViewCompat.setAccessibilityPaneTitle(screen, toolbarTitle(name));
+    }
+
+    private void prepareHomeBackdrop(View homePhoto) {
+        // Extend only the background; preserve the hero, text and sheet geometry.
+        homePhoto.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        screen.findViewById(R.id.weather_scrim).setVisibility(View.INVISIBLE);
+        screen.findViewById(R.id.weather_photo).setVisibility(View.INVISIBLE);
+        View homeScreen=screen;
+        Runnable sizeBackdrop=() -> {
+            if(screen!=homeScreen)return;
+            int[] heroPosition=new int[2],rootPosition=new int[2];
+            homePhoto.getLocationInWindow(heroPosition);binding.getRoot().getLocationInWindow(rootPosition);
+            FrameLayout.LayoutParams size=(FrameLayout.LayoutParams)binding.homeWeatherBackdrop.getLayoutParams();
+            int height=Math.max(0,heroPosition[1]+homePhoto.getHeight()-rootPosition[1]);
+            int top=-binding.getRoot().getPaddingTop();
+            if(size.height!=height||size.topMargin!=top) {
+                size.height=height;size.topMargin=top;binding.homeWeatherBackdrop.setLayoutParams(size);
+            }
+        };
+        homePhoto.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob) -> sizeBackdrop.run());
+        binding.getRoot().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View v,int l,int t,int r,int b,int ol,int ot,int or,int ob) {
+                if(screen!=homeScreen){v.removeOnLayoutChangeListener(this);return;}
+                sizeBackdrop.run();
+            }
+        });
+        homePhoto.post(sizeBackdrop);
+        ((NestedScrollView)screen.findViewById(R.id.hero_scroll)).setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener)(v,x,y,oldX,oldY) -> sizeBackdrop.run());
     }
 
     private int layoutFor(String name) {

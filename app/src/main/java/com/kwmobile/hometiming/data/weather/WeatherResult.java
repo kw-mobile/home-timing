@@ -22,8 +22,16 @@ public final class WeatherResult {
     public final Map<LocalDate, DailyForecast> days;
     public final Source source;
     public final long fetchedAtMillis;
+    /** Raw validated hours for temperature, sky and daily min/max display. */
+    public final java.util.List<com.kwmobile.hometiming.domain.ForecastHour> hours;
 
     WeatherResult(Map<LocalDate, DailyForecast> days, Source source, long fetchedAtMillis) {
+        this(days, source, fetchedAtMillis, java.util.Collections.emptyList());
+    }
+
+    WeatherResult(Map<LocalDate, DailyForecast> days, Source source, long fetchedAtMillis,
+                  java.util.List<com.kwmobile.hometiming.domain.ForecastHour> hours) {
+        this.hours = java.util.Collections.unmodifiableList(new java.util.ArrayList<>(hours));
         this.days = days;
         this.source = source;
         this.fetchedAtMillis = fetchedAtMillis;

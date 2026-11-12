@@ -48,7 +48,7 @@ final class ForecastCache {
     }
 
     private static String key(int nx, int ny) {
-        return String.format(Locale.ROOT, "forecast_%d_%d", nx, ny);
+        return String.format(Locale.ROOT, "forecast_display_v2_%d_%d", nx, ny);
     }
 
     void write(int nx, int ny, BaseTime base, long fetchedAtMillis, List<ForecastHour> hours) {
@@ -60,6 +60,10 @@ final class ForecastCache {
             object.add("p", number(hour.pop));
             object.add("t", number(hour.pty));
             object.add("r", number(hour.reh));
+            object.add("tmp", number(hour.temperature));
+            object.add("sky", number(hour.sky));
+            object.add("min", number(hour.minTemperature));
+            object.add("max", number(hour.maxTemperature));
             array.add(object);
         }
         JsonObject root = new JsonObject();
@@ -82,7 +86,9 @@ final class ForecastCache {
             for (JsonElement element : root.getAsJsonArray("hours")) {
                 JsonObject object = element.getAsJsonObject();
                 hours.add(new ForecastHour(DateRules.parse(object.get("d").getAsString()), object.get("h").getAsInt(),
-                        integer(object.get("p")), integer(object.get("t")), integer(object.get("r"))));
+                        integer(object.get("p")), integer(object.get("t")), integer(object.get("r")),
+                        decimal(object.get("tmp")), integer(object.get("sky")),
+                        decimal(object.get("min")), decimal(object.get("max"))));
             }
             return new Entry(root.get("baseDate").getAsString(), root.get("baseTime").getAsString(),
                     root.get("fetchedAt").getAsLong(), Collections.unmodifiableList(hours));
@@ -91,7 +97,11 @@ final class ForecastCache {
         }
     }
 
-    private static JsonElement number(Integer value) {
+    private static Double decimal(JsonElement element) {
+        return element == null || element.isJsonNull() ? null : element.getAsDouble();
+    }
+
+    private static JsonElement number(Number value) {
         return value == null ? JsonNull.INSTANCE : new JsonPrimitive(value);
     }
 

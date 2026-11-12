@@ -39,12 +39,13 @@ final class KmaForecastParser {
         try {
             JsonObject root = JsonParser.parseString(json).getAsJsonObject();
             if (root.has("result")) {
-                throw new WeatherException(fromHubStatus(root.getAsJsonObject("result").get("status").getAsInt()));
+                int status = root.getAsJsonObject("result").get("status").getAsInt();
+                throw new WeatherException(fromHubStatus(status), "HUB_" + status);
             }
             JsonObject response = root.getAsJsonObject("response");
             String code = response.getAsJsonObject("header").get("resultCode").getAsString();
             if (!"00".equals(code)) {
-                throw new WeatherException(fromResultCode(code));
+                throw new WeatherException(fromResultCode(code), "KMA_" + code);
             }
             JsonObject body = response.getAsJsonObject("body");
             int total = body.get("totalCount").getAsInt();
@@ -64,7 +65,7 @@ final class KmaForecastParser {
 
     private static List<ForecastHour> readItems(JsonArray items, BaseTime base, int nx, int ny)
             throws WeatherException {
-        Map<String, Integer[]> slots = new TreeMap<>();
+        Map<String, Double[]> slots = new TreeMap<>();
         Set<String> seen = new HashSet<>();
         Set<String> categories = new HashSet<>();
         for (JsonElement element : items) {
@@ -90,22 +91,29 @@ final class KmaForecastParser {
                 throw invalid();
             }
             categories.add(category);
-            Integer[] slot = slots.get(date + time);
+            Double[] slot = slots.get(date + time);
             if (slot == null) {
-                slot = new Integer[3];
+                slot = new Double[7];
                 slots.put(date + time, slot);
             }
-            slot[index] = value(item.get("fcstValue"), category.equals(PTY) ? PTY_MAX : 100);
+            if (index == 3 || index >= 5) {
+                slot[index] = temperature(item.get("fcstValue"));
+            } else {
+                Integer parsed = value(item.get("fcstValue"), index == 4 ? 4 : category.equals(PTY) ? PTY_MAX : 100);
+                if (index == 4 && parsed != null && parsed != 1 && parsed != 3 && parsed != 4) parsed = null;
+                slot[index] = parsed == null ? null : parsed.doubleValue();
+            }
         }
-        if (categories.size() != 3) {
+        if (!categories.contains(POP) || !categories.contains(PTY) || !categories.contains(REH)) {
             throw invalid();
         }
         List<ForecastHour> hours = new ArrayList<>(slots.size());
-        for (Map.Entry<String, Integer[]> entry : slots.entrySet()) {
+        for (Map.Entry<String, Double[]> entry : slots.entrySet()) {
             LocalDate date = LocalDate.parse(entry.getKey().substring(0, 8), DATE);
             int hour = Integer.parseInt(entry.getKey().substring(8, 10));
-            Integer[] slot = entry.getValue();
-            hours.add(new ForecastHour(date, hour, slot[0], slot[1], slot[2]));
+            Double[] slot = entry.getValue();
+            hours.add(new ForecastHour(date, hour, integer(slot[0]), integer(slot[1]), integer(slot[2]),
+                    slot[3], integer(slot[4]), slot[5], slot[6]));
         }
         return Collections.unmodifiableList(hours);
     }
@@ -118,8 +126,26 @@ final class KmaForecastParser {
                 return 1;
             case REH:
                 return 2;
+            case "TMP": return 3;
+            case "SKY": return 4;
+            case "TMN": return 5;
+            case "TMX": return 6;
             default:
                 return -1;
+        }
+    }
+
+    private static Integer integer(Double value) {
+        return value == null ? null : value.intValue();
+    }
+
+    private static Double temperature(JsonElement element) {
+        if (element == null || element.isJsonNull()) return null;
+        try {
+            double value = Double.parseDouble(element.getAsString().trim());
+            return Double.isFinite(value) && value >= -100 && value <= 100 ? value : null;
+        } catch (NumberFormatException e) {
+            return null;
         }
     }
 

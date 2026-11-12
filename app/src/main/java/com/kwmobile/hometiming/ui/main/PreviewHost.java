@@ -29,4 +29,10 @@ interface PreviewHost {
     boolean isCurrent(View root, String routeKey);
 
     void refreshGlass();
+
+    WeatherViewModel weatherViewModel();
+
+    android.widget.ImageView homeWeatherBackdrop();
+
+    void prepareHomeBackdrop(View hero);
 }

@@ -18,12 +18,25 @@ public final class ForecastHour {
     /** Relative humidity in percent (KMA REH). */
     public final Integer reh;
 
+    /** Display values; absent or invalid values stay null, never guessed. */
+    public final Double temperature, minTemperature, maxTemperature;
+    public final Integer sky;
+
     public ForecastHour(LocalDate date, int hour, Integer pop, Integer pty, Integer reh) {
+        this(date, hour, pop, pty, reh, null, null, null, null);
+    }
+
+    public ForecastHour(LocalDate date, int hour, Integer pop, Integer pty, Integer reh,
+                        Double temperature, Integer sky, Double minTemperature, Double maxTemperature) {
         this.date = Objects.requireNonNull(date, "date");
         this.hour = hour;
         this.pop = pop;
         this.pty = pty;
         this.reh = reh;
+        this.temperature = temperature;
+        this.sky = sky;
+        this.minTemperature = minTemperature;
+        this.maxTemperature = maxTemperature;
     }
 
     boolean isComplete() {

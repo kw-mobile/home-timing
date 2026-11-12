@@ -160,6 +160,12 @@ final class PreviewWidgets {
             String[] values,
             String selected,
             java.util.function.Consumer<String> pick) {
+        chips(parent, values, selected, pick, null);
+    }
+
+    void chips(
+            LinearLayout parent, String[] values, String selected,
+            java.util.function.Consumer<String> pick, Runnable addCategory) {
         HorizontalScrollView scroll = new HorizontalScrollView(context);
         scroll.setHorizontalScrollBarEnabled(false);
         LinearLayout group = horizontal();
@@ -187,6 +193,11 @@ final class PreviewWidgets {
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, dp(48));
             lp.rightMargin = dp(8);
             group.addView(b, lp);
+        }
+        if (addCategory != null) {
+            MaterialButton add = smallAction("+", addCategory);
+            add.setContentDescription(context.getString(R.string.category_add_title));
+            group.addView(add, new LinearLayout.LayoutParams(dp(48), dp(48)));
         }
         scroll.addView(group);
         parent.addView(scroll);

@@ -177,8 +177,29 @@ public class WeatherLoaderTest {
     }
 
     @Test
+    public void cacheKeepsDisplayValuesAndExposesHoursToTheScreen() throws WeatherException {
+        BaseTime base = com.kwmobile.hometiming.domain.BaseTimeCalculator.latest(at(11, 14, 10));
+        cache.write(60, 127, base, at(11, 14, 10).millis(), Collections.singletonList(
+                new ForecastHour(NOV_12, 9, 10, 0, 50, -2.5, 3, -5.0, 4.5)));
+        WeatherResult result = loader(at(11, 14, 11)).load(60, 127);
+        assertEquals(WeatherResult.Source.CACHE, result.source);
+        assertEquals(Double.valueOf(-2.5), result.hours.get(0).temperature);
+        assertEquals(Integer.valueOf(3), result.hours.get(0).sky);
+        assertEquals(Double.valueOf(-5), result.hours.get(0).minTemperature);
+        assertEquals(Double.valueOf(4.5), result.hours.get(0).maxTemperature);
+        assertEquals(0, fetches);
+    }
+
+    @Test
+    public void oldCacheWithoutDisplayFieldsDoesNotSuppressAFreshFetch() throws WeatherException {
+        stored.put("forecast_60_127", "{}");
+        assertEquals(WeatherResult.Source.NETWORK, loader(at(11, 14, 10)).load(60, 127).source);
+        assertEquals(1, fetches);
+    }
+
+    @Test
     public void aCorruptCacheReadsAsAbsent() {
-        stored.put("forecast_60_127", "not json");
+        stored.put("forecast_display_v2_60_127", "not json");
 
         assertNull(cache.read(60, 127));
     }
@@ -192,6 +213,8 @@ public class WeatherLoaderTest {
 
         assertEquals(WeatherResult.Source.TEST, result.source);
         assertEquals(0, fetches);
+        assertEquals(Double.valueOf(18), result.hours.get(0).temperature);
+        assertEquals(Integer.valueOf(1), result.hours.get(0).sky);
         assertTrue(result.days.get(NOV_11).complete);
         assertFalse(result.days.get(NOV_11).hasPrecip);
         assertTrue(result.days.get(NOV_12).hasPrecip);

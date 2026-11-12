@@ -66,6 +66,6 @@ final class WeatherLoader {
     private WeatherResult result(List<ForecastHour> hours, WeatherResult.Source from, long fetchedAtMillis) {
         LocalDate today = DateRules.today(clock);
         int currentHour = LocalDateTime.now(clock.withZone(DateRules.ZONE)).getHour();
-        return new WeatherResult(DailyForecast.summarize(hours, today, currentHour), from, fetchedAtMillis);
+        return new WeatherResult(DailyForecast.summarize(hours, today, currentHour), from, fetchedAtMillis, hours);
     }
 }

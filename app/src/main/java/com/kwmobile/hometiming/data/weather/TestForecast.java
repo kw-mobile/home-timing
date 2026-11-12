@@ -25,13 +25,18 @@ final class TestForecast {
                 LocalDate date = today.plusDays(day.get("dayOffset").getAsInt());
                 for (int hour = 0; hour < 24; hour++) {
                     hours.add(new ForecastHour(date, hour, integer(day.get("pop")), integer(day.get("pty")),
-                            integer(day.get("reh"))));
+                            integer(day.get("reh")), decimal(day.get("tmp")), integer(day.get("sky")),
+                            decimal(day.get("min")), decimal(day.get("max"))));
                 }
             }
             return hours;
         } catch (RuntimeException e) {
             throw new WeatherException(WeatherError.INVALID_RESPONSE);
         }
+    }
+
+    private static Double decimal(JsonElement element) {
+        return element == null || element.isJsonNull() ? null : element.getAsDouble();
     }
 
     private static Integer integer(JsonElement element) {

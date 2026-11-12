@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.kwmobile.hometiming.R;
+import com.kwmobile.hometiming.BuildConfig;
 
 import java.util.Locale;
 
@@ -22,6 +23,8 @@ final class HouseholdScreens {
     private final DesignPreviewViewModel.State preview;
     private final PreviewHost host;
     private final PreviewWidgets ui;
+    private final WeatherViewModel weatherVm;
+    private final PreviewWeather weather;
 
     HouseholdScreens(View root, DesignPreviewViewModel vm, PreviewHost host, PreviewWidgets ui) {
         this.context = root.getContext();
@@ -30,6 +33,8 @@ final class HouseholdScreens {
         this.preview = vm.state;
         this.host = host;
         this.ui = ui;
+        this.weatherVm = host.weatherViewModel();
+        this.weather = new PreviewWeather(root, preview, host, ui);
     }
 
     void bindSettings() {
@@ -44,13 +49,8 @@ final class HouseholdScreens {
                 R.drawable.ic_home,
                 () -> host.go("family"));
         ui.line(body);
-        ui.settingsRow(
-                body,
-                context.getString(R.string.preview_copy_172),
-                preview.region
-                        + (preview.owner ? "" : context.getString(R.string.preview_copy_173)),
-                R.drawable.ic_pin,
-                () -> host.go("preferences", "region"));
+        ui.settingsRow(body, context.getString(R.string.weather_ui_region),
+                weatherVm.regionName(), R.drawable.ic_pin, () -> host.go("preferences", "region"));
         ui.gap(body, 28);
         ui.section(body, context.getString(R.string.preview_copy_174), "");
         ui.settingsRow(
@@ -75,16 +75,10 @@ final class HouseholdScreens {
                 () -> host.go("preferences", "notifications"));
         ui.gap(body, 28);
         ui.section(body, context.getString(R.string.preview_copy_181), "");
-        ui.settingsRow(
-                body,
-                context.getString(R.string.preview_copy_182),
-                preview.condition.equals("rain")
-                        ? context.getString(R.string.preview_copy_138)
-                        : preview.condition.equals("clouds")
-                                ? context.getString(R.string.preview_copy_139)
-                                : context.getString(R.string.preview_copy_141),
-                R.drawable.ic_cloud,
-                () -> host.go("preferences", "weather"));
+        ui.settingsRow(body, context.getString(R.string.weather_ui_mode),
+                context.getString(weatherVm.isTestMode()
+                        ? R.string.weather_ui_source_test : R.string.weather_ui_real),
+                R.drawable.ic_cloud, () -> host.go("preferences", "weather"));
         ui.line(body);
         ui.settingsRow(
                 body,
@@ -267,33 +261,15 @@ final class HouseholdScreens {
     }
 
     private void bindRegionPreferences(LinearLayout body, TextView heading) {
-        heading.setText(context.getString(R.string.preview_copy_220));
-        ui.gap(body, 12);
-        body.addView(ui.label(context.getString(R.string.preview_copy_221)));
-        ui.gap(body, 24);
-        if (!preview.owner) {
-            ui.section(body, context.getString(R.string.preview_copy_222), preview.region);
-            return;
-        }
-        for (String region :
-                new String[] {
-                    context.getString(R.string.preview_copy_223),
-                    context.getString(R.string.preview_copy_224),
-                    context.getString(R.string.preview_copy_225),
-                    context.getString(R.string.preview_copy_226)
-                })
-            ui.settingsRow(
-                    body,
-                    region,
-                    region.equals(preview.region)
-                            ? context.getString(R.string.preview_copy_018)
-                            : "",
-                    R.drawable.ic_pin,
-                    () -> {
-                        preview.region = region;
-                        host.render();
-                        host.notice(context.getString(R.string.preview_copy_227));
-                    });
+            heading.setText(context.getString(R.string.weather_ui_region));
+            ui.gap(body,12);body.addView(ui.label(weatherVm.regionName()));
+            body.addView(ui.caption(context.getString(R.string.weather_ui_region_local)));
+            String[] regions=weatherVm.regionNames();
+            if(regions.length==0) {
+                body.addView(ui.caption(context.getString(R.string.weather_ui_region_loading)));
+                ui.fullAction(body,context.getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+            } else ui.fullAction(body,context.getString(R.string.weather_ui_region_choose),true,
+                    () -> ui.choose(context.getString(R.string.weather_ui_region_choose),regions,weatherVm::selectRegion));
     }
 
     private void bindNotificationPreferences(LinearLayout body, TextView heading) {
@@ -438,53 +414,20 @@ final class HouseholdScreens {
     }
 
     private void bindWeatherPreferences(LinearLayout body, TextView heading) {
-        heading.setText(context.getString(R.string.preview_copy_250));
-        ui.gap(body, 12);
-        body.addView(ui.label(context.getString(R.string.preview_copy_251)));
-        ui.gap(body, 24);
-        ui.section(body, context.getString(R.string.preview_copy_011), "");
-        ui.chips(
-                body,
-                new String[] {
-                    context.getString(R.string.preview_copy_141),
-                    context.getString(R.string.preview_copy_139),
-                    context.getString(R.string.preview_copy_138)
-                },
-                preview.condition.equals("rain")
-                        ? context.getString(R.string.preview_copy_138)
-                        : preview.condition.equals("clouds")
-                                ? context.getString(R.string.preview_copy_139)
-                                : context.getString(R.string.preview_copy_141),
-                value -> {
-                    preview.condition =
-                            value.equals(context.getString(R.string.preview_copy_138))
-                                    ? "rain"
-                                    : value.equals(context.getString(R.string.preview_copy_139))
-                                            ? "clouds"
-                                            : "clear";
-                    host.render();
-                });
-        ui.gap(body, 16);
-        ui.section(body, context.getString(R.string.preview_copy_252), "");
-        String[] periods = {
-            context.getString(R.string.preview_copy_253),
-            context.getString(R.string.preview_copy_254),
-            context.getString(R.string.preview_copy_255),
-            context.getString(R.string.preview_copy_256),
-            context.getString(R.string.preview_copy_257)
-        };
-        String[] keys = {"auto", "morning", "day", "evening", "night"};
-        ui.chips(
-                body,
-                periods,
-                periods[java.util.Arrays.asList(keys).indexOf(preview.weather)],
-                value -> {
-                    preview.weather = keys[java.util.Arrays.asList(periods).indexOf(value)];
-                    host.render();
-                });
-        ui.fullAction(
-                body, context.getString(R.string.preview_copy_258), true, () -> host.go("weather"));
-        ui.gap(body, 20);
-        body.addView(ui.caption(context.getString(R.string.preview_copy_259)));
+           heading.setText(context.getString(R.string.weather_ui_mode));
+            ui.gap(body,12);body.addView(ui.label(context.getString(weatherVm.isTestMode()?R.string.weather_ui_source_test:R.string.weather_ui_real)));
+            if(BuildConfig.DEBUG) {
+                SwitchMaterial mode=new SwitchMaterial(context);
+                mode.setText(context.getString(R.string.weather_ui_test_toggle));mode.setMinHeight(ui.dp(56));
+                mode.setTextColor(ui.color(R.color.ht_text));mode.setChecked(weatherVm.isTestMode());
+                mode.setOnCheckedChangeListener((button,enabled) -> weatherVm.setTestMode(enabled));body.addView(mode);
+                body.addView(ui.caption(context.getString(R.string.weather_ui_test_help)));
+            }
+            ui.settingsRow(body,context.getString(R.string.weather_ui_region),weatherVm.regionName(),R.drawable.ic_pin,() -> host.go("preferences","region"));
+            ui.fullAction(body,context.getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+            body.addView(ui.caption(weather.weatherSummary()));
+            if(com.kwmobile.hometiming.BuildConfig.KMA_SERVICE_KEY.trim().isEmpty())
+                body.addView(ui.caption(context.getString(R.string.weather_ui_key_help)));
+            ui.fullAction(body,context.getString(R.string.preview_copy_258),true,() -> host.go("weather"));
     }
 }

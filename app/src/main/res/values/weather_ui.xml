@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="weather_ui_title">날씨</string>
+    <string name="weather_ui_intro">선택한 지역의 기상청 단기예보</string>
+    <string name="weather_ui_loading">날씨를 불러오는 중이에요.</string>
+    <string name="weather_ui_dash">—</string>
+    <string name="weather_ui_unknown">예보 정보 없음</string>
+    <string name="weather_ui_clear">맑음</string>
+    <string name="weather_ui_clouds">구름 많음</string>
+    <string name="weather_ui_overcast">흐림</string>
+    <string name="weather_ui_rain">비</string>
+    <string name="weather_ui_sleet">비 또는 눈</string>
+    <string name="weather_ui_snow">눈</string>
+    <string name="weather_ui_shower">소나기</string>
+    <string name="weather_ui_high_low">최고 %1$s · 최저 %2$s</string>
+    <string name="weather_ui_pop">강수 확률 %1$s</string>
+    <string name="weather_ui_forecast_time">%1$s %2$02d시 예보</string>
+    <string name="weather_ui_updated">%1$s · %2$s 조회</string>
+    <string name="weather_ui_source_network">기상청 예보</string>
+    <string name="weather_ui_source_cache">저장된 기상청 예보</string>
+    <string name="weather_ui_source_stale">조회 실패 · 이전 기상청 예보</string>
+    <string name="weather_ui_source_test">테스트 날씨 · 실제 예보 아님</string>
+    <string name="weather_ui_retry">다시 불러오기</string>
+    <string name="weather_ui_region">날씨 지역</string>
+    <string name="weather_ui_region_choose">지역 선택</string>
+    <string name="weather_ui_region_local">이 기기의 날씨 지역입니다. 가족 공용 지역 저장은 계정·집 연결 후 사용할 수 있어요.</string>
+    <string name="weather_ui_region_loading">지역 목록을 불러오는 중이에요.</string>
+    <string name="weather_ui_mode">날씨 설정</string>
+    <string name="weather_ui_real">실제 기상청 예보</string>
+    <string name="weather_ui_test_toggle">테스트 날씨 사용</string>
+    <string name="weather_ui_test_help">테스트 모드에서는 앱에 포함된 예시 예보를 표시합니다.</string>
+    <string name="weather_ui_key_help">개발 환경의 local.properties에 API허브 인증키를 KMA_SERVICE_KEY로 설정한 뒤 앱을 다시 빌드해 주세요. 인증키를 대화나 Git에 올리지 마세요.</string>
+    <string name="weather_ui_days">오늘부터 3일 예보</string>
+    <string name="weather_ui_days_help">날씨는 표시된 시각의 예보입니다. 최고·최저가 제공되지 않으면 —로 표시합니다.</string>
+    <string name="weather_ui_laundry">세탁 적합도</string>
+    <string name="weather_ui_laundry_help">오늘 남은 09~18시의 강수·습도 예보를 기준으로 합니다.</string>
+    <string name="weather_ui_good">실외 건조에 적합해요.</string>
+    <string name="weather_ui_caution">건조가 늦어질 수 있어요.</string>
+    <string name="weather_ui_bad">비 가능성이 있어 실내 건조를 권해요.</string>
+    <string name="weather_ui_unjudged">필요한 예보가 없어 판단할 수 없어요.</string>
+    <string name="weather_ui_fixture_suggestions">예시 집안일의 제안입니다. 변경은 이 기기의 예시 일정에만 적용됩니다.</string>
+    <string name="weather_ui_fixture_proposal">예시 일정 · %1$s → %2$s</string>
+    <string name="weather_ui_fixture_confirm">예시 집안일 ‘%1$s’를 %2$s로 바꿀까요? 가족에게 공유되거나 서버에 저장되지는 않습니다.</string>
+    <string name="weather_ui_no_forecast">해당 날짜의 예보가 없어요.</string>
+    <string name="weather_ui_provider_code">%1$s (응답 코드: %2$s)</string>
+</resources>
