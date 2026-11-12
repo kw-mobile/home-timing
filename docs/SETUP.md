@@ -58,7 +58,7 @@ sdkmanager "platforms;android-36" "build-tools;35.0.0" "platform-tools"
 | Android 앱 | `com.kwmobile.hometiming` (`1:254704069106:android:b118b991eced1fbeb3236b`) |
 | Authentication | 이메일/비밀번호 로그인 활성화 |
 | Firestore | `(default)` / Standard Native / 서울 `asia-northeast3`, 무료 DB |
-| 앱 데이터 접근 | `firestore.rules`([허용 범위](DATA_MODEL.md#보안-규칙-범위-v2)). 실제 프로젝트에 배포된 커밋과 시각은 규칙을 바꾼 작업 이슈의 배포 기록이 기준입니다(v1 [#28](https://github.com/kw-mobile/home-timing/issues/28), v2 [#38](https://github.com/kw-mobile/home-timing/issues/38) `0026bf3` 2026-11-11, 탈퇴 규칙 [#40](https://github.com/kw-mobile/home-timing/issues/40), 집안일 규칙 [#44](https://github.com/kw-mobile/home-timing/issues/44)) |
+| 앱 데이터 접근 | `firestore.rules`([허용 범위](DATA_MODEL.md#보안-규칙-범위)). 실제 프로젝트에 배포된 커밋과 시각은 규칙을 바꾼 작업 이슈의 배포 기록이 기준입니다(v1 [#28](https://github.com/kw-mobile/home-timing/issues/28), v2 [#38](https://github.com/kw-mobile/home-timing/issues/38) `0026bf3` 2026-11-11, 탈퇴 규칙 [#40](https://github.com/kw-mobile/home-timing/issues/40), 집안일 규칙 [#44](https://github.com/kw-mobile/home-timing/issues/44)) |
 
 #### 팀원 관리 권한
 
@@ -145,3 +145,7 @@ PC에서 같은 앱 설정으로 제공자 응답만 확인하려면 JDK 17 터�
 4. 카탈로그와 잠금 diff를 함께 검토합니다. 일반 기능 PR에서는 `--write-locks`를 사용하지 않습니다.
 5. Gradle 변경은 공식 배포 SHA-256을 확인하고 Wrapper 파일 전체를 갱신합니다. AGP 호환 표에 맞춰 JDK·Gradle·SDK를 함께 검토합니다.
 6. 개인 Gradle 캐시 삭제나 다른 팀원의 버전 변경으로 문제를 우회하지 말고, CI 로그와 `teamDoctor` 결과를 공유합니다. 키 값이나 개인 설정 파일은 공유하지 않습니다.
+
+## 운영 보안 점검
+
+배포 규칙·Auth·App Check·IAM·키 제한과 잠금 의존성의 실제 확인 결과는 [운영 보안 확인](report/SECURITY_OPERATIONS.md)에 둡니다. 조회 거부는 미검증이며 설정 안전성을 뜻하지 않습니다. 공용 규칙 배포와 데이터 전환은 해당 문서의 결과 및 [데이터 모델 전환 절차](DATA_MODEL.md#무결성-필드-전환-이슈-57)를 검토한 뒤 수행합니다.

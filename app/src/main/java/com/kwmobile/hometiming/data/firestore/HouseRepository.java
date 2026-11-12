@@ -5,31 +5,34 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.FirebaseNetworkException;
-import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.auth.OperationScope;
 import com.kwmobile.hometiming.domain.House;
 import com.kwmobile.hometiming.domain.HouseRules;
 import com.kwmobile.hometiming.domain.Invite;
 import com.kwmobile.hometiming.domain.InviteCodes;
 import com.kwmobile.hometiming.domain.Member;
 
-import java.security.SecureRandom;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+
+import static com.kwmobile.hometiming.data.firestore.HouseInvitations.readInvite;
+import static com.kwmobile.hometiming.data.firestore.HouseTasks.fail;
+import static com.kwmobile.hometiming.data.firestore.HouseTasks.translate;
+import static com.kwmobile.hometiming.data.firestore.HouseTasks.translateJoin;
 
 /**
  * Family sharing (docs/MVP.md F-14, docs/DATA_MODEL.md 가족 공유): the house and its members,
@@ -55,9 +58,6 @@ public final class HouseRepository {
         void onError(@NonNull HouseError error);
     }
 
-    /** Fresh codes tried when the drawn one is still live for another house. */
-    static final int CODE_ATTEMPTS = 8;
-
     private static volatile HouseRepository instance;
 
     @Nullable
@@ -65,12 +65,15 @@ public final class HouseRepository {
     @Nullable
     private final FirebaseAuth auth;
     private final Clock clock;
-    private final SecureRandom random = new SecureRandom();
+    private final HouseTasks tasks;
+    private final HouseInvitations invitations;
 
     private HouseRepository(@Nullable FirebaseFirestore db, @Nullable FirebaseAuth auth, Clock clock) {
         this.db = db;
         this.auth = auth;
         this.clock = clock;
+        this.tasks = new HouseTasks(this::currentUid);
+        this.invitations = new HouseInvitations(db, clock, this::currentUid, tasks);
     }
 
     /** Without app/google-services.json every call reports {@link HouseError#NOT_CONFIGURED}. */
@@ -100,14 +103,20 @@ public final class HouseRepository {
             listener.onError(HouseError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
-        ListenerRegistration registration = houseRef(db, houseId).addSnapshotListener((snapshot, error) -> {
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(HouseError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
+        ListenerRegistration registration = houseRef(db, houseId).addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(classify(error));
                 return;
             }
             listener.onHouse(readHouse(snapshot), snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     /** Members of a house; the owner flag comes from {@code ownerId} as the screen last saw it. */
@@ -117,8 +126,16 @@ public final class HouseRepository {
             listener.onError(HouseError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(HouseError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         ListenerRegistration registration = houseRef(db, houseId).collection(Schema.Members.COLLECTION)
-                .addSnapshotListener((snapshot, error) -> {
+                .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+                    if (!OperationScope.getInstance().isCurrent(scope, currentUid())) {
+                        return;
+                    }
                     if (error != null || snapshot == null) {
                         listener.onError(classify(error));
                         return;
@@ -136,28 +153,13 @@ public final class HouseRepository {
                             : a.displayName.compareTo(b.displayName));
                     listener.onMembers(Collections.unmodifiableList(members), snapshot.getMetadata().isFromCache());
                 });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     /** The house's open invite read from the server, or null when none is live. */
     @NonNull
     public Task<Invite> currentInvite(String houseId) {
-        if (db == null) {
-            return fail(HouseError.NOT_CONFIGURED);
-        }
-        FirebaseFirestore firestore = db;
-        Task<Invite> task = houseRef(firestore, houseId).get(Source.SERVER).onSuccessTask(houseSnapshot -> {
-            House house = readHouse(houseSnapshot);
-            if (house == null || house.activeInviteCode == null) {
-                return Tasks.forResult(null);
-            }
-            return inviteRef(firestore, house.activeInviteCode).get(Source.SERVER).continueWith(done -> {
-                Invite invite = done.isSuccessful() ? readInvite(done.getResult()) : null;
-                return invite != null && invite.houseId.equals(houseId) && invite.isLive(clock.instant())
-                        ? invite : null;
-            });
-        });
-        return translate(task);
+        return invitations.currentInvite(houseId);
     }
 
     // ---- Changes (owner) ----
@@ -168,84 +170,13 @@ public final class HouseRepository {
      */
     @NonNull
     public Task<Invite> issueInvite(String houseId) {
-        if (db == null) {
-            return fail(HouseError.NOT_CONFIGURED);
-        }
-        String uid = currentUid();
-        if (uid == null) {
-            return fail(HouseError.NOT_SIGNED_IN);
-        }
-        FirebaseFirestore firestore = db;
-        DocumentReference house = houseRef(firestore, houseId);
-        List<String> candidates = new ArrayList<>();
-        for (int i = 0; i < CODE_ATTEMPTS; i++) {
-            candidates.add(InviteCodes.generate(random));
-        }
-        Instant now = clock.instant();
-        Task<String> issued = firestore.runTransaction(tx -> {
-            House current = requireHouse(tx.get(house));
-            if (!current.isOwner(uid)) {
-                throw new HouseException.Rejection(HouseError.NOT_OWNER);
-            }
-            String code = null;
-            for (String candidate : candidates) {
-                Invite existing = readInvite(tx.get(inviteRef(firestore, candidate)));
-                if (existing == null || !existing.isLive(now)) {
-                    code = candidate;
-                    break;
-                }
-            }
-            if (code == null) {
-                throw new HouseException.Rejection(HouseError.UNKNOWN);
-            }
-            String previous = current.activeInviteCode;
-            Invite previousInvite = previous == null || previous.equals(code)
-                    ? null : readInvite(tx.get(inviteRef(firestore, previous)));
-            tx.set(inviteRef(firestore, code), HouseDocuments.inviteFields(houseId, uid, FieldValue.serverTimestamp()));
-            tx.update(house, Schema.Houses.ACTIVE_INVITE_CODE, code);
-            if (previousInvite != null && previousInvite.houseId.equals(houseId)) {
-                tx.delete(inviteRef(firestore, previous));
-            }
-            return code;
-        });
-        Task<Invite> task = issued.onSuccessTask(code -> inviteRef(firestore, code).get(Source.SERVER)
-                .continueWith(done -> {
-                    Invite invite = done.isSuccessful() ? readInvite(done.getResult()) : null;
-                    if (invite == null) {
-                        throw new HouseException(HouseError.UNKNOWN);
-                    }
-                    return invite;
-                }));
-        return translate(task);
+        return invitations.issueInvite(houseId);
     }
 
     /** Closes the open invite. Owner only. */
     @NonNull
     public Task<Void> stopInvite(String houseId) {
-        if (db == null) {
-            return fail(HouseError.NOT_CONFIGURED);
-        }
-        String uid = currentUid();
-        if (uid == null) {
-            return fail(HouseError.NOT_SIGNED_IN);
-        }
-        FirebaseFirestore firestore = db;
-        DocumentReference house = houseRef(firestore, houseId);
-        return translate(firestore.runTransaction(tx -> {
-            House current = requireHouse(tx.get(house));
-            if (!current.isOwner(uid)) {
-                throw new HouseException.Rejection(HouseError.NOT_OWNER);
-            }
-            if (current.activeInviteCode == null) {
-                return null;
-            }
-            Invite invite = readInvite(tx.get(inviteRef(firestore, current.activeInviteCode)));
-            tx.update(house, Schema.Houses.ACTIVE_INVITE_CODE, FieldValue.delete());
-            if (invite != null && invite.houseId.equals(houseId)) {
-                tx.delete(inviteRef(firestore, current.activeInviteCode));
-            }
-            return null;
-        }));
+        return invitations.stopInvite(houseId);
     }
 
     /** Removes another member (F-14 내보내기). They recover into a new house at their next sign-in. */
@@ -258,10 +189,14 @@ public final class HouseRepository {
         if (uid == null) {
             return fail(HouseError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(HouseError.NOT_SIGNED_IN);
+        }
         FirebaseFirestore firestore = db;
         DocumentReference house = houseRef(firestore, houseId);
         DocumentReference member = memberRef(firestore, houseId, memberUid);
-        return translate(firestore.runTransaction(tx -> {
+        return tasks.scoped(translate(tasks.transaction(firestore, scope, tx -> {
             House current = requireHouse(tx.get(house));
             if (!current.isOwner(uid)) {
                 throw new HouseException.Rejection(HouseError.NOT_OWNER);
@@ -273,9 +208,10 @@ public final class HouseRepository {
                 throw new HouseException.Rejection(HouseError.NOT_FOUND);
             }
             tx.delete(member);
-            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                    Schema.Houses.MEMBER_MUTATION_ID, memberUid);
             return null;
-        }));
+        })), scope);
     }
 
     /** Sets the forecast region (F-08). Owner only. */
@@ -288,19 +224,23 @@ public final class HouseRepository {
         if (uid == null) {
             return fail(HouseError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(HouseError.NOT_SIGNED_IN);
+        }
         if (!HouseRules.isValidRegion(regionName, nx, ny)) {
             return fail(HouseError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference house = houseRef(firestore, houseId);
-        return translate(firestore.runTransaction(tx -> {
+        return tasks.scoped(translate(tasks.transaction(firestore, scope, tx -> {
             House current = requireHouse(tx.get(house));
             if (!current.isOwner(uid)) {
                 throw new HouseException.Rejection(HouseError.NOT_OWNER);
             }
             tx.update(house, HouseDocuments.regionFields(regionName, nx, ny));
             return null;
-        }));
+        })), scope);
     }
 
     // ---- Changes (any member) ----
@@ -319,13 +259,18 @@ public final class HouseRepository {
         if (uid == null) {
             return fail(HouseError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid);
+        if (scope == null) {
+            return fail(HouseError.NOT_SIGNED_IN);
+        }
         if (!InviteCodes.isValid(code)) {
             return fail(HouseError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference user = userRef(firestore, uid);
         Instant now = clock.instant();
-        Task<String> task = firestore.runTransaction(tx -> {
+        Task<String> task = invitations.reserveInviteAccess(scope, code, "LOOKUP").onSuccessTask(ignored ->
+                tasks.transaction(firestore, scope, tx -> {
             Invite invite = readInvite(tx.get(inviteRef(firestore, code)));
             if (invite == null || !invite.isLive(now)) {
                 throw new HouseException.Rejection(HouseError.INVALID_CODE);
@@ -335,6 +280,9 @@ public final class HouseRepository {
             String name = userSnapshot.getString(Schema.Users.DISPLAY_NAME);
             if (oldHouseId == null || name == null) {
                 throw new HouseException.Rejection(HouseError.NOT_FOUND);
+            }
+            if (!scope.houseId.equals(oldHouseId)) {
+                throw new HouseException.Rejection(HouseError.NOT_SIGNED_IN);
             }
             if (oldHouseId.equals(invite.houseId)) {
                 throw new HouseException.Rejection(HouseError.ALREADY_MEMBER);
@@ -354,7 +302,8 @@ public final class HouseRepository {
 
             tx.set(memberRef(firestore, invite.houseId, uid),
                     HouseDocuments.joinedMemberFields(name, code, FieldValue.serverTimestamp()));
-            tx.update(houseRef(firestore, invite.houseId), Schema.Houses.MEMBER_COUNT, FieldValue.increment(1));
+            tx.update(houseRef(firestore, invite.houseId), Schema.Houses.MEMBER_COUNT, FieldValue.increment(1),
+                    Schema.Houses.MEMBER_MUTATION_ID, uid);
             tx.update(user, HouseholdSetup.moveUser(invite.houseId, FieldValue.serverTimestamp()));
             tx.delete(memberRef(firestore, oldHouseId, uid));
             tx.delete(houseRef(firestore, oldHouseId));
@@ -362,8 +311,8 @@ public final class HouseRepository {
                 tx.delete(inviteRef(firestore, oldHouse.activeInviteCode));
             }
             return invite.houseId;
-        });
-        return translateJoin(task);
+        }));
+        return tasks.moved(translateJoin(task), scope);
     }
 
     /**
@@ -379,26 +328,35 @@ public final class HouseRepository {
         if (uid == null) {
             return fail(HouseError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(HouseError.NOT_SIGNED_IN);
+        }
         FirebaseFirestore firestore = db;
         DocumentReference house = houseRef(firestore, houseId);
         DocumentReference user = userRef(firestore, uid);
         DocumentReference newHouse = firestore.collection(Schema.Houses.COLLECTION).document();
-        return translate(firestore.runTransaction(tx -> {
+        return tasks.moved(translate(tasks.transaction(firestore, scope, tx -> {
             House current = requireHouse(tx.get(house));
             if (!HouseRules.canLeave(current, uid)) {
                 throw new HouseException.Rejection(HouseError.OWNER_CANNOT_LEAVE);
             }
-            String name = tx.get(user).getString(Schema.Users.DISPLAY_NAME);
+            DocumentSnapshot person = tx.get(user);
+            if (!scope.houseId.equals(person.getString(Schema.Users.CURRENT_HOUSE_ID))) {
+                throw new HouseException.Rejection(HouseError.NOT_SIGNED_IN);
+            }
+            String name = person.getString(Schema.Users.DISPLAY_NAME);
             if (name == null) {
                 throw new HouseException.Rejection(HouseError.NOT_FOUND);
             }
             tx.delete(memberRef(firestore, houseId, uid));
-            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                    Schema.Houses.MEMBER_MUTATION_ID, uid);
             tx.set(newHouse, HouseholdSetup.newHouse(uid, FieldValue.serverTimestamp()));
             tx.set(memberRef(firestore, newHouse.getId(), uid), HouseholdSetup.newMember(name, FieldValue.serverTimestamp()));
             tx.update(user, HouseholdSetup.moveUser(newHouse.getId(), FieldValue.serverTimestamp()));
             return newHouse.getId();
-        }));
+        })), scope);
     }
 
     // ---- Helpers ----
@@ -433,72 +391,13 @@ public final class HouseRepository {
         return house;
     }
 
-    /** Null when missing or malformed; the server timestamp becomes an {@link Instant}. */
-    @Nullable
-    static Invite readInvite(DocumentSnapshot snapshot) {
-        if (snapshot == null || !snapshot.exists()) {
-            return null;
-        }
-        String houseId = snapshot.getString(Schema.Invites.HOUSE_ID);
-        Timestamp createdAt = snapshot.getTimestamp(Schema.Invites.CREATED_AT);
-        if (houseId == null || createdAt == null) {
-            return null;
-        }
-        return new Invite(snapshot.getId(), houseId,
-                Instant.ofEpochSecond(createdAt.getSeconds(), createdAt.getNanoseconds()));
-    }
-
     @Nullable
     private String currentUid() {
         FirebaseUser user = auth == null ? null : auth.getCurrentUser();
         return user == null ? null : user.getUid();
     }
 
-    private static <T> Task<T> translate(Task<T> task) {
-        return task.continueWithTask(done -> done.isSuccessful()
-                ? done
-                : Tasks.forException(asHouseException(done.getException())));
-    }
-
-    /** Joining: a rules refusal means the house filled up or the code changed after the checks. */
-    private static <T> Task<T> translateJoin(Task<T> task) {
-        return task.continueWithTask(done -> {
-            if (done.isSuccessful()) {
-                return done;
-            }
-            HouseException failure = asHouseException(done.getException());
-            return Tasks.forException(failure.error == HouseError.PERMISSION_DENIED
-                    ? new HouseException(HouseError.CODE_REJECTED, failure)
-                    : failure);
-        });
-    }
-
-    private static HouseException asHouseException(Exception e) {
-        return e instanceof HouseException ? (HouseException) e : new HouseException(classify(e), e);
-    }
-
-    static HouseError classify(Throwable e) {
-        for (Throwable t = e; t != null; t = t.getCause()) {
-            if (t instanceof HouseException) {
-                return ((HouseException) t).error;
-            }
-            if (t instanceof HouseException.Rejection) {
-                return ((HouseException.Rejection) t).error;
-            }
-            if (t instanceof FirebaseNetworkException) {
-                return HouseError.NETWORK;
-            }
-            if (t instanceof FirebaseFirestoreException) {
-                return HouseError.fromFirestoreCode(((FirebaseFirestoreException) t).getCode().name());
-            }
-            if (t.getCause() == t) {
-                break;
-            }
-        }
-        return HouseError.UNKNOWN;
-    }
-
-    private static <T> Task<T> fail(HouseError error) {
-        return Tasks.forException(new HouseException(error));
+    static HouseError classify(Throwable error) {
+        return HouseTasks.classify(error);
     }
 }

@@ -4,6 +4,10 @@ import com.kwmobile.hometiming.domain.PlannedReminder;
 import com.kwmobile.hometiming.domain.ReminderChange;
 import com.kwmobile.hometiming.domain.ReminderDecision;
 import com.kwmobile.hometiming.domain.ReminderKey;
+import com.kwmobile.hometiming.domain.ReminderPlanner;
+
+import java.time.Clock;
+import java.time.LocalTime;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -39,6 +43,10 @@ final class ReminderEngine {
 
     /** Makes alarms match a fresh plan, cancelling whatever the plan no longer contains. */
     void apply(List<PlannedReminder> plan) {
+        apply(plan, true);
+    }
+
+    private void apply(List<PlannedReminder> plan, boolean authoritative) {
         Set<String> planned = new HashSet<>();
         Set<String> occurrences = new HashSet<>();
         for (PlannedReminder reminder : plan) {
@@ -54,7 +62,7 @@ final class ReminderEngine {
         for (String key : ledger.allFired()) {
             ReminderKey parsed = ReminderKey.parse(key);
             // A passed advance reminder leaves the plan while its occurrence is still running.
-            if (parsed == null || !occurrences.contains(occurrenceOf(parsed))) {
+            if (authoritative && (parsed == null || !occurrences.contains(occurrenceOf(parsed)))) {
                 display.dismiss(key);
                 ledger.forgetFired(key);
             }
@@ -75,6 +83,12 @@ final class ReminderEngine {
         }
     }
 
+    void settingsChanged(LocalTime time, int advanceDays, Clock clock) {
+        // Local scheduled entries omit already-fired occurrences. Only a complete server snapshot
+        // can prove those occurrences disappeared and remove their deduplication markers.
+        apply(ReminderPlanner.replan(ledger.allScheduled(), time, advanceDays, clock), false);
+    }
+
     /** After a reboot alarms are gone. One whose time passed meanwhile fires at once. */
     void rearm() {
         for (PlannedReminder reminder : ledger.allScheduled()) {
@@ -89,7 +103,11 @@ final class ReminderEngine {
 
     /** @return whether a server sync is needed to schedule again */
     boolean onDecision(PlannedReminder reminder, ReminderDecision decision) {
-        if (ledger.scheduled(reminder.key) == null) {
+        PlannedReminder current = ledger.scheduled(reminder.key);
+        // The same occurrence key can be replanned while its server check is in flight.
+        if (current == null || current.revision != reminder.revision
+                || current.fireAtMillis != reminder.fireAtMillis || !current.dueDate.equals(reminder.dueDate)
+                || current.daysBefore != reminder.daysBefore || !current.name.equals(reminder.name)) {
             return false;
         }
         switch (decision) {

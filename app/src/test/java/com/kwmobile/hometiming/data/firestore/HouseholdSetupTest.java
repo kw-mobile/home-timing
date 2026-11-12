@@ -48,7 +48,7 @@ public class HouseholdSetupTest {
     public void newHouseIsOnePersonAndEmpty() {
         Map<String, Object> house = HouseholdSetup.newHouse("uid-1", NOW);
 
-        assertEquals(Set.of("ownerId", "memberCount", "itemCount", "choreCount", "createdAt", "updatedAt"),
+        assertEquals(Set.of("ownerId", "memberCount", "itemCount", "choreCount", "integrityVersion", "closing", "createdAt", "updatedAt"),
                 house.keySet());
         assertEquals("uid-1", house.get("ownerId"));
         assertEquals(1, house.get("memberCount"));

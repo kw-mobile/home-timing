@@ -11,13 +11,13 @@ import android.graphics.RuntimeShader;
 import android.graphics.Shader;
 import android.graphics.drawable.Drawable;
 import android.os.Build;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 import android.widget.ImageView;
-import android.text.StaticLayout;
-import android.text.TextPaint;
+import android.widget.TextView;
 
 /** Samples only content behind the bar; the navigation labels and icons stay sharp. */
 public final class GlassBackdropView extends View {
@@ -56,18 +56,24 @@ public final class GlassBackdropView extends View {
             return;
         }
         updatePending = true;
-        postOnAnimation(() -> {
-            updatePending = false;
-            captureBackdrop();
-        });
+        postOnAnimation(
+                () -> {
+                    updatePending = false;
+                    captureBackdrop();
+                });
     }
 
     private void captureBackdrop() {
-        if (!isAttachedToWindow() || !isShown() || source == null || getWidth() == 0 || getHeight() == 0) {
+        if (!isAttachedToWindow()
+                || !isShown()
+                || source == null
+                || getWidth() == 0
+                || getHeight() == 0) {
             return;
         }
         int width = Math.max(1, (getWidth() + 2 * samplePadding + SAMPLE_SCALE - 1) / SAMPLE_SCALE);
-        int height = Math.max(1, (getHeight() + 2 * samplePadding + SAMPLE_SCALE - 1) / SAMPLE_SCALE);
+        int height =
+                Math.max(1, (getHeight() + 2 * samplePadding + SAMPLE_SCALE - 1) / SAMPLE_SCALE);
         if (backdrop == null || backdrop.getWidth() != width || backdrop.getHeight() != height) {
             backdrop = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
         }
@@ -84,7 +90,11 @@ public final class GlassBackdropView extends View {
                 blurScratch = new int[width * height];
             }
             backdrop.getPixels(blurPixels, 0, width, 0, 0, width, height);
-            int radius = Math.max(1, Math.round(6 * getResources().getDisplayMetrics().density / SAMPLE_SCALE));
+            int radius =
+                    Math.max(
+                            1,
+                            Math.round(
+                                    6 * getResources().getDisplayMetrics().density / SAMPLE_SCALE));
             GlassBlur.apply(blurPixels, blurScratch, width, height, radius);
             backdrop.setPixels(blurPixels, 0, width, 0, 0, width, height);
             lens.update(backdrop, getWidth(), getHeight(), samplePadding);
@@ -99,13 +109,16 @@ public final class GlassBackdropView extends View {
         view.getLocationInWindow(viewLocation);
         int left = viewLocation[0] - backdropLocation[0];
         int top = viewLocation[1] - backdropLocation[1];
-        if (left >= getWidth() + 2 * samplePadding || top >= getHeight() + 2 * samplePadding
-                || left + view.getWidth() <= 0 || top + view.getHeight() <= 0) return;
+        if (left >= getWidth() + 2 * samplePadding
+                || top >= getHeight() + 2 * samplePadding
+                || left + view.getWidth() <= 0
+                || top + view.getHeight() <= 0) return;
         int saved = canvas.save();
         canvas.translate(left, top);
         canvas.clipRect(0, 0, view.getWidth(), view.getHeight());
         if (view.getAlpha() < 1) {
-            canvas.saveLayerAlpha(0, 0, view.getWidth(), view.getHeight(), Math.round(view.getAlpha() * 255));
+            canvas.saveLayerAlpha(
+                    0, 0, view.getWidth(), view.getHeight(), Math.round(view.getAlpha() * 255));
         }
         if (view instanceof ViewGroup) {
             Drawable background = view.getBackground();
@@ -113,7 +126,8 @@ public final class GlassBackdropView extends View {
             int children = canvas.save();
             canvas.translate(-left, -top);
             ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) drawContentStrip(group.getChildAt(i), canvas);
+            for (int i = 0; i < group.getChildCount(); i++)
+                drawContentStrip(group.getChildAt(i), canvas);
             canvas.restoreToCount(children);
             Drawable foreground = view.getForeground();
             drawSnapshot(foreground, canvas);
@@ -126,16 +140,24 @@ public final class GlassBackdropView extends View {
                 TextView text = (TextView) view;
                 if (text.getLayout() != null) {
                     int content = canvas.save();
-                    canvas.translate(text.getTotalPaddingLeft() - text.getScrollX(),
+                    canvas.translate(
+                            text.getTotalPaddingLeft() - text.getScrollX(),
                             text.getTotalPaddingTop() - text.getScrollY());
                     // A fresh layout keeps the attached TextView's layout/render caches untouched.
-                    String value=text.getText().toString();
-                    StaticLayout snapshot=StaticLayout.Builder.obtain(value,0,value.length(),
-                            new TextPaint(text.getPaint()),Math.max(1,text.getLayout().getWidth()))
-                            .setAlignment(text.getLayout().getAlignment())
-                            .setIncludePad(text.getIncludeFontPadding())
-                            .setLineSpacing(text.getLineSpacingExtra(),text.getLineSpacingMultiplier())
-                            .build();
+                    String value = text.getText().toString();
+                    StaticLayout snapshot =
+                            StaticLayout.Builder.obtain(
+                                            value,
+                                            0,
+                                            value.length(),
+                                            new TextPaint(text.getPaint()),
+                                            Math.max(1, text.getLayout().getWidth()))
+                                    .setAlignment(text.getLayout().getAlignment())
+                                    .setIncludePad(text.getIncludeFontPadding())
+                                    .setLineSpacing(
+                                            text.getLineSpacingExtra(),
+                                            text.getLineSpacingMultiplier())
+                                    .build();
                     snapshot.draw(canvas);
                     canvas.restoreToCount(content);
                 }
@@ -158,9 +180,11 @@ public final class GlassBackdropView extends View {
 
     private void drawSnapshot(Drawable drawable, Canvas canvas) {
         if (drawable == null || drawable.getConstantState() == null) return;
-        Drawable snapshot=drawable.getConstantState().newDrawable(getResources()).mutate();
-        snapshot.setBounds(drawable.getBounds());snapshot.setState(drawable.getState());
-        snapshot.setLevel(drawable.getLevel());snapshot.setAlpha(drawable.getAlpha());
+        Drawable snapshot = drawable.getConstantState().newDrawable(getResources()).mutate();
+        snapshot.setBounds(drawable.getBounds());
+        snapshot.setState(drawable.getState());
+        snapshot.setLevel(drawable.getLevel());
+        snapshot.setAlpha(drawable.getAlpha());
         snapshot.draw(canvas);
     }
 
@@ -197,7 +221,8 @@ public final class GlassBackdropView extends View {
     /** API 33+ optical treatment. Bounded to the bar, with no continuous animation loop. */
     @androidx.annotation.RequiresApi(33)
     private static final class LensRenderer {
-        private static final String PROGRAM = """
+        private static final String PROGRAM =
+                """
                 uniform shader scene;
                 uniform float2 size;
                 uniform float density;
@@ -240,7 +265,9 @@ public final class GlassBackdropView extends View {
         void update(Bitmap bitmap, int width, int height, int padding) {
             if (image != bitmap) {
                 image = bitmap;
-                shader.setInputShader("scene", new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
+                shader.setInputShader(
+                        "scene",
+                        new BitmapShader(bitmap, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
             }
             shader.setFloatUniform("size", width, height);
             shader.setFloatUniform("padding", padding);

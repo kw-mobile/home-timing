@@ -39,6 +39,8 @@ public class ChoreRulesTest extends RulesTestBase {
         LocalDate next = NEXT_SAT;
         String occurrence = "occ-1";
         int revision = 1;
+        String recordId;
+        int recordCount;
         String dismissed;
         LocalDate lastDone;
 
@@ -48,7 +50,9 @@ public class ChoreRulesTest extends RulesTestBase {
                     .num("weekday", weekday)
                     .str("plannedDueDate", planned.toString()).str("nextDueDate", next.toString())
                     .str("occurrenceId", occurrence).num("revision", revision)
-                    .str("createdBy", createdBy).str("updatedBy", updatedBy);
+                    .str("createdBy", createdBy).str("updatedBy", updatedBy)
+                    .num("recordCount", recordCount).bool("deleting", false);
+            if (recordId != null) fields.str("recordMutationId", recordId);
             if (dismissed != null) {
                 fields.str("dismissedOccurrenceId", dismissed);
             }
@@ -74,13 +78,17 @@ public class ChoreRulesTest extends RulesTestBase {
     /** Whole-document write with the stored createdAt, as the repository does. */
     private static Write update(Doc doc, String actor) {
         doc.updatedBy = actor;
+        if (doc.recordId == null && !doc.next.equals(doc.planned)) {
+            doc.recordId = "moved_" + doc.occurrence + "_" + doc.revision;
+            doc.recordCount = 1;
+        }
         return Write.set(chorePath(CHORE), doc.fields().time("createdAt", SEEDED_AT)).serverTime("updatedAt");
     }
 
     private static Write[] create(String id, Doc doc) {
         return new Write[] {
             Write.create(chorePath(id), doc.fields()).serverTime("createdAt").serverTime("updatedAt"),
-            Write.merge("houses/" + HOUSE, Fields.of()).increment("choreCount", 1)
+            Write.merge("houses/" + HOUSE, Fields.of().str("choreMutationId", id)).increment("choreCount", 1)
         };
     }
 
@@ -115,6 +123,8 @@ public class ChoreRulesTest extends RulesTestBase {
         after.occurrence = "occ-2";
         after.revision = before.revision + 1;
         after.lastDone = done;
+        after.recordCount = before.recordCount + 1;
+        after.recordId = "done_" + before.occurrence;
         return after;
     }
 
@@ -412,12 +422,26 @@ public class ChoreRulesTest extends RulesTestBase {
                 Fields.of().str("date", TODAY.minusDays(1).toString()))));
     }
 
+    @Test
+    public void usedAndUnsafeNextOccurrencesAreRejectedWithoutBreakingTheCurrentChore() {
+        Doc before = seedOverdue();
+        Doc after = completed(before, TODAY, nextPlanned(OLD_SAT, TODAY));
+        assertAllowed(firestore.commit(OWNER, update(after, "alice"), doneLog("occ-1", TODAY, "alice")));
+        Doc next = completed(after, TODAY, nextPlanned(after.planned, TODAY));
+        next.occurrence = "occ-1";
+        assertDenied(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+        next.occurrence = "bad/id";
+        assertDenied(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+        next.occurrence = "occ-3";
+        assertAllowed(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+    }
+
     // ---- Deleting ----
 
     private static Write[] deleteChore() {
         return new Write[] {
             Write.delete(chorePath(CHORE)),
-            Write.merge("houses/" + HOUSE, Fields.of()).increment("choreCount", -1)
+            Write.merge("houses/" + HOUSE, Fields.of().str("choreMutationId", CHORE)).increment("choreCount", -1)
         };
     }
 
@@ -427,12 +451,15 @@ public class ChoreRulesTest extends RulesTestBase {
         Doc after = completed(before, TODAY, nextPlanned(OLD_SAT, TODAY));
         assertAllowed(firestore.commit(OWNER, update(after, "alice"), doneLog("occ-1", TODAY, "alice")));
 
-        assertAllowed(firestore.commit(MEMBER, Write.delete(logPath("done_occ-1")), deleteChore()[0], deleteChore()[1]));
+        assertAllowed(firestore.commit(MEMBER, startDeleting(chorePath(CHORE), "bob")));
+        assertAllowed(firestore.commit(MEMBER, deleteRecord(chorePath(CHORE), "logs", "done_occ-1", "bob")));
+        assertAllowed(firestore.commit(MEMBER, deleteChore()));
         assertEquals(NOT_FOUND, firestore.get(Auth.admin(), chorePath(CHORE)).status());
     }
 
     @Test
     public void ownerMayDeleteOthersChores() {
+        assertAllowed(firestore.commit(OWNER, startDeleting(chorePath(CHORE), "alice")));
         assertAllowed(firestore.commit(OWNER, deleteChore()));
     }
 

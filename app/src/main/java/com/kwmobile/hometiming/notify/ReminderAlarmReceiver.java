@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.Intent;
 
 import com.kwmobile.hometiming.data.firestore.ReminderRepository;
-import com.kwmobile.hometiming.domain.PlannedReminder;
 import com.kwmobile.hometiming.domain.ReminderDecision;
 import com.kwmobile.hometiming.domain.ReminderKey;
 
@@ -18,14 +17,17 @@ public final class ReminderAlarmReceiver extends BroadcastReceiver {
             return;
         }
         ReminderManager manager = ReminderManager.getInstance(context);
-        PlannedReminder reminder = manager.pending(key);
-        if (reminder == null) {
+        ReminderSession.Pending pending = manager.pending(key);
+        if (pending == null) {
             return;
         }
         PendingResult result = goAsync();
-        ReminderRepository.getInstance().checkBeforeFire(key, reminder.revision).addOnCompleteListener(done -> {
-            manager.onDecision(reminder, done.isSuccessful() ? done.getResult() : ReminderDecision.UNCONFIRMED);
-            result.finish();
+        ReminderRepository.getInstance().checkBeforeFire(key, pending.reminder.revision).addOnCompleteListener(done -> {
+            try {
+                manager.onDecision(pending, done.isSuccessful() ? done.getResult() : ReminderDecision.UNCONFIRMED);
+            } finally {
+                result.finish();
+            }
         });
     }
 }

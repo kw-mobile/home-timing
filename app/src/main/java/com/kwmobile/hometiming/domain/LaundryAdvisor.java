@@ -3,6 +3,8 @@ package com.kwmobile.hometiming.domain;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.Objects;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 /**
  * Whether a day suits drying laundry, and which day to move to (PRD 6-2, docs/MVP.md). Weather only
@@ -47,14 +49,18 @@ public final class LaundryAdvisor {
         Objects.requireNonNull(due, "due");
         Objects.requireNonNull(forecast, "forecast");
         Objects.requireNonNull(today, "today");
-        for (LocalDate day = due.plusDays(1); forecast.containsKey(day); day = day.plusDays(1)) {
-            if (judge(forecast.get(day)) == Verdict.GOOD) {
-                return day;
+        NavigableMap<LocalDate, DailyForecast> ordered = new TreeMap<>(forecast);
+        for (Map.Entry<LocalDate, DailyForecast> day : ordered.tailMap(due, false).entrySet()) {
+            if (!day.getKey().isBefore(today) && judge(day.getValue()) == Verdict.GOOD) {
+                return day.getKey();
             }
         }
-        for (LocalDate day = due.minusDays(1); !day.isBefore(today) && forecast.containsKey(day); day = day.minusDays(1)) {
-            if (judge(forecast.get(day)) == Verdict.GOOD) {
-                return day;
+        for (Map.Entry<LocalDate, DailyForecast> day : ordered.headMap(due, false).descendingMap().entrySet()) {
+            if (day.getKey().isBefore(today)) {
+                break;
+            }
+            if (judge(day.getValue()) == Verdict.GOOD) {
+                return day.getKey();
             }
         }
         return null;

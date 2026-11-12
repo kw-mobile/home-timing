@@ -37,16 +37,23 @@ public final class ReminderResyncWorker extends Worker {
     @Override
     public Result doWork() {
         ReminderManager manager = ReminderManager.getInstance(getApplicationContext());
+        ReminderSession.Sync sync = manager.beginSync();
+        if (sync == null || isStopped()) {
+            return Result.success();
+        }
         try {
-            ReminderSnapshot snapshot = Tasks.await(ReminderRepository.getInstance().readFromServer(),
+            ReminderSnapshot snapshot = Tasks.await(ReminderRepository.getInstance()
+                            .readFromServer(sync.session.uid, sync.session.houseId),
                     READ_TIMEOUT_SECONDS, TimeUnit.SECONDS);
-            manager.applySnapshot(snapshot);
+            if (!isStopped()) {
+                manager.applySnapshot(sync, snapshot);
+            }
             return Result.success();
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             Outcome outcome = cause instanceof ItemException ? outcomeOf(((ItemException) cause).error) : Outcome.RETRY;
             if (outcome == Outcome.CLEAR) {
-                manager.clear();
+                manager.clear(sync.session);
             }
             return outcome == Outcome.RETRY ? Result.retry() : Result.success();
         } catch (TimeoutException e) {
@@ -60,10 +67,10 @@ public final class ReminderResyncWorker extends Worker {
     static Outcome outcomeOf(ItemError error) {
         switch (error) {
             case NOT_SIGNED_IN:
-                return Outcome.CLEAR;
-            case NOT_CONFIGURED:
             case PERMISSION_DENIED:
             case NOT_FOUND:
+                return Outcome.CLEAR;
+            case NOT_CONFIGURED:
                 return Outcome.STOP;
             default:
                 return Outcome.RETRY;

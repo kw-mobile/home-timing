@@ -136,6 +136,9 @@ public class LaundryAdvisorTest {
 
         assertEquals(TODAY.plusDays(2), LaundryAdvisor.findAlternative(due,
                 forecast(good(TODAY), bad(due), good(TODAY.plusDays(2))), TODAY));
+        // An absent day is unknown, not the end of the available forecast range.
+        assertEquals(TODAY.plusDays(3), LaundryAdvisor.findAlternative(due,
+                forecast(good(TODAY), bad(due), good(TODAY.plusDays(3))), TODAY));
     }
 
     @Test

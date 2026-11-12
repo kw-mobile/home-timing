@@ -35,6 +35,7 @@ public class FamilyRulesTest extends RulesTestBase {
     public void ownerIssuesInviteAnyoneSignedInCanLookItUp() {
         aliceInvites("123456");
 
+        reserveInviteAccess("carol", "123456", "LOOKUP");
         assertAllowed(firestore.get(CAROL, "invites/123456"));
         assertDenied(firestore.get(Auth.signedOut(), "invites/123456"));
     }
@@ -96,6 +97,32 @@ public class FamilyRulesTest extends RulesTestBase {
                 Write.merge("houses/house-a", Fields.of()).remove("activeInviteCode"),
                 Write.delete("invites/123456")));
         assertDenied(firestore.commit(CAROL, join("carol", "house-a", "123456", "house-c")));
+    }
+
+    @Test
+    public void lookupAttemptsAreBoundToCodeAndPurposeAndCannotBeRefunded() {
+        aliceInvites("123456");
+        assertDenied(firestore.get(CAROL, "invites/123456"));
+        assertDenied(firestore.commit(CAROL, joinWithoutAccess("carol", "house-a", "123456", "house-c")));
+        for (int attempt = 1; attempt <= 10; attempt++) {
+            String missing = String.format(java.util.Locale.ROOT, "%06d", attempt);
+            reserveInviteAccess("carol", missing, "LOOKUP");
+            assertEquals(NOT_FOUND, firestore.get(CAROL, "invites/" + missing).status());
+            assertDenied(firestore.get(CAROL, "invites/123456"));
+        }
+        assertDenied(firestore.commit(CAROL, Write.merge("inviteLookups/carol", Fields.of()
+                .str("code", "123456").str("purpose", "LOOKUP")).increment("attempts", 1).serverTime("updatedAt")));
+        assertDenied(firestore.commit(CAROL, Write.delete("inviteLookups/carol")));
+        // Moving the window into the past models elapsed time without sleeping a minute.
+        assertAllowed(firestore.commit(Auth.admin(), Write.merge("inviteLookups/carol", Fields.of()
+                .time("windowStartedAt", Instant.now().minusSeconds(61)))));
+        assertAllowed(firestore.commit(CAROL, Write.merge("inviteLookups/carol", Fields.of()
+                .str("code", "123456").str("purpose", "ISSUE").num("attempts", 1))
+                .serverTime("windowStartedAt").serverTime("updatedAt")));
+        assertDenied(firestore.commit(CAROL, joinWithoutAccess("carol", "house-a", "123456", "house-c")));
+        reserveInviteAccess("carol", "123456", "LOOKUP");
+        assertAllowed(firestore.get(CAROL, "invites/123456"));
+        assertAllowed(firestore.commit(CAROL, joinWithoutAccess("carol", "house-a", "123456", "house-c")));
     }
 
     // ---- Joining ----

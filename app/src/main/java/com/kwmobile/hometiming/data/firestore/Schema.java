@@ -5,6 +5,25 @@ public final class Schema {
     private Schema() {
     }
 
+    /** Integrity fields shared by items and chores; absent legacy state is read-only. */
+    public static final class Records {
+        public static final String COUNT = "recordCount";
+        public static final String MUTATION_ID = "recordMutationId";
+        public static final String DELETING = "deleting";
+
+        private Records() {
+        }
+    }
+
+    /** Immutable minimal receipt retained after Auth deletion to prevent recreation by stale clients. */
+    public static final class AccountDeletions {
+        public static final String COLLECTION = "accountDeletions";
+        public static final String STARTED_AT = "startedAt";
+
+        private AccountDeletions() {
+        }
+    }
+
     public static final class Users {
         public static final String COLLECTION = "users";
         public static final String CURRENT_HOUSE_ID = "currentHouseId";
@@ -24,6 +43,11 @@ public final class Schema {
     public static final class Houses {
         public static final String COLLECTION = "houses";
         public static final String OWNER_ID = "ownerId";
+        public static final String INTEGRITY_VERSION = "integrityVersion";
+        public static final String CLOSING = "closing";
+        public static final String ITEM_MUTATION_ID = "itemMutationId";
+        public static final String CHORE_MUTATION_ID = "choreMutationId";
+        public static final String MEMBER_MUTATION_ID = "memberMutationId";
         public static final String MEMBER_COUNT = "memberCount";
         public static final String ITEM_COUNT = "itemCount";
         public static final String CHORE_COUNT = "choreCount";
@@ -47,6 +71,18 @@ public final class Schema {
         public static final String INVITE_CODE = "inviteCode";
 
         private Members() {
+        }
+    }
+
+    public static final class InviteLookups {
+        public static final String COLLECTION = "inviteLookups";
+        public static final String CODE = "code";
+        public static final String PURPOSE = "purpose";
+        public static final String WINDOW_STARTED_AT = "windowStartedAt";
+        public static final String ATTEMPTS = "attempts";
+        public static final String UPDATED_AT = "updatedAt";
+
+        private InviteLookups() {
         }
     }
 

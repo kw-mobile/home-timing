@@ -10,22 +10,22 @@ import org.junit.Test;
 public class DenialCauseTest {
     @Test
     public void anotherDevicesCompletionReadsAsAlreadyCompleted() {
-        assertEquals(ItemError.ALREADY_COMPLETED, ItemRepository.denialCause(true, Conflict.ALREADY_COMPLETED));
+        assertEquals(ItemError.ALREADY_COMPLETED, ItemTasks.denialCause(true, Conflict.ALREADY_COMPLETED));
     }
 
     @Test
     public void aScheduleChangeReadsAsScheduleChanged() {
-        assertEquals(ItemError.SCHEDULE_CHANGED, ItemRepository.denialCause(true, Conflict.SCHEDULE_CHANGED));
+        assertEquals(ItemError.SCHEDULE_CHANGED, ItemTasks.denialCause(true, Conflict.SCHEDULE_CHANGED));
     }
 
     @Test
     public void aDeletedDocumentReadsAsNotFound() {
-        assertEquals(ItemError.NOT_FOUND, ItemRepository.denialCause(false, null));
+        assertEquals(ItemError.NOT_FOUND, ItemTasks.denialCause(false, null));
     }
 
     @Test
     public void anUnchangedDocumentStaysARealRefusal() {
-        assertEquals(ItemError.PERMISSION_DENIED, ItemRepository.denialCause(true, Conflict.NONE));
-        assertEquals(ItemError.PERMISSION_DENIED, ItemRepository.denialCause(true, null));
+        assertEquals(ItemError.PERMISSION_DENIED, ItemTasks.denialCause(true, Conflict.NONE));
+        assertEquals(ItemError.PERMISSION_DENIED, ItemTasks.denialCause(true, null));
     }
 }

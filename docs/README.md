@@ -18,6 +18,7 @@
 | 변경 후 무엇을 확인하고 어떤 근거를 남기는가 | [TESTING.md](TESTING.md) |
 | 누가 무엇을 했는지, 보고서 근거를 어떻게 모으는가 | [report/README.md](report/README.md) |
 | Notion 자동 개발 기록 | [report/NOTION_SYNC.md](report/NOTION_SYNC.md) |
+| 운영 보안 설정·잠금 의존성 점검 | [운영 보안 확인](report/SECURITY_OPERATIONS.md) |
 | 실제 작업과 참여자 기록 | [report/WORKLOG.md](report/WORKLOG.md) |
 | 최초 환경 설정·작업 시작·완료 스킬 | [SKILLS.md](SKILLS.md) |
 | 브랜치·리뷰·PR 절차 | [CONTRIBUTING.md](../CONTRIBUTING.md) |

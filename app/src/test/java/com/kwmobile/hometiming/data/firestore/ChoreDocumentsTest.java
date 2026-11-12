@@ -26,7 +26,7 @@ public class ChoreDocumentsTest {
     // The key lists firestore.rules allows.
     private static final Set<String> REQUIRED_KEYS = new HashSet<>(Arrays.asList(
             "name", "type", "weatherSensitive", "weekday", "plannedDueDate", "nextDueDate",
-            "occurrenceId", "revision", "createdBy", "updatedBy", "createdAt", "updatedAt"));
+            "occurrenceId", "revision", "createdBy", "updatedBy", "createdAt", "updatedAt", "recordCount", "deleting"));
 
     private static Chore chore(String dismissed, LocalDate lastDone, String memo) {
         return new Chore("wash", "침구 세탁", "BEDDING_WASH", true, 6, SAT, SAT.plusDays(1), "occ-1", 2,

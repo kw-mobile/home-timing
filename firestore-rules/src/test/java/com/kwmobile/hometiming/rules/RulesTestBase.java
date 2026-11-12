@@ -53,7 +53,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1 + otherMembers.length)
                 .num("itemCount", itemCount)
-                .num("choreCount", 0)
+                .num("choreCount", 0).num("integrityVersion", 2).bool("closing", false)
                 .time("createdAt", SEEDED_AT)
                 .time("updatedAt", SEEDED_AT));
         seedMember(houseId, ownerId);
@@ -119,7 +119,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1)
                 .num("itemCount", 0)
-                .num("choreCount", 0))
+                .num("choreCount", 0).num("integrityVersion", 2).bool("closing", false))
                 .serverTime("createdAt").serverTime("updatedAt");
     }
 
@@ -139,7 +139,7 @@ abstract class RulesTestBase {
                 .str("lastReplacedDate", lastReplacedDate)
                 .str("nextDueDate", plusDays(lastReplacedDate, cycleDays))
                 .str("occurrenceId", occurrenceId)
-                .num("revision", revision)
+                .num("revision", revision).num("recordCount", 0).bool("deleting", false)
                 .str("createdBy", uid)
                 .str("updatedBy", uid);
     }
@@ -148,7 +148,7 @@ abstract class RulesTestBase {
     static Write[] createItem(String houseId, String itemId, Fields fields) {
         return new Write[] {
             Write.create(itemPath(houseId, itemId), fields).serverTime("createdAt").serverTime("updatedAt"),
-            Write.merge("houses/" + houseId, Fields.of()).increment("itemCount", 1)
+            Write.merge("houses/" + houseId, Fields.of().str("itemMutationId", itemId)).increment("itemCount", 1)
         };
     }
 
@@ -170,6 +170,7 @@ abstract class RulesTestBase {
 
     /** Issue or reissue: the invite plus the house's active code; deletes {@code previousCode} if given. */
     static Write[] issueInvite(String houseId, String ownerId, String code, String previousCode) {
+        reserveInviteAccess(ownerId, code, "ISSUE");
         Write invite = Write.set("invites/" + code, Fields.of().str("houseId", houseId).str("createdBy", ownerId))
                 .serverTime("createdAt");
         Write house = Write.merge("houses/" + houseId, Fields.of().str("activeInviteCode", code));
@@ -180,11 +181,16 @@ abstract class RulesTestBase {
 
     /** Join: member in the new house, its count +1, user moved, and the old empty house removed. */
     static Write[] join(String uid, String houseId, String code, String oldHouseId) {
+        reserveInviteAccess(uid, code, "LOOKUP");
+        return joinWithoutAccess(uid, houseId, code, oldHouseId);
+    }
+
+    static Write[] joinWithoutAccess(String uid, String houseId, String code, String oldHouseId) {
         return new Write[] {
             Write.create("houses/" + houseId + "/members/" + uid,
                     Fields.of().str("displayName", nameOf(uid)).str("inviteCode", code))
                     .serverTime("joinedAt"),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", 1),
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", 1),
             Write.merge("users/" + uid, Fields.of().str("currentHouseId", houseId)).serverTime("updatedAt"),
             Write.delete("houses/" + oldHouseId + "/members/" + uid),
             Write.delete("houses/" + oldHouseId)
@@ -195,7 +201,7 @@ abstract class RulesTestBase {
     static Write[] leave(String uid, String houseId, String newHouseId) {
         return new Write[] {
             Write.delete("houses/" + houseId + "/members/" + uid),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1),
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", -1),
             newHouse(newHouseId, uid),
             newMember(newHouseId, uid, nameOf(uid)),
             Write.merge("users/" + uid, Fields.of().str("currentHouseId", newHouseId)).serverTime("updatedAt")
@@ -206,7 +212,41 @@ abstract class RulesTestBase {
     static Write[] removeMember(String houseId, String uid) {
         return new Write[] {
             Write.delete("houses/" + houseId + "/members/" + uid),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1)
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", -1)
+        };
+    }
+
+    /** Like the app, reserve separately so a denied issue/join does not refund the attempt. */
+    static void reserveInviteAccess(String uid, String code, String purpose) {
+        Auth actor = Auth.user(uid);
+        String path = "inviteLookups/" + uid;
+        boolean first = firestore.get(actor, path).status() == FirestoreEmulator.NOT_FOUND;
+        Fields fields = Fields.of().str("code", code).str("purpose", purpose);
+        Write access = first
+                ? Write.create(path, fields.num("attempts", 1)).serverTime("windowStartedAt")
+                : Write.merge(path, fields).increment("attempts", 1);
+        assertAllowed(firestore.commit(actor, access.serverTime("updatedAt")));
+    }
+
+    static Write deletionReceipt(String uid) {
+        return Write.create("accountDeletions/" + uid, Fields.of()).serverTime("startedAt");
+    }
+
+    static Write closeHouse(String houseId) {
+        return Write.merge("houses/" + houseId, Fields.of().bool("closing", true))
+                .remove("activeInviteCode").serverTime("updatedAt");
+    }
+
+    static Write startDeleting(String parent, String actor) {
+        return Write.merge(parent, Fields.of().bool("deleting", true).str("updatedBy", actor))
+                .serverTime("updatedAt");
+    }
+
+    static Write[] deleteRecord(String parent, String collection, String record, String actor) {
+        return new Write[] {
+            Write.delete(parent + "/" + collection + "/" + record),
+            Write.merge(parent, Fields.of().str("recordMutationId", record).str("updatedBy", actor))
+                    .increment("recordCount", -1).serverTime("updatedAt")
         };
     }
 
