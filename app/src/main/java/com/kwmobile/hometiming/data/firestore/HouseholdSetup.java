@@ -60,6 +60,7 @@ public final class HouseholdSetup {
         Map<String, Object> fields = new HashMap<>();
         fields.put(Schema.Houses.OWNER_ID, Objects.requireNonNull(ownerId, "ownerId"));
         fields.put(Schema.Houses.INTEGRITY_VERSION, 2);
+        fields.put(Schema.Houses.CLOSING, false);
         fields.put(Schema.Houses.MEMBER_COUNT, 1);
         fields.put(Schema.Houses.ITEM_COUNT, 0);
         fields.put(Schema.Houses.CHORE_COUNT, 0);

@@ -28,7 +28,7 @@ Activity / Fragment → ViewModel → Repository → Firebase / 기상청 / 로�
 | `data/firestore` | 집·용품·집안일 저장, 트랜잭션, 리스너 수명 관리 | 화면별 중복 제품 규칙 |
 | `data/weather` | API DTO·파싱·예보 캐시·발표 회차 선택 | 화면 위젯 |
 | `data/local` | 개인 설정·로컬 저장·지역 표 | 집 권한 판정 |
-| `notify` | 알림 예약·취소, Receiver, Worker. 화면은 `ReminderManager`만 호출(로그인·집 변경 `onSessionStarted`, 로그아웃 `onSessionEnded`, 설정 변경 `requestSync`). 직전 서버 확인·동기화 읽기·변경 이벤트는 `data/firestore/ReminderRepository`를 호출 | Activity 참조와 별도의 완료 규칙 |
+| `notify` | 알림 예약·취소, Receiver, Worker. 화면은 `ReminderManager`만 호출(로그인·집 변경 `onSessionStarted`, 로그아웃 `onSessionEnded`, 설정 저장 `updateSettings`, 일반 재동기화 `requestSync`). 직전 서버 확인·동기화 읽기·변경 이벤트는 `data/firestore/ReminderRepository`를 호출 | Activity 참조와 별도의 완료 규칙 |
 | `res/layout`, `res/values` | XML 화면, 문자열·색상·테마 | Java에 박아 넣은 사용자 문구·색상 |
 
 인터페이스나 공통 기반 클래스를 모든 클래스에 의무적으로 만들지 않습니다. 실제 교체 가능성·테스트 필요성이 있을 때 분리합니다.
@@ -67,3 +67,9 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. OCR은 동�
 - `AuthSessionGuard`는 계정 작업 세대로 늦은 결과와 후속 데이터 작업을 차단합니다. 이미 발행한 Firebase SDK 요청 자체를 취소하지는 못합니다.
 - `ReminderSession`은 저장한 알림 기록을 계정·집에 연결합니다. Worker·리스너·알람 확인에는 세션 토큰을, 동기화에는 추가 순서를 적용해 이전 결과를 버립니다. 앱 재시작 시 소유자가 없는 구형 기록이나 현재 계정과 다른 기록은 지우며, 같은 계정·집의 기록만 재예약합니다.
 - Repository의 `fromCache`는 스냅샷 출처이며 기기의 네트워크 연결 여부 자체가 아닙니다. 메타데이터 변경도 구독하고, 실제 쓰기 성공은 서버 커밋으로 판단합니다.
+
+`OperationScope`는 계정·집·세대를 묶어 일반 Repository 작업에도 적용합니다. Auth가 자기 사용자 문서로 소속을 복원한 뒤에만 scope를 연결합니다. 집 이동·로그아웃·계정 삭제는 이전 작업과 구독을 무효화합니다. 목록·상세는 현재 scope의 집만 구독하고 이전 캐시 콜백을 버립니다. Firestore 캐시 파일 자체를 암호화하거나 지우는 기능은 아니며, 오프라인에서는 마지막으로 확인한 소속의 캐시를 읽는 기존 계약을 유지합니다. 원격 소속 상실을 오프라인에서 즉시 감지한다고 보장하지 않습니다.
+
+개인 알림 설정은 `ReminderManager.updateSettings`로 저장합니다. 저장 성공을 반환하기 전에 동기화된 일정과 새 설정으로 로컬 예약을 다시 계산하므로, 서버 재동기화가 지연돼도 이전 시각 예약을 유지하지 않습니다. 이후 전체 서버 읽기로 새 항목까지 보완합니다. 계정 삭제 상태·닫힌 집은 알림 서버 확인과 계획에서 제외합니다.
+
+세션 복원 요청은 별도 순서 번호로 최신 결과만 채택합니다. 같은 계정·집의 오프라인 복원은 기존 알림·구독을 불필요하게 지우지 않고, 실제 집 변경을 확인했을 때 이전 scope를 무효화합니다. 설정만으로 다시 만든 로컬 알림 계획은 이미 발송한 회차의 중복 방지 기록을 지우지 않습니다. 전체 서버 스냅샷만 사라진 회차를 확정해 그 기록을 정리합니다.

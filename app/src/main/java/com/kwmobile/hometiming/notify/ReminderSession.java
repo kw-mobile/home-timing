@@ -6,6 +6,8 @@ import com.kwmobile.hometiming.domain.ReminderDecision;
 import com.kwmobile.hometiming.domain.ReminderKey;
 
 import java.util.List;
+import java.time.Clock;
+import com.kwmobile.hometiming.domain.ReminderPlanner;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -100,13 +102,26 @@ final class ReminderSession {
         return uid != null && uid.equals(currentUid.get()) ? new Token(uid, houseId, generation) : null;
     }
 
-    synchronized boolean isCurrent(Token token) {
+    synchronized boolean owns(Token token) {
         return token != null && token.generation == generation && Objects.equals(token.uid, uid)
-                && Objects.equals(token.houseId, houseId) && token.uid.equals(currentUid.get());
+                && Objects.equals(token.houseId, houseId);
+    }
+
+    synchronized boolean isCurrent(Token token) {
+        return owns(token) && token.uid.equals(currentUid.get());
     }
 
     synchronized void invalidateSync() {
         syncSequence++;
+    }
+
+    synchronized boolean settingsChanged(Token token, String time, int advanceDays, Clock clock) {
+        if (!isCurrent(token) || !ReminderPlanner.isValidSettings(time, advanceDays)) {
+            return false;
+        }
+        syncSequence++;
+        engine.settingsChanged(ReminderPlanner.parseTime(time), advanceDays, clock);
+        return true;
     }
 
     synchronized Sync beginSync() {
@@ -142,7 +157,8 @@ final class ReminderSession {
     }
 
     synchronized void clear(Token token) {
-        if (isCurrent(token)) {
+        // Cleanup must still work after Auth changed; generation prevents clearing a newer owner.
+        if (owns(token)) {
             end();
         }
     }

@@ -17,6 +17,7 @@ import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.auth.OperationScope;
 import com.kwmobile.hometiming.domain.Chore;
 import com.kwmobile.hometiming.domain.ChoreDraft;
 import com.kwmobile.hometiming.domain.ChoreInputValidator;
@@ -104,8 +105,14 @@ public final class ChoreRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         Query query = chores(db, houseId).orderBy(Schema.Chores.NEXT_DUE_DATE);
         ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
@@ -119,7 +126,7 @@ public final class ChoreRepository {
             }
             listener.onChores(Collections.unmodifiableList(list), snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     @NonNull
@@ -128,15 +135,21 @@ public final class ChoreRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         ListenerRegistration registration = choreRef(db, houseId, choreId)
                 .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
             }
             listener.onChore(snapshot.exists() ? read(snapshot) : null, snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     @NonNull
@@ -145,9 +158,15 @@ public final class ChoreRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         Query query = choreRef(db, houseId, choreId).collection(Schema.Logs.COLLECTION)
                 .orderBy(Schema.Logs.CREATED_AT, Query.Direction.DESCENDING);
         ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
@@ -162,7 +181,7 @@ public final class ChoreRepository {
             }
             listener.onLogs(Collections.unmodifiableList(list), snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     // ---- Changes (online only) ----
@@ -177,19 +196,23 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         if (!ChoreInputValidator.validateDraft(draft, today()).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = chores(firestore, houseId).document();
         Chore chore = ChoreSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
-        return translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             tx.set(ref, ChoreDocuments.choreFields(chore, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.CHORE_COUNT, FieldValue.increment(1),
                     Schema.Houses.CHORE_MUTATION_ID, ref.getId());
             return chore;
-        }));
+        }), scope, this::currentUid);
     }
 
     /** Edits the chore the screen showed. A new weekday restarts this occurrence on that weekday. */
@@ -202,13 +225,17 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         LocalDate today = today();
         if (!ChoreInputValidator.validateDraft(draft, today).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, shown.occurrenceId, shown.revision);
@@ -217,7 +244,7 @@ public final class ChoreRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
+        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /**
@@ -233,6 +260,10 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         if (!ChoreInputValidator.validateDoneDate(doneDate, today()).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
         }
@@ -240,7 +271,7 @@ public final class ChoreRepository {
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
         DocumentReference member = memberRef(firestore, houseId, uid);
         String nextOccurrence = newOccurrenceId();
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -256,7 +287,7 @@ public final class ChoreRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, ChoreDocuments.doneLogId(stored.occurrenceId)));
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
+        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /**
@@ -274,13 +305,17 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         if (!ChoreSchedule.canReschedule(target, today())) {
             return fail(ItemError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
         DocumentReference member = memberRef(firestore, houseId, uid);
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -301,7 +336,7 @@ public final class ChoreRepository {
             tx.set(ref, RecordState.preserve(fields, snapshot,
                     ChoreDocuments.movedLogId(next.occurrenceId, next.revision)));
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
+        }), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /** "그대로 두기": hides the suggestion for this occurrence only. */
@@ -314,9 +349,13 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, occurrenceId, revision);
@@ -327,7 +366,7 @@ public final class ChoreRepository {
                 tx.set(ref, RecordState.preserve(fields, snapshot, null));
             }
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
+        }), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /**
@@ -343,9 +382,13 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         DocumentReference ref = choreRef(db, houseId, choreId);
-        return translate(DocumentDeletion.delete(db, ref, Schema.Logs.COLLECTION,
-                Schema.Houses.CHORE_COUNT, Schema.Houses.CHORE_MUTATION_ID, uid, this::currentUid));
+        return ItemTasks.scoped(DocumentDeletion.delete(db, ref, Schema.Logs.COLLECTION,
+                Schema.Houses.CHORE_COUNT, Schema.Houses.CHORE_MUTATION_ID, uid, this::currentUid, scope), scope, this::currentUid);
     }
 
     // ---- Helpers ----
@@ -421,16 +464,6 @@ public final class ChoreRepository {
 
     private static String newOccurrenceId() {
         return UUID.randomUUID().toString();
-    }
-
-    private static <T> Task<T> translate(Task<T> task) {
-        return task.continueWithTask(done -> done.isSuccessful()
-                ? done
-                : Tasks.forException(asItemException(done.getException())));
-    }
-
-    private static ItemException asItemException(Exception e) {
-        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemTasks.classify(e), e);
     }
 
     private static <T> Task<T> fail(ItemError error) {

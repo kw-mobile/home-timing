@@ -63,6 +63,8 @@ class Firestore:
 
 def migrate(store, apply=False):
     summary = {"houses": 0, "parents": 0, "records": 0, "blocked_houses": 0}
+    users = {doc["name"].rsplit("/", 1)[-1]: doc.get("fields", {}) for doc in store.documents("users")}
+    receipts = {doc["name"].rsplit("/", 1)[-1] for doc in store.documents("accountDeletions")}
     for house in store.documents("houses"):
         if "fields" not in house:
             # Missing parents can contain otherwise invisible orphan subcollections.
@@ -73,7 +75,8 @@ def migrate(store, apply=False):
             # Deploy v2 rules FIRST. Version 1 pauses client mutations while we count.
             store.update(house, {"integrityVersion": 1})
         counts = {}
-        blocked = False
+        closing = house["fields"].get("closing", {"booleanValue": False})
+        blocked = set(closing) != {"booleanValue"}
         for collection, children in (("items", "history"), ("chores", "logs")):
             parents = store.documents(f"{path}/{collection}")
             counts[collection] = 0
@@ -100,6 +103,13 @@ def migrate(store, apply=False):
         if (len(actual_members) != len(members) or not 1 <= len(actual_members) <= 6
                 or not any(member["name"].rsplit("/", 1)[-1] == owner for member in actual_members)):
             blocked = True
+        for member in actual_members:
+            uid = member["name"].rsplit("/", 1)[-1]
+            if users.get(uid, {}).get("currentHouseId", {}).get("stringValue") != path.rsplit("/", 1)[-1]:
+                # Old duplicated membership cannot be repaired by guessing which house to keep.
+                blocked = True
+        if closing.get("booleanValue") and owner not in receipts:
+            blocked = True
         summary["houses"] += 1
         if blocked:
             # Never delete or fabricate orphan records. A failed apply stays paused at version 1.
@@ -109,7 +119,8 @@ def migrate(store, apply=False):
             # Refresh the update precondition after the maintenance marker write.
             current = store.request("GET", "/" + urllib.parse.quote(path, safe="/"))
             store.update(current, {"itemCount": counts["items"], "choreCount": counts["chores"],
-                                   "memberCount": len(actual_members), "integrityVersion": 2})
+                                   "memberCount": len(actual_members), "integrityVersion": 2,
+                                   "closing": closing["booleanValue"]})
     return summary
 
 

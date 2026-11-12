@@ -17,6 +17,7 @@ import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.auth.OperationScope;
 import com.kwmobile.hometiming.domain.DateRules;
 import com.kwmobile.hometiming.domain.HistoryEntry;
 import com.kwmobile.hometiming.domain.Item;
@@ -105,8 +106,14 @@ public final class ItemRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         Query query = items(db, houseId).orderBy(Schema.Items.NEXT_DUE_DATE);
         ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
@@ -120,7 +127,7 @@ public final class ItemRepository {
             }
             listener.onItems(Collections.unmodifiableList(list), snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     @NonNull
@@ -129,15 +136,21 @@ public final class ItemRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         ListenerRegistration registration = itemRef(db, houseId, itemId)
                 .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
             }
             listener.onItem(snapshot.exists() ? read(snapshot) : null, snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     @NonNull
@@ -146,9 +159,15 @@ public final class ItemRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(currentUid(), houseId);
+        if (scope == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         Query query = itemRef(db, houseId, itemId).collection(Schema.History.COLLECTION)
                 .orderBy(Schema.History.REPLACED_DATE, Query.Direction.DESCENDING);
         ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
+            if (!OperationScope.getInstance().isCurrent(scope, currentUid())) return;
             if (error != null || snapshot == null) {
                 listener.onError(ItemTasks.classify(error));
                 return;
@@ -163,7 +182,7 @@ public final class ItemRepository {
             }
             listener.onHistory(Collections.unmodifiableList(list), snapshot.getMetadata().isFromCache());
         });
-        return registration::remove;
+        return ItemTasks.subscription(scope, registration);
     }
 
     // ---- Changes (online only) ----
@@ -178,19 +197,23 @@ public final class ItemRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         if (!ItemInputValidator.validateDraft(draft, today()).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = items(firestore, houseId).document();
         Item item = ItemSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
-        return translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             tx.set(ref, ItemDocuments.itemFields(item, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.ITEM_COUNT, FieldValue.increment(1),
                     Schema.Houses.ITEM_MUTATION_ID, ref.getId());
             return item;
-        }));
+        }), scope, this::currentUid);
     }
 
     /** Edits the item the screen showed (F-03). Fails if it was completed or rescheduled meanwhile. */
@@ -203,12 +226,16 @@ public final class ItemRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         if (!ItemInputValidator.validateDraft(draft, today()).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Item stored = requireStored(snapshot);
             rejectConflict(stored, shown);
@@ -220,7 +247,7 @@ public final class ItemRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
+        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /**
@@ -237,6 +264,10 @@ public final class ItemRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         LocalDate today = today();
         if (!ItemInputValidator.validateReplacedDate(replacedDate, shown.lastReplacedDate, today).isEmpty()) {
             return fail(ItemError.INVALID_INPUT);
@@ -245,7 +276,7 @@ public final class ItemRepository {
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
         DocumentReference member = houseRef(firestore, houseId).collection(Schema.Members.COLLECTION).document(uid);
         String nextOccurrence = newOccurrenceId();
-        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             DocumentSnapshot memberSnapshot = tx.get(member);
             Item stored = requireStored(snapshot);
@@ -265,7 +296,7 @@ public final class ItemRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, stored.occurrenceId));
             return next;
-        })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
+        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
     }
 
     /**
@@ -281,9 +312,13 @@ public final class ItemRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid, houseId);
+        if (scope == null) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
         DocumentReference ref = itemRef(db, houseId, itemId);
-        return translate(DocumentDeletion.delete(db, ref, Schema.History.COLLECTION,
-                Schema.Houses.ITEM_COUNT, Schema.Houses.ITEM_MUTATION_ID, uid, this::currentUid));
+        return ItemTasks.scoped(DocumentDeletion.delete(db, ref, Schema.History.COLLECTION,
+                Schema.Houses.ITEM_COUNT, Schema.Houses.ITEM_MUTATION_ID, uid, this::currentUid, scope), scope, this::currentUid);
     }
 
     // ---- Helpers ----
@@ -360,16 +395,6 @@ public final class ItemRepository {
     private static ItemSchedule.Conflict conflictOf(DocumentSnapshot snapshot, String occurrenceId, int revision) {
         Item stored = read(snapshot);
         return stored == null ? null : ItemSchedule.conflict(stored, occurrenceId, revision);
-    }
-
-    private static <T> Task<T> translate(Task<T> task) {
-        return task.continueWithTask(done -> done.isSuccessful()
-                ? done
-                : Tasks.forException(asItemException(done.getException())));
-    }
-
-    private static ItemException asItemException(Exception e) {
-        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemTasks.classify(e), e);
     }
 
     private static <T> Task<T> fail(ItemError error) {

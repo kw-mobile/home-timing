@@ -26,12 +26,16 @@ final class Auth {
 
     /** A signed-in email/password user with the given uid. */
     static Auth user(String uid) {
+        return userWithAuthTime(uid, Instant.now().getEpochSecond());
+    }
+
+    static Auth userWithAuthTime(String uid, long authTime) {
         long now = Instant.now().getEpochSecond();
         String project = FirestoreEmulator.PROJECT_ID;
         String header = "{\"alg\":\"none\",\"kid\":\"fakekid\",\"typ\":\"JWT\"}";
         String payload = "{\"iss\":" + Json.quote("https://securetoken.google.com/" + project)
                 + ",\"aud\":" + Json.quote(project)
-                + ",\"iat\":" + now + ",\"exp\":" + (now + 3600) + ",\"auth_time\":" + now
+                + ",\"iat\":" + now + ",\"exp\":" + (now + 3600) + ",\"auth_time\":" + authTime
                 + ",\"sub\":" + Json.quote(uid) + ",\"user_id\":" + Json.quote(uid)
                 + ",\"firebase\":{\"sign_in_provider\":\"password\",\"identities\":{}}}";
         return new Auth(base64Url(header) + "." + base64Url(payload) + ".");

@@ -422,6 +422,20 @@ public class ChoreRulesTest extends RulesTestBase {
                 Fields.of().str("date", TODAY.minusDays(1).toString()))));
     }
 
+    @Test
+    public void usedAndUnsafeNextOccurrencesAreRejectedWithoutBreakingTheCurrentChore() {
+        Doc before = seedOverdue();
+        Doc after = completed(before, TODAY, nextPlanned(OLD_SAT, TODAY));
+        assertAllowed(firestore.commit(OWNER, update(after, "alice"), doneLog("occ-1", TODAY, "alice")));
+        Doc next = completed(after, TODAY, nextPlanned(after.planned, TODAY));
+        next.occurrence = "occ-1";
+        assertDenied(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+        next.occurrence = "bad/id";
+        assertDenied(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+        next.occurrence = "occ-3";
+        assertAllowed(firestore.commit(OWNER, update(next, "alice"), doneLog("occ-2", TODAY, "alice")));
+    }
+
     // ---- Deleting ----
 
     private static Write[] deleteChore() {

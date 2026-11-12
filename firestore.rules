@@ -22,6 +22,14 @@ service cloud.firestore {
     function historyDoc(houseId, itemId, occurrenceId) {
       return /databases/$(database)/documents/houses/$(houseId)/items/$(itemId)/history/$(occurrenceId);
     }
+    function deletionDoc(uid) { return /databases/$(database)/documents/accountDeletions/$(uid); }
+    function activeAccount() { return signedIn() && !existsAfter(deletionDoc(me())); }
+    function deletionStarted() { return signedIn() && existsAfter(deletionDoc(me())); }
+    function recentAuthentication() {
+      return request.auth.token.auth_time is int
+          && request.auth.token.auth_time <= request.time.toMillis() / 1000
+          && request.auth.token.auth_time > request.time.toMillis() / 1000 - 300;
+    }
     function inviteDoc(code) { return /databases/$(database)/documents/invites/$(code); }
 
     // Six-digit invite code; valid for 24 hours from its server creation time.
@@ -39,9 +47,18 @@ service cloud.firestore {
     // Trimmed non-empty text of at most max characters.
     function isText(v, max) { return v is string && v.trim().size() > 0 && v.size() <= max; }
     function optionalText(data, key, max) { return !(key in data) || isText(data[key], max); }
-    function isId(v) { return v is string && v.size() > 0 && v.size() <= 64; }
+    function isId(v) { return v is string && v.matches('[^/]{1,64}') && v != '.' && v != '..'; }
     function isTarget(v) { return v is string && v.matches('[^/]{1,160}'); }
     function houseReady(houseId) { return get(houseDoc(houseId)).data.integrityVersion == 2; }
+    function houseOpen(houseId) {
+      return houseReady(houseId) && !get(houseDoc(houseId)).data.get('closing', false);
+    }
+    function normalWrite(houseId) { return activeAccount() && houseOpen(houseId); }
+    function closingOwner(houseId) {
+      return signedIn() && houseReady(houseId) && isOwner(houseId)
+          && get(houseDoc(houseId)).data.get('closing', false) && deletionStarted();
+    }
+    function cleanupWrite(houseId) { return normalWrite(houseId) || closingOwner(houseId); }
     function validRecords(d) {
       return d.recordCount is int && d.recordCount >= 0 && d.deleting is bool
           && (!('recordMutationId' in d) || isTarget(d.recordMutationId));
@@ -68,11 +85,29 @@ service cloud.firestore {
     // A user may point at a house only when they are its member once the commit lands.
     function memberAfter(houseId) { return isId(houseId) && existsAfter(memberDoc(houseId, me())); }
 
+    // A minimal irreversible receipt survives Auth deletion so other devices and stale tokens
+    // cannot interpret the missing user document as a fresh account.
+    match /accountDeletions/{userId} {
+      allow get: if isSelf(userId);
+      allow create: if isSelf(userId) && recentAuthentication()
+          && hasExactly(request.resource.data, ['startedAt'])
+          && request.resource.data.startedAt == request.time
+          && (!exists(userDoc(userId))
+              || !exists(memberDoc(get(userDoc(userId)).data.currentHouseId, userId))
+              || (get(houseDoc(get(userDoc(userId)).data.currentHouseId)).data.ownerId != userId
+                  && !existsAfter(memberDoc(get(userDoc(userId)).data.currentHouseId, userId))
+                  && !existsAfter(userDoc(userId)))
+              || (get(houseDoc(get(userDoc(userId)).data.currentHouseId)).data.ownerId == userId
+                  && get(houseDoc(get(userDoc(userId)).data.currentHouseId)).data.memberCount == 1
+                  && getAfter(houseDoc(get(userDoc(userId)).data.currentHouseId)).data.get('closing', false)));
+      // No client update/delete, including after a failed deletion. Retry cleanup instead.
+    }
+
     match /users/{userId} {
       allow get: if isSelf(userId);
 
       // First sign-in: committed together with a new house and member (AuthRepository).
-      allow create: if isSelf(userId)
+      allow create: if isSelf(userId) && activeAccount()
           && hasExactly(request.resource.data,
               ['currentHouseId', 'displayName', 'notifyTime', 'advanceDays', 'createdAt', 'updatedAt'])
           && isText(request.resource.data.displayName, 20)
@@ -82,7 +117,7 @@ service cloud.firestore {
           && request.resource.data.updatedAt == request.time
           && memberAfter(request.resource.data.currentHouseId);
 
-      allow update: if isSelf(userId)
+      allow update: if isSelf(userId) && activeAccount()
           && request.resource.data.updatedAt == request.time
           && (
             // Personal notification settings.
@@ -91,26 +126,60 @@ service cloud.firestore {
                 && isAdvanceDays(request.resource.data.advanceDays))
             // Moving to another house (recovery, joining, leaving) needs membership there.
             || (changed().hasOnly(['currentHouseId', 'updatedAt'])
-                && memberAfter(request.resource.data.currentHouseId))
+                && memberAfter(request.resource.data.currentHouseId)
+                && (request.resource.data.currentHouseId == resource.data.currentHouseId
+                    || !existsAfter(memberDoc(resource.data.currentHouseId, me()))))
           );
 
       // Account deletion: the user leaves (or dissolves) their current house in the same commit,
       // so no member document points at a deleted user. Auth is deleted afterwards by the app.
-      allow delete: if isSelf(userId)
+      allow delete: if isSelf(userId) && deletionStarted()
           && !existsAfter(memberDoc(resource.data.currentHouseId, me()));
+    }
+
+    function lookupDoc(uid) { return /databases/$(database)/documents/inviteLookups/$(uid); }
+    function freshInviteAccess(code, purpose) {
+      let access = get(lookupDoc(me())).data;
+      return exists(lookupDoc(me())) && access.code == code && access.purpose == purpose
+          && access.updatedAt <= request.time && request.time < access.updatedAt + duration.value(10, 's');
+    }
+    function readsOwnActiveInvite(code) {
+      let houseId = get(userDoc(me())).data.currentHouseId;
+      let home = get(houseDoc(houseId)).data;
+      return home.ownerId == me() && home.get('activeInviteCode', '') == code;
+    }
+    match /inviteLookups/{userId} {
+      function validAccess() {
+        let next = request.resource.data;
+        return hasExactly(next, ['code', 'purpose', 'windowStartedAt', 'attempts', 'updatedAt'])
+            && isInviteCode(next.code) && next.purpose in ['LOOKUP', 'ISSUE']
+            && next.attempts is int && next.attempts >= 1 && next.attempts <= 10
+            && next.updatedAt == request.time;
+      }
+      allow get: if isSelf(userId);
+      allow create: if isSelf(userId) && activeAccount() && validAccess()
+          && request.resource.data.attempts == 1 && request.resource.data.windowStartedAt == request.time;
+      allow update: if isSelf(userId) && activeAccount() && validAccess()
+          && (request.time >= resource.data.windowStartedAt + duration.value(60, 's')
+              ? (request.resource.data.attempts == 1 && request.resource.data.windowStartedAt == request.time)
+              : (request.resource.data.windowStartedAt == resource.data.windowStartedAt
+                  && request.resource.data.attempts == resource.data.attempts + 1));
+      allow delete: if isSelf(userId) && deletionStarted();
     }
 
     // ---- invites/{code}: outside houses so non-members can join without reading the house ----
     match /invites/{code} {
       // Anyone signed in may look up a code they were given; listing codes is denied.
-      allow get: if signedIn();
+      allow get: if signedIn() && !exists(deletionDoc(me()))
+          && (freshInviteAccess(code, 'LOOKUP') || freshInviteAccess(code, 'ISSUE') || readsOwnActiveInvite(code));
 
       // The owner issues a code for their house and makes it the house's active code in the same
       // commit. Expiry is createdAt + 24 h, so clients never write the expiry themselves.
       function isIssue() {
         let data = request.resource.data;
-        return signedIn()
-            && isInviteCode(code)
+        return activeAccount()
+            && houseOpen(data.houseId)
+            && isInviteCode(code) && freshInviteAccess(code, 'ISSUE')
             && hasExactly(data, ['houseId', 'createdBy', 'createdAt'])
             && isId(data.houseId)
             && data.createdBy == me()
@@ -124,7 +193,10 @@ service cloud.firestore {
       // A code still live for any house is never overwritten; an expired one may be reused.
       allow update: if isIssue() && !inviteLive(resource.data);
       // The owner of the invite's house removes it (reissue, stop, or dissolving that house).
-      allow delete: if signedIn() && houseReady(resource.data.houseId)
+      allow delete: if signedIn()
+          && (normalWrite(resource.data.houseId)
+              || (isOwner(resource.data.houseId) && houseReady(resource.data.houseId)
+                  && getAfter(houseDoc(resource.data.houseId)).data.get('closing', false) && deletionStarted()))
           && get(houseDoc(resource.data.houseId)).data.ownerId == me();
     }
 
@@ -134,11 +206,12 @@ service cloud.firestore {
 
       // Only a one-person, empty house owned by the caller, founded with its member document
       // and with the caller's user document pointing at it.
-      allow create: if signedIn()
+      allow create: if activeAccount()
           && hasExactly(request.resource.data,
-              ['ownerId', 'memberCount', 'itemCount', 'choreCount', 'integrityVersion', 'createdAt', 'updatedAt'])
+              ['ownerId', 'memberCount', 'itemCount', 'choreCount', 'integrityVersion', 'closing', 'createdAt', 'updatedAt'])
           && request.resource.data.ownerId == me()
           && request.resource.data.integrityVersion == 2
+          && request.resource.data.closing == false
           && request.resource.data.memberCount == 1
           && request.resource.data.itemCount == 0
           && request.resource.data.choreCount == 0
@@ -173,7 +246,8 @@ service cloud.firestore {
                     && id != resource.data.ownerId && exists(target) && !existsAfter(target)));
       }
 
-      allow update: if signedIn() && houseReady(houseId) && (
+      function isNormalMutation() {
+        return normalWrite(houseId) && (
           (isMember(houseId) && countMutation('items', 'itemCount', 'itemMutationId'))
           || (isMember(houseId) && countMutation('chores', 'choreCount', 'choreMutationId'))
           || memberMutation()
@@ -190,10 +264,34 @@ service cloud.firestore {
               && request.resource.data.nx is int && request.resource.data.nx >= 1 && request.resource.data.nx <= 149
               && request.resource.data.ny is int && request.resource.data.ny >= 1 && request.resource.data.ny <= 253)
       );
+      }
+
+      function isClosingStart() {
+        return resource.data.ownerId == me() && !resource.data.get('closing', false)
+            && request.resource.data.closing == true && resource.data.memberCount == 1
+            && deletionStarted() && !('activeInviteCode' in request.resource.data)
+            && changed().hasOnly(['closing', 'activeInviteCode', 'updatedAt'])
+            && request.resource.data.updatedAt == request.time;
+      }
+      function isClosingCleanup() {
+        return closingOwner(houseId) && (
+            (countMutation('items', 'itemCount', 'itemMutationId')
+                && request.resource.data.itemCount == resource.data.itemCount - 1)
+            || (countMutation('chores', 'choreCount', 'choreMutationId')
+                && request.resource.data.choreCount == resource.data.choreCount - 1));
+      }
+      function isMemberAccountDeletion() {
+        return houseOpen(houseId) && deletionStarted() && memberMutation()
+            && request.resource.data.memberMutationId == me()
+            && request.resource.data.memberCount == resource.data.memberCount - 1
+            && !existsAfter(userDoc(me()));
+      }
+      allow update: if signedIn() && houseReady(houseId)
+          && (isNormalMutation() || isClosingStart() || isClosingCleanup() || isMemberAccountDeletion());
 
       // The owner dissolves their own empty one-person house while moving elsewhere (joining) or
       // deleting their account (the user document goes in the same commit).
-      allow delete: if isOwner(houseId) && houseReady(houseId)
+      allow delete: if isOwner(houseId) && cleanupWrite(houseId)
           && resource.data.memberCount == 1
           && resource.data.itemCount == 0
           && resource.data.choreCount == 0
@@ -221,10 +319,10 @@ service cloud.firestore {
           let data = request.resource.data;
           let house = get(houseDoc(houseId)).data;
           let previousHouse = get(userDoc(me())).data.currentHouseId;
-          return exists(houseDoc(houseId)) && houseReady(houseId)
+          return exists(houseDoc(houseId)) && normalWrite(houseId)
               && getAfter(houseDoc(houseId)).data.memberMutationId == me()
               && hasExactly(data, ['displayName', 'joinedAt', 'inviteCode'])
-              && isInviteCode(data.inviteCode)
+              && isInviteCode(data.inviteCode) && freshInviteAccess(data.inviteCode, 'LOOKUP')
               && house.activeInviteCode == data.inviteCode
               && get(inviteDoc(data.inviteCode)).data.houseId == houseId
               && inviteLive(get(inviteDoc(data.inviteCode)).data)
@@ -236,7 +334,7 @@ service cloud.firestore {
               && getAfter(userDoc(me())).data.currentHouseId == houseId;
         }
 
-        allow create: if isSelf(memberId)
+        allow create: if isSelf(memberId) && activeAccount()
             && isText(request.resource.data.displayName, 20)
             && request.resource.data.joinedAt == request.time
             && (isFounding() || isJoining());
@@ -247,7 +345,8 @@ service cloud.firestore {
               && getAfter(houseDoc(houseId)).data.memberCount == get(houseDoc(houseId)).data.memberCount - 1;
         }
 
-        allow delete: if signedIn() && (
+        allow delete: if signedIn() && (cleanupWrite(houseId)
+            || (houseOpen(houseId) && deletionStarted() && isSelf(memberId) && !existsAfter(userDoc(me())))) && (
             // Leaving: a non-owner removes themself.
             (isSelf(memberId) && get(houseDoc(houseId)).data.ownerId != me() && houseCountDropsByOne())
             // Dissolving: the owner removes themself while deleting the house in the same commit.
@@ -312,6 +411,8 @@ service cloud.firestore {
               && !resource.data.deleting && !next.deleting
               && next.recordCount == resource.data.recordCount + 1 && next.recordMutationId == finished
               && next.occurrenceId != finished
+              && !exists(historyDoc(houseId, itemId, next.occurrenceId))
+              && !existsAfter(historyDoc(houseId, itemId, next.occurrenceId))
               && next.revision == resource.data.revision + 1
               && next.lastReplacedDate >= resource.data.lastReplacedDate
               && !exists(historyDoc(houseId, itemId, finished))
@@ -335,7 +436,7 @@ service cloud.firestore {
 
         allow read: if isMember(houseId);
 
-        allow create: if isMember(houseId) && houseReady(houseId)
+        allow create: if isMember(houseId) && normalWrite(houseId)
             && validItem(request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
@@ -345,15 +446,15 @@ service cloud.firestore {
             && request.resource.data.lastReplacedDate == request.resource.data.startDate
             && itemCountAfterIs(1);
 
-        allow update: if isMember(houseId) && houseReady(houseId)
+        allow update: if isMember(houseId) && cleanupWrite(houseId)
             && validRecords(resource.data)
             && validItem(request.resource.data)
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
-            && (isEdit() || isCompletion() || isDeletionStep());
+            && ((normalWrite(houseId) && (isEdit() || isCompletion())) || isDeletionStep());
 
         // Registrant or owner (MVP). History is deleted in the same or earlier commits.
-        allow delete: if isMember(houseId) && houseReady(houseId)
+        allow delete: if isMember(houseId) && cleanupWrite(houseId)
             && resource.data.deleting && resource.data.recordCount == 0
             && (resource.data.createdBy == me() || isOwner(houseId))
             && itemCountAfterIs(-1);
@@ -362,7 +463,7 @@ service cloud.firestore {
         match /history/{occurrenceId} {
           allow read: if isMember(houseId);
 
-          allow create: if isMember(houseId) && houseReady(houseId)
+          allow create: if isMember(houseId) && normalWrite(houseId)
               && !get(itemDoc(houseId, itemId)).data.deleting
               && !getAfter(itemDoc(houseId, itemId)).data.deleting
               && getAfter(itemDoc(houseId, itemId)).data.recordCount == get(itemDoc(houseId, itemId)).data.recordCount + 1
@@ -380,7 +481,7 @@ service cloud.firestore {
               && request.resource.data.createdAt == request.time;
 
           // Removed only while deleting the item, by those who may delete it.
-          allow delete: if isMember(houseId) && houseReady(houseId)
+          allow delete: if isMember(houseId) && cleanupWrite(houseId)
               && get(itemDoc(houseId, itemId)).data.deleting && getAfter(itemDoc(houseId, itemId)).data.deleting
               && getAfter(itemDoc(houseId, itemId)).data.recordCount == get(itemDoc(houseId, itemId)).data.recordCount - 1
               && getAfter(itemDoc(houseId, itemId)).data.recordMutationId == occurrenceId
@@ -470,6 +571,8 @@ service cloud.firestore {
               && next.recordCount == old.recordCount + 1
               && next.recordMutationId == 'done_' + old.occurrenceId
               && next.occurrenceId != old.occurrenceId
+              && !exists(logDoc('done_' + next.occurrenceId))
+              && !existsAfter(logDoc('done_' + next.occurrenceId))
               && next.revision == old.revision + 1
               && next.plannedDueDate == next.nextDueDate
               && planned > previous
@@ -497,7 +600,7 @@ service cloud.firestore {
 
         allow read: if isMember(houseId);
 
-        allow create: if isMember(houseId) && houseReady(houseId)
+        allow create: if isMember(houseId) && normalWrite(houseId)
             && validChore(request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
@@ -510,15 +613,15 @@ service cloud.firestore {
             && !('lastDoneDate' in request.resource.data)
             && choreCountAfterIs(1);
 
-        allow update: if isMember(houseId) && houseReady(houseId)
+        allow update: if isMember(houseId) && cleanupWrite(houseId)
             && validRecords(resource.data)
             && validChore(request.resource.data)
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
-            && (isSameOccurrence() || isCompletion() || isDeletionStep());
+            && ((normalWrite(houseId) && (isSameOccurrence() || isCompletion())) || isDeletionStep());
 
         // Registrant or owner, like items. Logs are deleted in the same or earlier commits.
-        allow delete: if isMember(houseId) && houseReady(houseId)
+        allow delete: if isMember(houseId) && cleanupWrite(houseId)
             && resource.data.deleting && resource.data.recordCount == 0
             && (resource.data.createdBy == me() || isOwner(houseId))
             && choreCountAfterIs(-1);
@@ -552,7 +655,7 @@ service cloud.firestore {
 
           allow read: if isMember(houseId);
 
-          allow create: if isMember(houseId) && houseReady(houseId)
+          allow create: if isMember(houseId) && normalWrite(houseId)
               && !get(choreDoc()).data.deleting && !getAfter(choreDoc()).data.deleting
               && getAfter(choreDoc()).data.recordCount == get(choreDoc()).data.recordCount + 1
               && getAfter(choreDoc()).data.recordMutationId == logId
@@ -562,7 +665,7 @@ service cloud.firestore {
               && (isDoneLog(request.resource.data) || isMovedLog(request.resource.data));
 
           // Removed only while deleting the chore, by those who may delete it.
-          allow delete: if isMember(houseId) && houseReady(houseId)
+          allow delete: if isMember(houseId) && cleanupWrite(houseId)
               && get(choreDoc()).data.deleting && getAfter(choreDoc()).data.deleting
               && getAfter(choreDoc()).data.recordCount == get(choreDoc()).data.recordCount - 1
               && getAfter(choreDoc()).data.recordMutationId == logId

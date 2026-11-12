@@ -23,6 +23,8 @@ public enum AuthError {
     OWNER_HAS_MEMBERS(R.string.auth_error_owner_has_members),
     /** Account deletion: data is cleaned up but the Auth account is not deleted yet; call again. */
     DELETE_INCOMPLETE(R.string.auth_error_delete_incomplete),
+    /** Resume deletion: this account may not restore or create house data. */
+    ACCOUNT_DELETING(R.string.auth_error_account_deleting),
     UNKNOWN(R.string.auth_error_unknown);
 
     @StringRes

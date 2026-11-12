@@ -16,6 +16,7 @@ class Store:
         self.docs = {}
         for path, fields in {
             "houses/home": {"ownerId": {"stringValue": "alice"}, "itemCount": {"integerValue": "0"}},
+            "users/alice": {"currentHouseId": {"stringValue": "home"}},
             "houses/home/members/alice": {"displayName": {"stringValue": "Alice"}},
             "houses/home/items/filter": {"name": {"stringValue": "Filter"}},
             "houses/home/items/filter/history/first": {"completedBy": {"stringValue": "alice"}},
@@ -60,6 +61,10 @@ class MigrationFlowTest(unittest.TestCase):
         house = store.docs["houses/home"]["fields"]
         self.assertEqual("1", house["itemCount"]["integerValue"])
         self.assertEqual("2", house["integrityVersion"]["integerValue"])
+        self.assertFalse(house["closing"]["booleanValue"])
+        store.docs["users/alice"]["fields"]["currentHouseId"] = {"stringValue": "different-house"}
+        self.assertEqual(1, migration.migrate(store, apply=True)["blocked_houses"])
+        self.assertEqual("1", house["integrityVersion"]["integerValue"])
 
     def test_orphan_is_preserved_and_house_stays_paused(self):
         store = Store()
