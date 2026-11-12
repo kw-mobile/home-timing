@@ -149,15 +149,21 @@ public final class AuthRepository {
         if (generation < 0) {
             return fail(AuthError.NOT_SIGNED_IN);
         }
+        long restoreRequest = OperationScope.getInstance().beginRestore(generation);
+        if (restoreRequest < 0) return fail(AuthError.NOT_SIGNED_IN);
         Task<Session> restored = translate(prepareHouse(user, generation)).continueWithTask(task -> {
             requireSession(generation, user.getUid());
             if (task.isSuccessful() || errorOf(task.getException()) != AuthError.NETWORK) {
                 return task;
             }
-            return cachedSession(user.getUid(), generation).continueWithTask(cached ->
-                    cached.isSuccessful() && cached.getResult() != null ? cached : task);
+            return cachedSession(user.getUid(), generation).continueWithTask(cached -> {
+                if (!cached.isSuccessful() && errorOf(cached.getException()) == AuthError.ACCOUNT_DELETING) {
+                    return cached;
+                }
+                return cached.isSuccessful() && cached.getResult() != null ? cached : task;
+            });
         });
-        return sessionResult(restored, generation);
+        return sessionResult(restored, generation, restoreRequest);
     }
 
     @NonNull
@@ -209,10 +215,12 @@ public final class AuthRepository {
         String uid = user.getUid();
         AuthCredential credential = EmailAuthProvider.getCredential(email, password);
         Task<Void> task = user.reauthenticate(credential)
+                .onSuccessTask(ignored -> user.getIdToken(true))
                 .onSuccessTask(ignored -> {
                     requireSession(generation, uid);
-                    return cleanUpAccountData(db, uid, generation);
+                    return beginAccountDeletion(db, uid, generation);
                 })
+                .onSuccessTask(ignored -> cleanUpAccountData(db, uid, generation))
                 .onSuccessTask(ignored -> deleteAuth(user, AUTH_DELETE_ATTEMPTS, generation));
         return translate(task).continueWithTask(done -> {
             sessions.finishDeletion(generation);
@@ -230,6 +238,66 @@ public final class AuthRepository {
                 return deleteAuth(user, attemptsLeft - 1, generation);
             }
             return Tasks.forException(new AuthException(AuthError.DELETE_INCOMPLETE, done.getException()));
+        });
+    }
+
+    /** Freezes account/house state before any destructive cleanup, even across devices. */
+    private Task<Void> beginAccountDeletion(FirebaseFirestore firestore, String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
+        DocumentReference receipt = firestore.collection(Schema.AccountDeletions.COLLECTION).document(uid);
+        DocumentReference user = firestore.collection(Schema.Users.COLLECTION).document(uid);
+        return firestore.runTransaction(tx -> {
+            requireTransactionSession(generation, uid);
+            DocumentSnapshot marker = tx.get(receipt);
+            DocumentSnapshot profile = tx.get(user);
+            DocumentReference accessRef = firestore.collection(Schema.InviteLookups.COLLECTION).document(uid);
+            DocumentSnapshot access = tx.get(accessRef);
+            String houseId = profile.getString(Schema.Users.CURRENT_HOUSE_ID);
+            DocumentReference houseRef = houseId == null ? null : firestore.collection(Schema.Houses.COLLECTION).document(houseId);
+            DocumentReference memberRef = houseId == null ? null : memberRef(firestore, houseId, uid);
+            DocumentSnapshot member = memberRef == null ? null : tx.get(memberRef);
+            DocumentSnapshot home = member != null && member.exists() ? tx.get(houseRef) : null;
+            House house = home == null || home.getData() == null ? null : HouseDocuments.toHouse(houseId, home.getData());
+            if (house != null && house.isOwner(uid) && house.memberCount > 1) {
+                throw new IllegalStateException(new AuthException(AuthError.OWNER_HAS_MEMBERS));
+            }
+            DocumentReference inviteRef = house == null || house.activeInviteCode == null ? null
+                    : firestore.collection(Schema.Invites.COLLECTION).document(house.activeInviteCode);
+            DocumentSnapshot invite = inviteRef == null ? null : tx.get(inviteRef);
+            requireTransactionSession(generation, uid);
+            if (!marker.exists()) {
+                tx.set(receipt, java.util.Collections.singletonMap(Schema.AccountDeletions.STARTED_AT,
+                        FieldValue.serverTimestamp()));
+            }
+            if (access.exists()) {
+                tx.delete(accessRef);
+            }
+            if (house != null && house.isOwner(uid)) {
+                if (!Boolean.TRUE.equals(home.getBoolean(Schema.Houses.CLOSING))) {
+                    tx.update(houseRef, Schema.Houses.CLOSING, true,
+                            Schema.Houses.ACTIVE_INVITE_CODE, FieldValue.delete(),
+                            Schema.Houses.UPDATED_AT, FieldValue.serverTimestamp());
+                }
+                if (invite != null && invite.exists() && houseId.equals(invite.getString(Schema.Invites.HOUSE_ID))) {
+                    tx.delete(inviteRef);
+                }
+                return houseId;
+            }
+            if (member != null && member.exists()) {
+                tx.delete(memberRef);
+                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                        Schema.Houses.MEMBER_MUTATION_ID, uid);
+            }
+            if (profile.exists()) {
+                tx.delete(user);
+            }
+            return null;
+        }).onSuccessTask(houseId -> {
+            requireSession(generation, uid);
+            if (houseId != null && !OperationScope.getInstance().bindIfGeneration(generation, uid, houseId)) {
+                return fail(AuthError.NOT_SIGNED_IN);
+            }
+            return Tasks.forResult(null);
         });
     }
 
@@ -387,6 +455,9 @@ public final class AuthRepository {
         DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(uid);
         return firestore.runTransaction(tx -> {
             requireTransactionSession(generation, uid);
+            if (tx.get(firestore.collection(Schema.AccountDeletions.COLLECTION).document(uid)).exists()) {
+                throw new IllegalStateException(new AuthException(AuthError.ACCOUNT_DELETING));
+            }
             DocumentSnapshot user = tx.get(userRef);
             String houseId = user.exists() ? user.getString(Schema.Users.CURRENT_HOUSE_ID) : null;
             boolean memberExists = houseId != null && !houseId.isEmpty()
@@ -435,9 +506,17 @@ public final class AuthRepository {
         if (!isCurrent(generation, uid)) {
             return fail(AuthError.NOT_SIGNED_IN);
         }
-        return firestore.collection(Schema.Users.COLLECTION).document(uid).get(Source.CACHE)
+        // A cached deletion receipt is sufficient to deny restoration. Absence is not server proof;
+        // offline restoration stays read-only and the write rules check the durable receipt.
+        return firestore.collection(Schema.AccountDeletions.COLLECTION).document(uid).get(Source.CACHE)
+                .continueWithTask(receipt -> receipt.isSuccessful() && receipt.getResult().exists()
+                        ? fail(AuthError.ACCOUNT_DELETING)
+                        : firestore.collection(Schema.Users.COLLECTION).document(uid).get(Source.CACHE))
                 .continueWith(task -> {
                     requireSession(generation, uid);
+                    if (!task.isSuccessful() && errorOf(task.getException()) == AuthError.ACCOUNT_DELETING) {
+                        throw new AuthException(AuthError.ACCOUNT_DELETING);
+                    }
                     DocumentSnapshot user = task.isSuccessful() ? task.getResult() : null;
                     String houseId = user == null ? null : user.getString(Schema.Users.CURRENT_HOUSE_ID);
                     String name = user == null ? null : user.getString(Schema.Users.DISPLAY_NAME);
@@ -468,12 +547,29 @@ public final class AuthRepository {
     }
 
     private Task<Session> sessionResult(Task<Session> task, long generation) {
+        return sessionResult(task, generation, -1);
+    }
+
+    private Task<Session> sessionResult(Task<Session> task, long generation, long restoreRequest) {
         return translate(task).continueWithTask(done -> {
-            if (!sessions.accepts(generation)) {
+            if (!done.isSuccessful() && errorOf(done.getException()) == AuthError.ACCOUNT_DELETING
+                    && sessions.accepts(generation)) {
+                OperationScope.getInstance().invalidate();
+                return done;
+            }
+            if (!sessions.accepts(generation) || (restoreRequest >= 0
+                    && !OperationScope.getInstance().isCurrentRestore(generation, restoreRequest))) {
                 return fail(AuthError.NOT_SIGNED_IN);
             }
             if (done.isSuccessful()) {
-                requireSession(generation, done.getResult().uid);
+                Session result = done.getResult();
+                requireSession(generation, result.uid);
+                boolean bound = restoreRequest < 0
+                        ? OperationScope.getInstance().bindIfGeneration(generation, result.uid, result.houseId)
+                        : OperationScope.getInstance().bindRestoredIfCurrent(generation, restoreRequest, result.uid, result.houseId);
+                if (!bound) {
+                    return fail(AuthError.NOT_SIGNED_IN);
+                }
             }
             return done;
         });

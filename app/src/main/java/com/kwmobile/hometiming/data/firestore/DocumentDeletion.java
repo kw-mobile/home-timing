@@ -7,6 +7,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Source;
+import com.kwmobile.hometiming.data.auth.OperationScope;
 
 import java.util.function.Supplier;
 
@@ -22,10 +23,10 @@ final class DocumentDeletion {
     }
 
     static Task<Void> delete(FirebaseFirestore db, DocumentReference parent, String records,
-                             String houseCount, String houseMutation, String uid, Supplier<String> currentUid) {
+                             String houseCount, String houseMutation, String uid, Supplier<String> currentUid,
+                             OperationScope.Token scope) {
         DocumentReference house = parent.getParent().getParent();
-        return db.runTransaction(tx -> {
-            requireCurrent(uid, currentUid);
+        return ItemTasks.transaction(db, scope, currentUid, tx -> {
             DocumentSnapshot stored = tx.get(parent);
             DocumentSnapshot home = tx.get(house);
             if (!stored.exists()) {
@@ -36,28 +37,26 @@ final class DocumentDeletion {
                 throw new ItemException.Rejection(ItemError.NOT_ALLOWED);
             }
             RecordState.count(stored);
-            requireCurrent(uid, currentUid);
             if (!Boolean.TRUE.equals(stored.getBoolean(Schema.Records.DELETING))) {
                 tx.update(parent, Schema.Records.DELETING, true,
                         Schema.Items.UPDATED_BY, uid, Schema.Items.UPDATED_AT, FieldValue.serverTimestamp());
             }
             return true;
         }).onSuccessTask(exists -> exists
-                ? drain(db, parent, house, records, houseCount, houseMutation, uid, currentUid)
+                ? drain(db, parent, house, records, houseCount, houseMutation, uid, currentUid, scope)
                 : Tasks.forResult(null));
     }
 
     private static Task<Void> drain(FirebaseFirestore db, DocumentReference parent, DocumentReference house,
                                      String records, String houseCount, String houseMutation, String uid,
-                                     Supplier<String> currentUid) {
-        if (!uid.equals(currentUid.get())) {
+                                     Supplier<String> currentUid, OperationScope.Token scope) {
+        if (!OperationScope.getInstance().isCurrent(scope, currentUid.get())) {
             return Tasks.forException(new ItemException(ItemError.NOT_SIGNED_IN));
         }
         return parent.collection(records).limit(READ_PAGE_SIZE).get(Source.SERVER).onSuccessTask(page -> {
-            requireCurrent(uid, currentUid);
+            ItemTasks.requireCurrent(scope, currentUid);
             if (page.isEmpty()) {
-                return db.runTransaction(tx -> {
-                    requireCurrent(uid, currentUid);
+                return ItemTasks.transaction(db, scope, currentUid, tx -> {
                     DocumentSnapshot stored = tx.get(parent);
                     if (!stored.exists()) {
                         return null;
@@ -66,7 +65,6 @@ final class DocumentDeletion {
                             || RecordState.count(stored) != 0) {
                         throw new ItemException.Rejection(ItemError.UNKNOWN);
                     }
-                    requireCurrent(uid, currentUid);
                     tx.delete(parent);
                     tx.update(house, houseCount, FieldValue.increment(-1), houseMutation, parent.getId());
                     return null;
@@ -74,8 +72,7 @@ final class DocumentDeletion {
             }
             Task<Void> chain = Tasks.forResult(null);
             for (DocumentSnapshot record : page.getDocuments()) {
-                chain = chain.onSuccessTask(ignored -> db.runTransaction(tx -> {
-                    requireCurrent(uid, currentUid);
+                chain = chain.onSuccessTask(ignored -> ItemTasks.transaction(db, scope, currentUid, tx -> {
                     DocumentSnapshot stored = tx.get(parent);
                     DocumentSnapshot child = tx.get(record.getReference());
                     if (!stored.exists() || !child.exists()) {
@@ -85,7 +82,6 @@ final class DocumentDeletion {
                     if (!Boolean.TRUE.equals(stored.getBoolean(Schema.Records.DELETING)) || count == 0) {
                         throw new ItemException.Rejection(ItemError.UNKNOWN);
                     }
-                    requireCurrent(uid, currentUid);
                     tx.delete(record.getReference());
                     tx.update(parent, Schema.Records.COUNT, count - 1,
                             Schema.Records.MUTATION_ID, record.getId(), Schema.Items.UPDATED_BY, uid,
@@ -94,13 +90,7 @@ final class DocumentDeletion {
                 }));
             }
             return chain.onSuccessTask(ignored -> drain(db, parent, house, records,
-                    houseCount, houseMutation, uid, currentUid));
+                    houseCount, houseMutation, uid, currentUid, scope));
         });
-    }
-
-    private static void requireCurrent(String uid, Supplier<String> currentUid) {
-        if (!uid.equals(currentUid.get())) {
-            throw new ItemException.Rejection(ItemError.NOT_SIGNED_IN);
-        }
     }
 }

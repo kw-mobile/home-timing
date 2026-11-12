@@ -349,10 +349,12 @@ public class ReminderEngineTest {
         ReminderSession.Sync aliceWork = session.beginSync();
         uid.set("bob"); // Auth can change before screen callbacks reach the manager.
         session.clear(aliceWork.session);
+        assertNull(engine.pending(b.key)); // Cleanup cannot wait for a later pending/rearm call.
         assertNull(session.pending(b.key));
         session.start("house-b");
         session.apply(session.beginSync(), "house-b", Collections.singletonList(b));
         session.apply(aliceWork, "house-b", Collections.emptyList());
+        session.clear(aliceWork.session); // A late cleanup cannot remove Bob's new schedule.
         assertNotNull(session.pending(b.key));
         assertTrue(shown.isEmpty());
     }
@@ -379,6 +381,35 @@ public class ReminderEngineTest {
         otherAccount.rearm();
         assertTrue(set.isEmpty());
         assertNull(otherAccount.pending(ten.key));
+    }
+
+    @Test
+    public void committedSettingsReplanBeforeOfflineCheckWithoutWaitingForSync() {
+        AtomicReference<String> uid = new AtomicReference<>("alice");
+        ReminderSession session = session(uid, engine);
+        ReminderSession.Token token = session.start("house-a");
+        java.time.Clock beforeNine = java.time.Clock.fixed(
+                DUE.atTime(8, 0).atZone(com.kwmobile.hometiming.domain.DateRules.ZONE).toInstant(),
+                java.time.ZoneOffset.UTC);
+        long nineAt = DUE.atTime(9, 0).atZone(com.kwmobile.hometiming.domain.DateRules.ZONE).toInstant().toEpochMilli();
+        PlannedReminder nine = due("a", "occ-1", nineAt);
+        session.apply(session.beginSync(), "house-a", Collections.singletonList(nine));
+        ReminderSession.Pending oldCheck = session.pending(nine.key);
+        ReminderSession.Sync oldWorker = session.beginSync();
+        assertTrue(session.settingsChanged(token, "10:00", 0, beforeNine));
+        long tenAt = DUE.atTime(10, 0).atZone(com.kwmobile.hometiming.domain.DateRules.ZONE).toInstant().toEpochMilli();
+        assertEquals(tenAt, session.pending(nine.key).reminder.fireAtMillis);
+        session.onDecision(oldCheck, ReminderDecision.UNCONFIRMED);
+        session.apply(oldWorker, "house-a", Collections.singletonList(nine));
+        assertTrue(shown.isEmpty());
+        assertEquals(tenAt, session.pending(nine.key).reminder.fireAtMillis);
+        session.onDecision(session.pending(nine.key), ReminderDecision.UNCONFIRMED);
+        assertEquals(1, shown.size());
+        // A second settings change has no scheduled entries, but must retain delivery history.
+        assertTrue(session.settingsChanged(token, "11:00", 0, beforeNine));
+        session.apply(session.beginSync(), "house-a", Collections.singletonList(nine));
+        assertNull(session.pending(nine.key));
+        assertEquals(1, shown.size());
     }
 
 }

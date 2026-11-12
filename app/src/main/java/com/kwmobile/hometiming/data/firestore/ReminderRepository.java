@@ -14,6 +14,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
+import com.kwmobile.hometiming.data.auth.OperationScope;
 import com.kwmobile.hometiming.domain.Chore;
 import com.kwmobile.hometiming.domain.Item;
 import com.kwmobile.hometiming.domain.ReminderChange;
@@ -91,9 +92,22 @@ public final class ReminderRepository {
         String collection = key.kind == ReminderKey.Kind.ITEM ? Schema.Items.COLLECTION : Schema.Chores.COLLECTION;
         DocumentReference ref = db.collection(Schema.Houses.COLLECTION).document(key.houseId)
                 .collection(collection).document(key.documentId);
-        return Tasks.withTimeout(ref.get(Source.SERVER), CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+        DocumentReference receipt = db.collection(Schema.AccountDeletions.COLLECTION).document(uid);
+        DocumentReference home = db.collection(Schema.Houses.COLLECTION).document(key.houseId);
+        Task<ReminderDecision> check = receipt.get(Source.SERVER).onSuccessTask(marker -> {
+            if (marker.exists()) return Tasks.forResult(ReminderDecision.CANCEL);
+            return home.get(Source.SERVER).onSuccessTask(house -> {
+                if (!house.exists() || Boolean.TRUE.equals(house.getBoolean(Schema.Houses.CLOSING))) {
+                    return Tasks.forResult(ReminderDecision.CANCEL);
+                }
+                return ref.get(Source.SERVER).continueWith(done -> done.isSuccessful()
+                        ? decide(key, revision, done.getResult())
+                        : decisionForFailure(ItemTasks.classify(done.getException())));
+            });
+        });
+        return Tasks.withTimeout(check, CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
                 .continueWith(done -> !uid.equals(currentUid()) ? ReminderDecision.CANCEL
-                        : done.isSuccessful() ? decide(key, revision, done.getResult())
+                        : done.isSuccessful() ? done.getResult()
                         : decisionForFailure(ItemTasks.classify(done.getException())));
     }
 
@@ -146,7 +160,9 @@ public final class ReminderRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(expectedUid);
-        Task<ReminderSnapshot> task = userRef.get(Source.SERVER).onSuccessTask(user -> {
+        Task<ReminderSnapshot> task = firestore.collection(Schema.AccountDeletions.COLLECTION).document(expectedUid)
+                .get(Source.SERVER).onSuccessTask(marker -> marker.exists()
+                        ? ReminderRepository.<DocumentSnapshot>fail(ItemError.PERMISSION_DENIED) : userRef.get(Source.SERVER)).onSuccessTask(user -> {
             if (!expectedUid.equals(currentUid())) {
                 return fail(ItemError.NOT_SIGNED_IN);
             }
@@ -160,8 +176,12 @@ public final class ReminderRepository {
                 return fail(ItemError.PERMISSION_DENIED);
             }
             DocumentReference house = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
-            return house.collection(Schema.Items.COLLECTION).get(Source.SERVER)
-                    .onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
+            return house.get(Source.SERVER).onSuccessTask(home -> {
+                if (!home.exists() || Boolean.TRUE.equals(home.getBoolean(Schema.Houses.CLOSING))) {
+                    return ReminderRepository.<QuerySnapshot>fail(ItemError.PERMISSION_DENIED);
+                }
+                return house.collection(Schema.Items.COLLECTION).get(Source.SERVER);
+            }).onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
                             .onSuccessTask(chores -> userRef.get(Source.SERVER).onSuccessTask(latest -> {
                                 if (!expectedUid.equals(currentUid())) {
                                     return fail(ItemError.NOT_SIGNED_IN);
@@ -201,19 +221,22 @@ public final class ReminderRepository {
         if (!ReminderPlanner.isValidSettings(notifyTime, advanceDays)) {
             return fail(ItemError.INVALID_INPUT);
         }
+        OperationScope.Token scope = OperationScope.getInstance().capture(uid);
+        if (scope == null) return fail(ItemError.NOT_SIGNED_IN);
         FirebaseFirestore firestore = db;
         DocumentReference user = firestore.collection(Schema.Users.COLLECTION).document(uid);
-        Task<Void> task = firestore.runTransaction(tx -> {
+        Task<Void> task = ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
             if (!uid.equals(currentUid())) {
+                throw new ItemException.Rejection(ItemError.NOT_SIGNED_IN);
+            }
+            if (!scope.houseId.equals(tx.get(user).getString(Schema.Users.CURRENT_HOUSE_ID))) {
                 throw new ItemException.Rejection(ItemError.NOT_SIGNED_IN);
             }
             tx.update(user, Schema.Users.NOTIFY_TIME, notifyTime, Schema.Users.ADVANCE_DAYS, advanceDays,
                     Schema.Users.UPDATED_AT, FieldValue.serverTimestamp());
             return null;
         });
-        return task.continueWithTask(done -> done.isSuccessful()
-                ? done
-                : Tasks.forException(asItemException(done.getException())));
+        return ItemTasks.scoped(task, scope, this::currentUid);
     }
 
     private static List<Item> readItems(QuerySnapshot snapshot) {

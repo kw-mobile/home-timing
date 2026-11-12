@@ -32,7 +32,7 @@ public class AccountDeletionRulesTest extends RulesTestBase {
     @Test
     public void memberLeavesAndDeletesTheirUser() {
         assertAllowed(firestore.commit(BOB, removeMember("house-a", "bob")[0], removeMember("house-a", "bob")[1],
-                Write.delete("users/bob")));
+                Write.delete("users/bob"), deletionReceipt("bob")));
 
         assertEquals(NOT_FOUND, firestore.get(Auth.admin(), "users/bob").status());
         assertEquals(NOT_FOUND, firestore.get(Auth.admin(), "houses/house-a/members/bob").status());
@@ -46,6 +46,7 @@ public class AccountDeletionRulesTest extends RulesTestBase {
 
     @Test
     public void ownerAloneDissolvesTheEmptyHouseWithTheUser() {
+        assertAllowed(firestore.commit(CAROL, deletionReceipt("carol"), closeHouse("house-c")));
         assertAllowed(firestore.commit(CAROL, dissolveAndDelete("carol", "house-c")));
 
         assertEquals(NOT_FOUND, firestore.get(Auth.admin(), "houses/house-c").status());
@@ -59,6 +60,7 @@ public class AccountDeletionRulesTest extends RulesTestBase {
 
     @Test
     public void ownerAloneAfterDeletingItemsCanDissolve() {
+        assertAllowed(firestore.commit(DAVE, deletionReceipt("dave"), closeHouse("house-d")));
         assertAllowed(firestore.commit(DAVE, startDeleting(itemPath("house-d", "filter"), "dave")));
         assertAllowed(firestore.commit(DAVE,
                 Write.delete(itemPath("house-d", "filter")),
@@ -86,7 +88,7 @@ public class AccountDeletionRulesTest extends RulesTestBase {
     public void removedUserDeletesOnlyTheirUserDocument() {
         assertAllowed(firestore.commit(ALICE, removeMember("house-a", "bob")));
 
-        assertAllowed(firestore.commit(BOB, Write.delete("users/bob")));
+        assertAllowed(firestore.commit(BOB, deletionReceipt("bob"), Write.delete("users/bob")));
     }
 
     @Test

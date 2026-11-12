@@ -21,6 +21,7 @@ public enum HouseError {
     NOT_FOUND(R.string.house_error_not_found),
     PERMISSION_DENIED(R.string.house_error_permission_denied),
     NETWORK(R.string.house_error_network),
+    RATE_LIMITED(R.string.house_error_rate_limited),
     NOT_CONFIGURED(R.string.house_error_not_configured),
     NOT_SIGNED_IN(R.string.house_error_not_signed_in),
     UNKNOWN(R.string.house_error_unknown);

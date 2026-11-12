@@ -53,7 +53,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1 + otherMembers.length)
                 .num("itemCount", itemCount)
-                .num("choreCount", 0).num("integrityVersion", 2)
+                .num("choreCount", 0).num("integrityVersion", 2).bool("closing", false)
                 .time("createdAt", SEEDED_AT)
                 .time("updatedAt", SEEDED_AT));
         seedMember(houseId, ownerId);
@@ -119,7 +119,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1)
                 .num("itemCount", 0)
-                .num("choreCount", 0).num("integrityVersion", 2))
+                .num("choreCount", 0).num("integrityVersion", 2).bool("closing", false))
                 .serverTime("createdAt").serverTime("updatedAt");
     }
 
@@ -170,6 +170,7 @@ abstract class RulesTestBase {
 
     /** Issue or reissue: the invite plus the house's active code; deletes {@code previousCode} if given. */
     static Write[] issueInvite(String houseId, String ownerId, String code, String previousCode) {
+        reserveInviteAccess(ownerId, code, "ISSUE");
         Write invite = Write.set("invites/" + code, Fields.of().str("houseId", houseId).str("createdBy", ownerId))
                 .serverTime("createdAt");
         Write house = Write.merge("houses/" + houseId, Fields.of().str("activeInviteCode", code));
@@ -180,6 +181,11 @@ abstract class RulesTestBase {
 
     /** Join: member in the new house, its count +1, user moved, and the old empty house removed. */
     static Write[] join(String uid, String houseId, String code, String oldHouseId) {
+        reserveInviteAccess(uid, code, "LOOKUP");
+        return joinWithoutAccess(uid, houseId, code, oldHouseId);
+    }
+
+    static Write[] joinWithoutAccess(String uid, String houseId, String code, String oldHouseId) {
         return new Write[] {
             Write.create("houses/" + houseId + "/members/" + uid,
                     Fields.of().str("displayName", nameOf(uid)).str("inviteCode", code))
@@ -208,6 +214,27 @@ abstract class RulesTestBase {
             Write.delete("houses/" + houseId + "/members/" + uid),
             Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", -1)
         };
+    }
+
+    /** Like the app, reserve separately so a denied issue/join does not refund the attempt. */
+    static void reserveInviteAccess(String uid, String code, String purpose) {
+        Auth actor = Auth.user(uid);
+        String path = "inviteLookups/" + uid;
+        boolean first = firestore.get(actor, path).status() == FirestoreEmulator.NOT_FOUND;
+        Fields fields = Fields.of().str("code", code).str("purpose", purpose);
+        Write access = first
+                ? Write.create(path, fields.num("attempts", 1)).serverTime("windowStartedAt")
+                : Write.merge(path, fields).increment("attempts", 1);
+        assertAllowed(firestore.commit(actor, access.serverTime("updatedAt")));
+    }
+
+    static Write deletionReceipt(String uid) {
+        return Write.create("accountDeletions/" + uid, Fields.of()).serverTime("startedAt");
+    }
+
+    static Write closeHouse(String houseId) {
+        return Write.merge("houses/" + houseId, Fields.of().bool("closing", true))
+                .remove("activeInviteCode").serverTime("updatedAt");
     }
 
     static Write startDeleting(String parent, String actor) {

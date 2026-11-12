@@ -2,12 +2,13 @@ package com.kwmobile.hometiming.data.auth;
 
 /** Invalidates callbacks across account operations, including signing back into the same account. */
 final class AuthSessionGuard {
-    private long generation;
+    private final OperationScope scope = OperationScope.getInstance();
     private long deletingGeneration = -1;
 
     synchronized long begin() {
         deletingGeneration = -1;
-        return ++generation;
+        scope.invalidate();
+        return scope.generation();
     }
 
     synchronized long beginDeletion() {
@@ -18,7 +19,7 @@ final class AuthSessionGuard {
 
     /** A restore must never recreate data while deletion is between data cleanup and Auth deletion. */
     synchronized long restoreGeneration() {
-        return deletingGeneration == generation ? -1 : generation;
+        return deletingGeneration == scope.generation() ? -1 : scope.generation();
     }
 
     synchronized void finishDeletion(long operation) {
@@ -28,10 +29,10 @@ final class AuthSessionGuard {
     }
 
     synchronized boolean accepts(long operation, String expectedUid, String currentUid) {
-        return operation == generation && expectedUid != null && expectedUid.equals(currentUid);
+        return operation == scope.generation() && expectedUid != null && expectedUid.equals(currentUid);
     }
 
     synchronized boolean accepts(long operation) {
-        return operation == generation;
+        return operation == scope.generation();
     }
 }

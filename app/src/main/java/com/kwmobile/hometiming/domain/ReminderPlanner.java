@@ -11,6 +11,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * When each reminder fires (docs/MVP.md F-06), in Asia/Seoul at the personal reminder time. A due
@@ -38,6 +40,22 @@ public final class ReminderPlanner {
         for (Chore chore : chores) {
             add(plan, ReminderKey.Kind.CHORE, houseId, chore.id, chore.occurrenceId, chore.revision, chore.nextDueDate,
                     chore.name, notifyTime, advanceDays, now);
+        }
+        return Collections.unmodifiableList(plan);
+    }
+
+    /** Replans already-synced occurrences immediately after personal settings are committed. */
+    public static List<PlannedReminder> replan(Collection<PlannedReminder> scheduled, LocalTime time,
+                                               int advanceDays, Clock clock) {
+        List<PlannedReminder> plan = new ArrayList<>();
+        Set<String> seen = new HashSet<>();
+        for (PlannedReminder old : scheduled) {
+            ReminderKey key = old.key;
+            String occurrence = key.kind + "/" + key.houseId + "/" + key.documentId + "/" + key.occurrenceId;
+            if (seen.add(occurrence)) {
+                add(plan, key.kind, key.houseId, key.documentId, key.occurrenceId, old.revision, old.dueDate,
+                        old.name, time, advanceDays, clock.millis());
+            }
         }
         return Collections.unmodifiableList(plan);
     }

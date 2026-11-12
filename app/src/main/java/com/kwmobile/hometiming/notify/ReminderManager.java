@@ -20,6 +20,11 @@ import androidx.work.NetworkType;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.PeriodicWorkRequest;
 import androidx.work.WorkManager;
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.android.gms.tasks.TaskCompletionSource;
+import com.kwmobile.hometiming.data.auth.OperationScope;
+import com.kwmobile.hometiming.data.firestore.ItemException;
 
 import com.kwmobile.hometiming.data.firestore.ItemError;
 import com.kwmobile.hometiming.data.firestore.ReminderRepository;
@@ -38,8 +43,9 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Entry point for local reminders (docs/MVP.md F-06). Screens call {@link #onSessionStarted} after
- * sign-in or a house change, {@link #onSessionEnded} on sign-out and {@link #requestSync} after the
- * personal settings change. Every state change runs on the main thread.
+ * sign-in or a house change and {@link #onSessionEnded} on sign-out. Personal settings are saved
+ * through {@link #updateSettings}; {@link #requestSync} refreshes other server changes.
+ * Every state change runs on the main thread.
  */
 public final class ReminderManager {
     /** Intent extras of an opened reminder: {@code ReminderKey.Kind} name and document id. */
@@ -61,6 +67,7 @@ public final class ReminderManager {
     private final ReminderSession session;
     private final Handler main = new Handler(Looper.getMainLooper());
     private Subscription changes = Subscription.NONE;
+    private OperationScope.Registration accountChanges = () -> { };
 
     private ReminderManager(Context context) {
         work = WorkManager.getInstance(context);
@@ -115,11 +122,19 @@ public final class ReminderManager {
     public void onSessionStarted(@NonNull String houseId) {
         onMain(() -> {
             changes.remove();
+            accountChanges.remove();
+            OperationScope.Token scope = OperationScope.getInstance().capture(
+                    ReminderRepository.getInstance().currentUid(), houseId);
+            if (scope == null) {
+                onSessionEnded();
+                return;
+            }
             ReminderSession.Token token = session.start(houseId);
             if (token == null) {
                 changes = Subscription.NONE;
                 return;
             }
+            accountChanges = OperationScope.getInstance().onInvalidated(scope, () -> clear(token));
             changes = ReminderRepository.getInstance().listenChanges(houseId, new ReminderRepository.ChangesListener() {
                 @Override
                 public void onChanges(@NonNull List<ReminderChange> list) {
@@ -149,6 +164,8 @@ public final class ReminderManager {
     public void onSessionEnded() {
         onMain(() -> {
             session.end();
+            accountChanges.remove();
+            accountChanges = () -> { };
             changes.remove();
             changes = Subscription.NONE;
             work.cancelUniqueWork(WORK_PERIODIC);
@@ -165,6 +182,26 @@ public final class ReminderManager {
                 work.enqueueUniqueWork(WORK_ONCE, ExistingWorkPolicy.REPLACE,
                         new OneTimeWorkRequest.Builder(ReminderResyncWorker.class).setConstraints(online()).build());
             }
+        });
+    }
+
+    /** Saves settings and updates existing reservations before reporting success, even offline next. */
+    public Task<Void> updateSettings(String notifyTime, int advanceDays) {
+        ReminderSession.Token token = session.capture();
+        if (token == null) {
+            return Tasks.forException(new ItemException(ItemError.NOT_SIGNED_IN));
+        }
+        return ReminderRepository.getInstance().updateSettings(notifyTime, advanceDays).onSuccessTask(ignored -> {
+            TaskCompletionSource<Void> applied = new TaskCompletionSource<>();
+            onMain(() -> {
+                if (session.settingsChanged(token, notifyTime, advanceDays, Clock.systemUTC())) {
+                    requestSync();
+                    applied.setResult(null);
+                } else {
+                    applied.setException(new ItemException(ItemError.NOT_SIGNED_IN));
+                }
+            });
+            return applied.getTask();
         });
     }
 
@@ -227,7 +264,7 @@ public final class ReminderManager {
 
     void clear(ReminderSession.Token token) {
         onMain(() -> {
-            if (session.isCurrent(token)) {
+            if (session.owns(token)) {
                 onSessionEnded();
             }
         });
