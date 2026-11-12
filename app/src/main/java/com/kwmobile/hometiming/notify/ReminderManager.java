@@ -24,7 +24,6 @@ import androidx.work.WorkManager;
 import com.kwmobile.hometiming.data.firestore.ItemError;
 import com.kwmobile.hometiming.data.firestore.ReminderRepository;
 import com.kwmobile.hometiming.data.firestore.ReminderSnapshot;
-import com.kwmobile.hometiming.data.firestore.Schema;
 import com.kwmobile.hometiming.data.firestore.Subscription;
 import com.kwmobile.hometiming.domain.PlannedReminder;
 import com.kwmobile.hometiming.domain.ReminderChange;
@@ -59,7 +58,7 @@ public final class ReminderManager {
     private final NotificationManager notifications;
     private final AlarmManager alarms;
     private final String packageName;
-    private final ReminderEngine engine;
+    private final ReminderSession session;
     private final Handler main = new Handler(Looper.getMainLooper());
     private Subscription changes = Subscription.NONE;
 
@@ -80,7 +79,19 @@ public final class ReminderManager {
                 prefs.edit().putString(key, value).apply();
             }
         });
-        engine = new ReminderEngine(ledger, new AndroidAlarms(context), new AndroidDisplay(context));
+        ReminderEngine engine = new ReminderEngine(ledger, new AndroidAlarms(context), new AndroidDisplay(context));
+        session = new ReminderSession(engine, new ReminderSession.BindingStore() {
+            @Override
+            public String uid() { return prefs.getString("owner_uid", null); }
+
+            @Override
+            public String houseId() { return prefs.getString("owner_house", null); }
+
+            @Override
+            public void save(String uid, String houseId) {
+                prefs.edit().putString("owner_uid", uid).putString("owner_house", houseId).apply();
+            }
+        }, () -> ReminderRepository.getInstance().currentUid());
     }
 
     @NonNull
@@ -102,39 +113,59 @@ public final class ReminderManager {
 
     /** Starts following a house and syncs. Call again with the new id after a house change. */
     public void onSessionStarted(@NonNull String houseId) {
-        changes.remove();
-        changes = ReminderRepository.getInstance().listenChanges(houseId, new ReminderRepository.ChangesListener() {
-            @Override
-            public void onChanges(@NonNull List<ReminderChange> list) {
-                if (engine.onChanges(houseId, list)) {
-                    requestSync();
+        onMain(() -> {
+            changes.remove();
+            ReminderSession.Token token = session.start(houseId);
+            if (token == null) {
+                changes = Subscription.NONE;
+                return;
+            }
+            changes = ReminderRepository.getInstance().listenChanges(houseId, new ReminderRepository.ChangesListener() {
+                @Override
+                public void onChanges(@NonNull List<ReminderChange> list) {
+                    onMain(() -> {
+                        if (session.onChanges(token, list)) {
+                            requestSync();
+                        }
+                    });
                 }
-            }
 
-            @Override
-            public void onError(@NonNull ItemError error) {
-                // Reminders keep their last synced state; the periodic sync catches up.
-            }
+                @Override
+                public void onError(@NonNull ItemError error) {
+                    // Keep the last synced schedule on network failure. Removed membership is final.
+                    if (error == ItemError.PERMISSION_DENIED) {
+                        clear(token);
+                    }
+                }
+            });
+            work.enqueueUniquePeriodicWork(WORK_PERIODIC, ExistingPeriodicWorkPolicy.KEEP,
+                    new PeriodicWorkRequest.Builder(ReminderResyncWorker.class, SYNC_PERIOD_HOURS, TimeUnit.HOURS)
+                            .setConstraints(online()).build());
+            requestSync();
         });
-        work.enqueueUniquePeriodicWork(WORK_PERIODIC, ExistingPeriodicWorkPolicy.KEEP,
-                new PeriodicWorkRequest.Builder(ReminderResyncWorker.class, SYNC_PERIOD_HOURS, TimeUnit.HOURS)
-                        .setConstraints(online()).build());
-        requestSync();
     }
 
-    /** Sign-out: stops following and removes every alarm and shown reminder. */
+    /** Sign-out: invalidates in-flight responses as well as the stored schedule. */
     public void onSessionEnded() {
-        changes.remove();
-        changes = Subscription.NONE;
-        work.cancelUniqueWork(WORK_PERIODIC);
-        work.cancelUniqueWork(WORK_ONCE);
-        clear();
+        onMain(() -> {
+            session.end();
+            changes.remove();
+            changes = Subscription.NONE;
+            work.cancelUniqueWork(WORK_PERIODIC);
+            work.cancelUniqueWork(WORK_ONCE);
+        });
     }
 
     /** Rebuilds reminders from the server, for example after the personal settings change. */
     public void requestSync() {
-        work.enqueueUniqueWork(WORK_ONCE, ExistingWorkPolicy.REPLACE,
-                new OneTimeWorkRequest.Builder(ReminderResyncWorker.class).setConstraints(online()).build());
+        onMain(() -> {
+            session.clearIfAccountChanged();
+            session.invalidateSync();
+            if (session.capture() != null) {
+                work.enqueueUniqueWork(WORK_ONCE, ExistingWorkPolicy.REPLACE,
+                        new OneTimeWorkRequest.Builder(ReminderResyncWorker.class).setConstraints(online()).build());
+            }
+        });
     }
 
     public boolean canShowNotifications() {
@@ -159,30 +190,55 @@ public final class ReminderManager {
     // ---- For receivers and the worker ----
 
     @Nullable
-    PlannedReminder pending(ReminderKey key) {
-        return engine.pending(key);
+    ReminderSession.Pending pending(ReminderKey key) {
+        return session.pending(key);
     }
 
-    void onDecision(PlannedReminder reminder, ReminderDecision decision) {
-        if (engine.onDecision(reminder, decision)) {
-            requestSync();
-        }
+    void onDecision(ReminderSession.Pending pending, ReminderDecision decision) {
+        onMain(() -> {
+            if (session.onDecision(pending, decision)) {
+                requestSync();
+            }
+        });
     }
 
     void rearm() {
-        engine.rearm();
-        requestSync();
+        onMain(() -> {
+            session.rearm();
+            requestSync();
+        });
     }
 
-    void applySnapshot(ReminderSnapshot snapshot) {
+    @Nullable
+    ReminderSession.Sync beginSync() {
+        ReminderSession.Sync sync = session.beginSync();
+        if (sync == null) {
+            onMain(session::clearIfAccountChanged);
+        }
+        return sync;
+    }
+
+    void applySnapshot(ReminderSession.Sync sync, ReminderSnapshot snapshot) {
         LocalTime parsed = ReminderPlanner.parseTime(snapshot.notifyTime);
         List<PlannedReminder> plan = ReminderPlanner.plan(snapshot.houseId, snapshot.items, snapshot.chores,
                 parsed == null ? DEFAULT_TIME : parsed, snapshot.advanceDays, Clock.systemUTC());
-        main.post(() -> engine.apply(plan));
+        onMain(() -> session.apply(sync, snapshot.houseId, plan));
     }
 
-    void clear() {
-        main.post(engine::clear);
+    void clear(ReminderSession.Token token) {
+        onMain(() -> {
+            if (session.isCurrent(token)) {
+                onSessionEnded();
+            }
+        });
+    }
+
+    private void onMain(Runnable action) {
+        if (Looper.myLooper() == main.getLooper()) {
+            action.run();
+        } else {
+            main.post(action);
+        }
     }
 
     private static Constraints online() {

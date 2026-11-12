@@ -174,7 +174,7 @@ public class ItemRulesTest extends RulesTestBase {
                     .str("lastReplacedDate", replacedDate)
                     .str("nextDueDate", plusDays(replacedDate, 60))
                     .str("occurrenceId", nextOccurrence)
-                    .num("revision", nextRevision)
+                    .num("revision", nextRevision).num("recordCount", 1).str("recordMutationId", finishedOccurrence)
                     .str("updatedBy", actor))
                     .serverTime("updatedAt")
         };
@@ -235,7 +235,7 @@ public class ItemRulesTest extends RulesTestBase {
     private static Write[] deleteFilter() {
         return new Write[] {
             Write.delete(itemPath(HOUSE, "filter")),
-            Write.merge("houses/" + HOUSE, Fields.of()).increment("itemCount", -1)
+            Write.merge("houses/" + HOUSE, Fields.of().str("itemMutationId", "filter")).increment("itemCount", -1)
         };
     }
 
@@ -243,13 +243,15 @@ public class ItemRulesTest extends RulesTestBase {
     public void registrantDeletesWithHistoryAndCount() {
         assertAllowed(firestore.commit(OWNER, complete("alice", today(), "occ-1", "occ-2", 2, nameOf("alice"))));
 
-        assertAllowed(firestore.commit(MEMBER,
-                Write.delete(historyPath(HOUSE, "filter", "occ-1")), deleteFilter()[0], deleteFilter()[1]));
+        assertAllowed(firestore.commit(MEMBER, startDeleting(itemPath(HOUSE, "filter"), "bob")));
+        assertAllowed(firestore.commit(MEMBER, deleteRecord(itemPath(HOUSE, "filter"), "history", "occ-1", "bob")));
+        assertAllowed(firestore.commit(MEMBER, deleteFilter()));
         assertEquals(NOT_FOUND, firestore.get(Auth.admin(), itemPath(HOUSE, "filter")).status());
     }
 
     @Test
     public void ownerMayDeleteOthersItems() {
+        assertAllowed(firestore.commit(OWNER, startDeleting(itemPath(HOUSE, "filter"), "alice")));
         assertAllowed(firestore.commit(OWNER, deleteFilter()));
     }
 
@@ -259,7 +261,7 @@ public class ItemRulesTest extends RulesTestBase {
 
         assertDenied(firestore.commit(MEMBER,
                 Write.delete(itemPath(HOUSE, "alices")),
-                Write.merge("houses/" + HOUSE, Fields.of()).increment("itemCount", -1)));
+                Write.merge("houses/" + HOUSE, Fields.of().str("itemMutationId", "filter")).increment("itemCount", -1)));
     }
 
     @Test
@@ -275,6 +277,7 @@ public class ItemRulesTest extends RulesTestBase {
                 .str("completedBy", "alice").str("completedByName", nameOf("alice")).time("createdAt", SEEDED_AT));
 
         assertDenied(firestore.delete(MEMBER, historyPath(HOUSE, "alices", "occ-0")));
-        assertAllowed(firestore.delete(OWNER, historyPath(HOUSE, "alices", "occ-0")));
+        // Even an owner cannot prune history from an active item.
+        assertDenied(firestore.delete(OWNER, historyPath(HOUSE, "alices", "occ-0")));
     }
 }

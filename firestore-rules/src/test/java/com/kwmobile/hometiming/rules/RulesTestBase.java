@@ -53,7 +53,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1 + otherMembers.length)
                 .num("itemCount", itemCount)
-                .num("choreCount", 0)
+                .num("choreCount", 0).num("integrityVersion", 2)
                 .time("createdAt", SEEDED_AT)
                 .time("updatedAt", SEEDED_AT));
         seedMember(houseId, ownerId);
@@ -119,7 +119,7 @@ abstract class RulesTestBase {
                 .str("ownerId", ownerId)
                 .num("memberCount", 1)
                 .num("itemCount", 0)
-                .num("choreCount", 0))
+                .num("choreCount", 0).num("integrityVersion", 2))
                 .serverTime("createdAt").serverTime("updatedAt");
     }
 
@@ -139,7 +139,7 @@ abstract class RulesTestBase {
                 .str("lastReplacedDate", lastReplacedDate)
                 .str("nextDueDate", plusDays(lastReplacedDate, cycleDays))
                 .str("occurrenceId", occurrenceId)
-                .num("revision", revision)
+                .num("revision", revision).num("recordCount", 0).bool("deleting", false)
                 .str("createdBy", uid)
                 .str("updatedBy", uid);
     }
@@ -148,7 +148,7 @@ abstract class RulesTestBase {
     static Write[] createItem(String houseId, String itemId, Fields fields) {
         return new Write[] {
             Write.create(itemPath(houseId, itemId), fields).serverTime("createdAt").serverTime("updatedAt"),
-            Write.merge("houses/" + houseId, Fields.of()).increment("itemCount", 1)
+            Write.merge("houses/" + houseId, Fields.of().str("itemMutationId", itemId)).increment("itemCount", 1)
         };
     }
 
@@ -184,7 +184,7 @@ abstract class RulesTestBase {
             Write.create("houses/" + houseId + "/members/" + uid,
                     Fields.of().str("displayName", nameOf(uid)).str("inviteCode", code))
                     .serverTime("joinedAt"),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", 1),
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", 1),
             Write.merge("users/" + uid, Fields.of().str("currentHouseId", houseId)).serverTime("updatedAt"),
             Write.delete("houses/" + oldHouseId + "/members/" + uid),
             Write.delete("houses/" + oldHouseId)
@@ -195,7 +195,7 @@ abstract class RulesTestBase {
     static Write[] leave(String uid, String houseId, String newHouseId) {
         return new Write[] {
             Write.delete("houses/" + houseId + "/members/" + uid),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1),
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", -1),
             newHouse(newHouseId, uid),
             newMember(newHouseId, uid, nameOf(uid)),
             Write.merge("users/" + uid, Fields.of().str("currentHouseId", newHouseId)).serverTime("updatedAt")
@@ -206,7 +206,20 @@ abstract class RulesTestBase {
     static Write[] removeMember(String houseId, String uid) {
         return new Write[] {
             Write.delete("houses/" + houseId + "/members/" + uid),
-            Write.merge("houses/" + houseId, Fields.of()).increment("memberCount", -1)
+            Write.merge("houses/" + houseId, Fields.of().str("memberMutationId", uid)).increment("memberCount", -1)
+        };
+    }
+
+    static Write startDeleting(String parent, String actor) {
+        return Write.merge(parent, Fields.of().bool("deleting", true).str("updatedBy", actor))
+                .serverTime("updatedAt");
+    }
+
+    static Write[] deleteRecord(String parent, String collection, String record, String actor) {
+        return new Write[] {
+            Write.delete(parent + "/" + collection + "/" + record),
+            Write.merge(parent, Fields.of().str("recordMutationId", record).str("updatedBy", actor))
+                    .increment("recordCount", -1).serverTime("updatedAt")
         };
     }
 

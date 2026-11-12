@@ -23,10 +23,13 @@ public final class Item {
     public final String location;
     public final String memo;
     public final String createdBy;
+    /** True after an actual completion, including one on the start date. */
+    public final boolean hasCompleted;
 
     public Item(String id, String name, String category, LocalDate startDate, int cycleDays,
                 LocalDate lastReplacedDate, LocalDate nextDueDate, String occurrenceId, int revision,
-                String productName, String location, String memo, String createdBy) {
+                String productName, String location, String memo, String createdBy, boolean hasCompleted) {
+        this.hasCompleted = hasCompleted;
         this.id = Objects.requireNonNull(id, "id");
         this.name = Objects.requireNonNull(name, "name");
         this.category = Objects.requireNonNull(category, "category");

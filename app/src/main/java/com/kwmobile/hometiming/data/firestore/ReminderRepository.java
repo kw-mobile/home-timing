@@ -84,20 +84,21 @@ public final class ReminderRepository {
         if (db == null) {
             return Tasks.forResult(ReminderDecision.UNCONFIRMED);
         }
-        if (currentUid() == null) {
+        String uid = currentUid();
+        if (uid == null) {
             return Tasks.forResult(decisionForFailure(ItemError.NOT_SIGNED_IN));
         }
         String collection = key.kind == ReminderKey.Kind.ITEM ? Schema.Items.COLLECTION : Schema.Chores.COLLECTION;
         DocumentReference ref = db.collection(Schema.Houses.COLLECTION).document(key.houseId)
                 .collection(collection).document(key.documentId);
         return Tasks.withTimeout(ref.get(Source.SERVER), CHECK_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-                .continueWith(done -> done.isSuccessful()
-                        ? decide(key, revision, done.getResult())
-                        : decisionForFailure(ItemRepository.classify(done.getException())));
+                .continueWith(done -> !uid.equals(currentUid()) ? ReminderDecision.CANCEL
+                        : done.isSuccessful() ? decide(key, revision, done.getResult())
+                        : decisionForFailure(ItemTasks.classify(done.getException())));
     }
 
     private static ReminderDecision decide(ReminderKey key, int revision, DocumentSnapshot snapshot) {
-        if (!snapshot.exists()) {
+        if (!snapshot.exists() || Boolean.TRUE.equals(snapshot.getBoolean("deleting"))) {
             return ReminderRules.check(null, key.occurrenceId, revision);
         }
         ScheduleState state = stateOf(key.kind, snapshot);
@@ -131,31 +132,60 @@ public final class ReminderRepository {
      */
     @NonNull
     public Task<ReminderSnapshot> readFromServer() {
+        return readFromServer(currentUid(), null);
+    }
+
+    /** A worker pins the identity and house it started with; a session change cannot adopt its result. */
+    @NonNull
+    public Task<ReminderSnapshot> readFromServer(@Nullable String expectedUid, @Nullable String expectedHouseId) {
         if (db == null) {
             return fail(ItemError.NOT_CONFIGURED);
         }
-        String uid = currentUid();
-        if (uid == null) {
+        if (expectedUid == null || !expectedUid.equals(currentUid())) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
         FirebaseFirestore firestore = db;
-        Task<ReminderSnapshot> task = firestore.collection(Schema.Users.COLLECTION).document(uid).get(Source.SERVER)
-                .onSuccessTask(user -> {
-                    String houseId = user.getString(Schema.Users.CURRENT_HOUSE_ID);
-                    String notifyTime = user.getString(Schema.Users.NOTIFY_TIME);
-                    Long advanceDays = user.getLong(Schema.Users.ADVANCE_DAYS);
-                    if (houseId == null || notifyTime == null || advanceDays == null) {
-                        return fail(ItemError.NOT_FOUND);
-                    }
-                    DocumentReference house = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
-                    return house.collection(Schema.Items.COLLECTION).get(Source.SERVER)
-                            .onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
-                                    .onSuccessTask(chores -> Tasks.forResult(new ReminderSnapshot(houseId, notifyTime,
-                                            advanceDays.intValue(), readItems(items), readChores(chores)))));
-                });
+        DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(expectedUid);
+        Task<ReminderSnapshot> task = userRef.get(Source.SERVER).onSuccessTask(user -> {
+            if (!expectedUid.equals(currentUid())) {
+                return fail(ItemError.NOT_SIGNED_IN);
+            }
+            String houseId = user.getString(Schema.Users.CURRENT_HOUSE_ID);
+            String notifyTime = user.getString(Schema.Users.NOTIFY_TIME);
+            Long advanceDays = user.getLong(Schema.Users.ADVANCE_DAYS);
+            if (houseId == null || notifyTime == null || advanceDays == null) {
+                return fail(ItemError.NOT_FOUND);
+            }
+            if (expectedHouseId != null && !expectedHouseId.equals(houseId)) {
+                return fail(ItemError.PERMISSION_DENIED);
+            }
+            DocumentReference house = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
+            return house.collection(Schema.Items.COLLECTION).get(Source.SERVER)
+                    .onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
+                            .onSuccessTask(chores -> userRef.get(Source.SERVER).onSuccessTask(latest -> {
+                                if (!expectedUid.equals(currentUid())) {
+                                    return fail(ItemError.NOT_SIGNED_IN);
+                                }
+                                if (!houseId.equals(latest.getString(Schema.Users.CURRENT_HOUSE_ID))) {
+                                    return fail(ItemError.PERMISSION_DENIED);
+                                }
+                                if (!notifyTime.equals(latest.getString(Schema.Users.NOTIFY_TIME))
+                                        || !advanceDays.equals(latest.getLong(Schema.Users.ADVANCE_DAYS))) {
+                                    return fail(ItemError.SCHEDULE_CHANGED);
+                                }
+                                return house.collection(Schema.Members.COLLECTION).document(expectedUid)
+                                        .get(Source.SERVER).onSuccessTask(member -> {
+                                            if (!expectedUid.equals(currentUid())) {
+                                                return fail(ItemError.NOT_SIGNED_IN);
+                                            }
+                                            return member.exists() ? Tasks.forResult(new ReminderSnapshot(houseId,
+                                                    notifyTime, advanceDays.intValue(), readItems(items), readChores(chores)))
+                                                    : fail(ItemError.PERMISSION_DENIED);
+                                        });
+                            })));
+        });
         return task.continueWithTask(done -> done.isSuccessful()
-                ? done
-                : Tasks.forException(asItemException(done.getException())));
+                ? done : Tasks.forException(asItemException(done.getException())));
     }
 
     /** Saves the personal reminder settings. Online only, like every other change. */
@@ -174,6 +204,9 @@ public final class ReminderRepository {
         FirebaseFirestore firestore = db;
         DocumentReference user = firestore.collection(Schema.Users.COLLECTION).document(uid);
         Task<Void> task = firestore.runTransaction(tx -> {
+            if (!uid.equals(currentUid())) {
+                throw new ItemException.Rejection(ItemError.NOT_SIGNED_IN);
+            }
             tx.update(user, Schema.Users.NOTIFY_TIME, notifyTime, Schema.Users.ADVANCE_DAYS, advanceDays,
                     Schema.Users.UPDATED_AT, FieldValue.serverTimestamp());
             return null;
@@ -187,7 +220,8 @@ public final class ReminderRepository {
         List<Item> items = new ArrayList<>();
         for (DocumentSnapshot document : snapshot.getDocuments()) {
             Map<String, Object> data = document.getData();
-            Item item = data == null ? null : ItemDocuments.toItem(document.getId(), data);
+            Item item = data == null || Boolean.TRUE.equals(data.get("deleting"))
+                    ? null : ItemDocuments.toItem(document.getId(), data);
             if (item != null) {
                 items.add(item);
             }
@@ -199,7 +233,8 @@ public final class ReminderRepository {
         List<Chore> chores = new ArrayList<>();
         for (DocumentSnapshot document : snapshot.getDocuments()) {
             Map<String, Object> data = document.getData();
-            Chore chore = data == null ? null : ChoreDocuments.toChore(document.getId(), data);
+            Chore chore = data == null || Boolean.TRUE.equals(data.get("deleting"))
+                    ? null : ChoreDocuments.toChore(document.getId(), data);
             if (chore != null) {
                 chores.add(chore);
             }
@@ -213,11 +248,19 @@ public final class ReminderRepository {
      */
     @NonNull
     public Subscription listenChanges(String houseId, ChangesListener listener) {
+        String uid = currentUid();
+        if (uid == null) {
+            listener.onError(ItemError.NOT_SIGNED_IN);
+            return Subscription.NONE;
+        }
         ReminderRules.Tracker itemTracker = new ReminderRules.Tracker();
         ReminderRules.Tracker choreTracker = new ReminderRules.Tracker();
         Subscription items = ItemRepository.getInstance().listenItems(houseId, new ItemRepository.ItemsListener() {
             @Override
             public void onItems(@NonNull List<Item> list, boolean fromCache) {
+                if (!uid.equals(currentUid())) {
+                    return;
+                }
                 List<ScheduleState> states = new ArrayList<>(list.size());
                 for (Item item : list) {
                     states.add(ScheduleState.of(item));
@@ -233,6 +276,9 @@ public final class ReminderRepository {
         Subscription chores = ChoreRepository.getInstance().listenChores(houseId, new ChoreRepository.ChoresListener() {
             @Override
             public void onChores(@NonNull List<Chore> list, boolean fromCache) {
+                if (!uid.equals(currentUid())) {
+                    return;
+                }
                 List<ScheduleState> states = new ArrayList<>(list.size());
                 for (Chore chore : list) {
                     states.add(ScheduleState.of(chore));
@@ -258,13 +304,13 @@ public final class ReminderRepository {
     }
 
     @Nullable
-    private String currentUid() {
+    public String currentUid() {
         FirebaseUser user = auth == null ? null : auth.getCurrentUser();
         return user == null ? null : user.getUid();
     }
 
     private static ItemException asItemException(Exception e) {
-        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemRepository.classify(e), e);
+        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemTasks.classify(e), e);
     }
 
     private static <T> Task<T> fail(ItemError error) {

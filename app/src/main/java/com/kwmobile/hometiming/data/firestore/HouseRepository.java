@@ -15,6 +15,7 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
 import com.kwmobile.hometiming.domain.House;
@@ -100,7 +101,7 @@ public final class HouseRepository {
             listener.onError(HouseError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
-        ListenerRegistration registration = houseRef(db, houseId).addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = houseRef(db, houseId).addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
                 listener.onError(classify(error));
                 return;
@@ -118,7 +119,7 @@ public final class HouseRepository {
             return Subscription.NONE;
         }
         ListenerRegistration registration = houseRef(db, houseId).collection(Schema.Members.COLLECTION)
-                .addSnapshotListener((snapshot, error) -> {
+                .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
                     if (error != null || snapshot == null) {
                         listener.onError(classify(error));
                         return;
@@ -273,7 +274,8 @@ public final class HouseRepository {
                 throw new HouseException.Rejection(HouseError.NOT_FOUND);
             }
             tx.delete(member);
-            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                    Schema.Houses.MEMBER_MUTATION_ID, memberUid);
             return null;
         }));
     }
@@ -354,7 +356,8 @@ public final class HouseRepository {
 
             tx.set(memberRef(firestore, invite.houseId, uid),
                     HouseDocuments.joinedMemberFields(name, code, FieldValue.serverTimestamp()));
-            tx.update(houseRef(firestore, invite.houseId), Schema.Houses.MEMBER_COUNT, FieldValue.increment(1));
+            tx.update(houseRef(firestore, invite.houseId), Schema.Houses.MEMBER_COUNT, FieldValue.increment(1),
+                    Schema.Houses.MEMBER_MUTATION_ID, uid);
             tx.update(user, HouseholdSetup.moveUser(invite.houseId, FieldValue.serverTimestamp()));
             tx.delete(memberRef(firestore, oldHouseId, uid));
             tx.delete(houseRef(firestore, oldHouseId));
@@ -393,7 +396,8 @@ public final class HouseRepository {
                 throw new HouseException.Rejection(HouseError.NOT_FOUND);
             }
             tx.delete(memberRef(firestore, houseId, uid));
-            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+            tx.update(house, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                    Schema.Houses.MEMBER_MUTATION_ID, uid);
             tx.set(newHouse, HouseholdSetup.newHouse(uid, FieldValue.serverTimestamp()));
             tx.set(memberRef(firestore, newHouse.getId(), uid), HouseholdSetup.newMember(name, FieldValue.serverTimestamp()));
             tx.update(user, HouseholdSetup.moveUser(newHouse.getId(), FieldValue.serverTimestamp()));

@@ -5,6 +5,16 @@ public final class Schema {
     private Schema() {
     }
 
+    /** Integrity fields shared by items and chores; absent legacy state is read-only. */
+    public static final class Records {
+        public static final String COUNT = "recordCount";
+        public static final String MUTATION_ID = "recordMutationId";
+        public static final String DELETING = "deleting";
+
+        private Records() {
+        }
+    }
+
     public static final class Users {
         public static final String COLLECTION = "users";
         public static final String CURRENT_HOUSE_ID = "currentHouseId";
@@ -24,6 +34,10 @@ public final class Schema {
     public static final class Houses {
         public static final String COLLECTION = "houses";
         public static final String OWNER_ID = "ownerId";
+        public static final String INTEGRITY_VERSION = "integrityVersion";
+        public static final String ITEM_MUTATION_ID = "itemMutationId";
+        public static final String CHORE_MUTATION_ID = "choreMutationId";
+        public static final String MEMBER_MUTATION_ID = "memberMutationId";
         public static final String MEMBER_COUNT = "memberCount";
         public static final String ITEM_COUNT = "itemCount";
         public static final String CHORE_COUNT = "choreCount";

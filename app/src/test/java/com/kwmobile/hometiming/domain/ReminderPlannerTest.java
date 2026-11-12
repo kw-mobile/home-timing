@@ -31,7 +31,7 @@ public class ReminderPlannerTest {
 
     private static Item item(LocalDate due) {
         return new Item("filter", "정수기 필터", "ETC", due.minusDays(90), 90, due.minusDays(90), due, "occ-1", 2,
-                "", "", "", "alice");
+                "", "", "", "alice", false);
     }
 
     private static List<PlannedReminder> plan(Item item, int advanceDays, Clock clock) {

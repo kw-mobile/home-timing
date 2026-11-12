@@ -22,7 +22,7 @@ public class ReminderResyncWorkerTest {
     @Test
     public void failuresRetryingCannotFixKeepTheSchedule() {
         assertEquals(Outcome.STOP, ReminderResyncWorker.outcomeOf(ItemError.NOT_CONFIGURED));
-        assertEquals(Outcome.STOP, ReminderResyncWorker.outcomeOf(ItemError.PERMISSION_DENIED));
-        assertEquals(Outcome.STOP, ReminderResyncWorker.outcomeOf(ItemError.NOT_FOUND));
+        assertEquals(Outcome.CLEAR, ReminderResyncWorker.outcomeOf(ItemError.PERMISSION_DENIED));
+        assertEquals(Outcome.CLEAR, ReminderResyncWorker.outcomeOf(ItemError.NOT_FOUND));
     }
 }

@@ -77,6 +77,17 @@ public class ItemScheduleTest {
     }
 
     @Test
+    public void sameDayCompletionThenEditingStartPreservesActualReplacement() {
+        Item completed = ItemSchedule.complete(registered(), NOV_1, "occ-2");
+        Item edited = ItemSchedule.edit(completed, draft("샤워기 필터", NOV_1.minusDays(2), 90));
+
+        assertEquals(NOV_1, edited.lastReplacedDate);
+        assertEquals(NOV_1.plusDays(90), edited.nextDueDate);
+        assertTrue(edited.hasCompleted);
+        assertFalse(ItemSchedule.startDateFits(edited, NOV_1.plusDays(1)));
+    }
+
+    @Test
     public void completionCountsFromActualDateWithNewOccurrence() {
         Item item = registered();
 

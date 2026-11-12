@@ -25,10 +25,10 @@ public class ItemErrorTest {
     public void rejectionsInsideTransactionsKeepTheirError() {
         Exception wrapped = new RuntimeException(new ItemException.Rejection(ItemError.SCHEDULE_CHANGED));
 
-        assertEquals(ItemError.SCHEDULE_CHANGED, ItemRepository.classify(wrapped));
+        assertEquals(ItemError.SCHEDULE_CHANGED, ItemTasks.classify(wrapped));
         assertEquals(ItemError.ALREADY_COMPLETED,
-                ItemRepository.classify(new ItemException(ItemError.ALREADY_COMPLETED)));
-        assertEquals(ItemError.UNKNOWN, ItemRepository.classify(null));
+                ItemTasks.classify(new ItemException(ItemError.ALREADY_COMPLETED)));
+        assertEquals(ItemError.UNKNOWN, ItemTasks.classify(null));
     }
 
     @Test

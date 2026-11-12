@@ -21,7 +21,7 @@ public class ReminderRepositoryTest {
 
     @Test
     public void aTimeoutFiresFromTheStoredSchedule() {
-        ItemError error = ItemRepository.classify(new java.util.concurrent.TimeoutException());
+        ItemError error = ItemTasks.classify(new java.util.concurrent.TimeoutException());
 
         assertEquals(ReminderDecision.UNCONFIRMED, ReminderRepository.decisionForFailure(error));
     }

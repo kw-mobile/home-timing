@@ -26,7 +26,7 @@ public class ItemDocumentsTest {
     // The exact key lists firestore.rules v1 allows for items and history.
     private static final Set<String> REQUIRED_ITEM_KEYS = new HashSet<>(Arrays.asList(
             "name", "category", "startDate", "cycleDays", "lastReplacedDate", "nextDueDate",
-            "occurrenceId", "revision", "createdBy", "updatedBy", "createdAt", "updatedAt"));
+            "occurrenceId", "revision", "createdBy", "updatedBy", "createdAt", "updatedAt", "recordCount", "deleting"));
     private static final Set<String> HISTORY_KEYS = new HashSet<>(Arrays.asList(
             "replacedDate", "previousDueDate", "cycleDaysUsed", "completedBy", "completedByName", "createdAt"));
 

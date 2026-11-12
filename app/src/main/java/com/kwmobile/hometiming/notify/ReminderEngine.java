@@ -89,7 +89,11 @@ final class ReminderEngine {
 
     /** @return whether a server sync is needed to schedule again */
     boolean onDecision(PlannedReminder reminder, ReminderDecision decision) {
-        if (ledger.scheduled(reminder.key) == null) {
+        PlannedReminder current = ledger.scheduled(reminder.key);
+        // The same occurrence key can be replanned while its server check is in flight.
+        if (current == null || current.revision != reminder.revision
+                || current.fireAtMillis != reminder.fireAtMillis || !current.dueDate.equals(reminder.dueDate)
+                || current.daysBefore != reminder.daysBefore || !current.name.equals(reminder.name)) {
             return false;
         }
         switch (decision) {

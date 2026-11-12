@@ -25,6 +25,8 @@ public final class ItemDocuments {
      */
     public static Map<String, Object> itemFields(Item item, String updatedBy, Object createdAt, Object now) {
         Map<String, Object> fields = new HashMap<>();
+        fields.put(Schema.Records.COUNT, 0);
+        fields.put(Schema.Records.DELETING, false);
         fields.put(Schema.Items.NAME, item.name);
         fields.put(Schema.Items.CATEGORY, item.category);
         fields.put(Schema.Items.START_DATE, DateRules.format(item.startDate));
@@ -60,6 +62,9 @@ public final class ItemDocuments {
      */
     public static Item toItem(String id, Map<String, Object> data) {
         try {
+            if (Boolean.TRUE.equals(data.get(Schema.Records.DELETING))) {
+                return null;
+            }
             return new Item(id,
                     text(data, Schema.Items.NAME),
                     text(data, Schema.Items.CATEGORY),
@@ -72,7 +77,9 @@ public final class ItemDocuments {
                     optional(data, Schema.Items.PRODUCT_NAME),
                     optional(data, Schema.Items.LOCATION),
                     optional(data, Schema.Items.MEMO),
-                    text(data, Schema.Items.CREATED_BY));
+                    text(data, Schema.Items.CREATED_BY),
+                    !(data.get(Schema.Records.COUNT) instanceof Number)
+                            || ((Number) data.get(Schema.Records.COUNT)).longValue() > 0);
         } catch (RuntimeException e) {
             return null;
         }
