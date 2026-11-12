@@ -686,17 +686,27 @@ public final class MainActivity extends AppCompatActivity {
             hero.setLayoutParams(fullWidth);
         }
         ((TextView)screen.findViewById(R.id.weather_location)).setText(weatherVm.regionName());
-        ((TextView)screen.findViewById(R.id.weather_temperature)).setText(degrees(current==null?null:current.temperature));
+        com.kwmobile.hometiming.domain.ForecastHour activeHour = current;
+        if(activeHour == null && display != null) {
+            for(WeatherDisplay.Day day : display.days.values()) {
+                if(day.forecast != null) { activeHour = day.forecast; break; }
+            }
+        }
+        ((TextView)screen.findViewById(R.id.weather_temperature)).setText(degrees(activeHour==null?null:activeHour.temperature));
         WeatherViewModel.State state=weatherVm.current();
+        String activeCondition = activeHour != null ? WeatherDisplay.condition(activeHour) : condition;
         String description=state!=null&&state.error!=null?getString(state.error.messageRes):
                 state==null||state.loading&&state.result==null?getString(R.string.weather_ui_loading):
-                getString(weatherConditionText(condition));
+                getString(weatherConditionText(activeCondition));
         ((TextView)screen.findViewById(R.id.weather_condition)).setText(description);
         WeatherDisplay.Day today=display==null?null:display.days.get(PreviewStore.today());
+        if(today==null&&display!=null&&!display.days.isEmpty()){
+            today=display.days.values().iterator().next();
+        }
         ((TextView)screen.findViewById(R.id.weather_high_low)).setText(getString(R.string.weather_ui_high_low,
                 degrees(today==null?null:today.high),degrees(today==null?null:today.low)));
         Integer pop=today==null?null:today.pop;
-        if(pop==null&&current!=null)pop=current.pop;
+        if(pop==null&&activeHour!=null)pop=activeHour.pop;
         ((TextView)screen.findViewById(R.id.weather_time)).setText(
                 state==null||state.result==null?(state!=null&&state.error!=null?getString(state.error.messageRes):getString(R.string.weather_ui_loading)):
                 getString(R.string.weather_ui_pop,percent(pop)));

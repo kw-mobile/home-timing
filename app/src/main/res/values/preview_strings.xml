@@ -34,9 +34,9 @@
     <string name="preview_copy_033" formatted="false">항목을 등록하면 이곳에서 함께 챙길 수 있어요.</string>
     <string name="preview_copy_034" formatted="false">M월 d일 EEEE</string>
     <string name="preview_copy_035" formatted="false">날씨 자세히 보기</string>
-    <string name="preview_copy_036" formatted="false">챙길 일</string>
+    <string name="preview_copy_036" formatted="false">할 일</string>
     <string name="preview_copy_037" formatted="false">+ 등록</string>
-    <string name="preview_copy_040" formatted="false">오늘 챙길 일을 모두 마쳤어요.</string>
+    <string name="preview_copy_040" formatted="false">오늘 할 일을 모두 마쳤어요.</string>
     <string name="preview_copy_041" formatted="false">알림을 켜고 제때 챙겨요</string>
     <string name="preview_copy_042" formatted="false">알림 설정하기</string>
     <string name="preview_copy_043" formatted="false">이번 주</string>
@@ -212,7 +212,7 @@
     <string name="preview_copy_225" formatted="false">경기 성남시</string>
     <string name="preview_copy_226" formatted="false">부산 해운대구</string>
     <string name="preview_copy_227" formatted="false">예시 지역을 변경했어요.</string>
-    <string name="preview_copy_228" formatted="false">하루를 시작할 때, 챙길 일을 알려드려요.</string>
+    <string name="preview_copy_228" formatted="false">하루를 시작할 때, 할 일을 알려드려요.</string>
     <string name="preview_copy_229" formatted="false">일정 알림</string>
     <string name="preview_copy_230" formatted="false">앱 알림 설정을 켰어요. 기기 권한은 별도로 확인해야 해요.</string>
     <string name="preview_copy_231" formatted="false">알림 꺼짐 상태 예시예요.</string>
@@ -291,11 +291,11 @@
     <string name="preview_forecast_day">날짜</string>
     <string name="preview_forecast_temperatures">최저 · 최고</string>
     <string name="preview_item_count">%1$s · %2$d개</string>
-    <string name="preview_sheet_reopen">챙길 일 다시 보기</string>
-    <string name="preview_sheet_close">챙길 일 닫기</string>
+    <string name="preview_sheet_reopen">할 일 다시 보기</string>
+    <string name="preview_sheet_close">할 일 닫기</string>
     <string name="preview_home_due_count">오늘·지남 일정 %1$d개</string>
 
-    <string name="intent_home_tasks">지금 챙길 일</string>
+    <string name="intent_home_tasks">오늘 할 일</string>
     <string name="intent_home_counts">오늘 %1$d · 지남 %2$d · 7일 이내 %3$d</string>
     <string name="intent_home_loading">목록을 열어 상태를 확인해 주세요</string>
     <string name="intent_home_weather">날씨에 맞춘 집안일</string>
