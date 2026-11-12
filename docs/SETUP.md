@@ -15,6 +15,10 @@
 
 Android Studio는 AGP 8.11을 지원하는 Narwhal 2025.1.1 이상 안정 버전을 사용합니다. Studio 자체보다 **Gradle JDK와 Wrapper**가 빌드 기준입니다. 자동 AGP·Gradle 업그레이드는 수락하지 않습니다.
 
+## Android Studio 동기화와 의존성 잠금
+
+Studio Sync에서 `debugRuntimeClasspathCopy` 같은 임시 구성은 잠금 파일에 저장되지 않습니다. `app/build.gradle`은 `idea.sync.active=true`인 동기화에만 `LockMode.DEFAULT`를 사용해 기존 잠금 검증을 유지하면서 임시 구성의 잠금 정보 누락을 허용합니다. 일반 빌드·테스트·CI는 계속 `LockMode.STRICT`이며 잠금 파일을 재생성하거나 의존성 버전을 바꾸지 않습니다. IDE 도구 업그레이드로 해결하려 하지 말고 먼저 Sync 결과를 확인합니다.
+
 ## 최초 설정
 
 에이전트에게 “이 프로젝트 개발 환경 설정해줘”라고 요청하면 [team-setup](../.agents/skills/team-setup/SKILL.md)이 아래 절차를 수행합니다. 기존 로컬 파일·계정을 보존하며 인증·키 입력과 실제 미완료 항목을 구분합니다. 직접 설정하려면 아래 순서로 진행합니다.
@@ -116,7 +120,11 @@ firebase deploy --only firestore:rules --project kw-mobile-home-timing --account
 
 `local.properties.example`을 참고해 자신의 `local.properties`에 `KMA_SERVICE_KEY`로 인증키를 넣습니다. 변수 이름은 기존 설정을 유지하며 값은 API허브 `authKey`입니다. Android Studio가 만든 `sdk.dir`을 덮어쓰지 마세요. URL 인코딩은 네트워크 계층에서 처리합니다. CI나 터미널에서는 같은 이름의 환경 변수로 주입할 수 있고 환경 변수가 우선합니다.
 
+키를 로컬에 저장한 뒤 앱을 다시 빌드·설치해야 `BuildConfig.KMA_SERVICE_KEY`에 반영됩니다. Sync만 하거나 실행 중인 앱을 새로고침하는 것으로는 키가 바뀌지 않습니다. 앱의 설정 → 날씨 설정에서 테스트 모드를 끄고, 날씨 지역을 선택해 조회합니다. 현재 지역 선택은 이 기기에만 저장하며 Firebase 로그인 없이 날씨 연결을 확인할 수 있습니다. 키 없음·권한 거부·조회 실패 때는 예시 기온으로 대체하지 않습니다. 실제 성공 여부는 화면의 기상청 예보·조회 시각과 지역을 확인해 기록하고 테스트 모드 성공과 구분합니다.
+
 키는 `BuildConfig.KMA_SERVICE_KEY`로 제공됩니다. Git에서 제외해도 APK에 넣은 키는 비밀 저장소처럼 보호되지 않습니다. HTTP 로그에는 키가 포함된 URL을 남기지 않아야 합니다. `data/weather`는 HTTP 로깅을 설치하지 않고, 실패 예외에 원인 예외를 담지 않습니다.
+
+PC에서 같은 앱 설정으로 제공자 응답만 확인하려면 JDK 17 터미널에서 `./gradlew.bat -I scripts/weather/check-connection.init.gradle :app:checkWeatherConnection --console=plain -q`를 실행합니다(macOS/Linux는 `./gradlew`). 이 수동 진단은 키·요청 URL·원문 응답을 출력하지 않습니다. 명령 종료 코드가 0이어도 API 성공을 뜻하지 않으며 출력의 HTTP 상태와 `KMA_00`을 함께 확인합니다. `HTTP 403` / `HUB_403` / `API_APPLICATION_REQUIRED`가 나오면 활용신청 화면의 승인 계정·대상 API와 현재 키의 연결 상태를 API허브에서 확인합니다. 키를 교체했다면 앱을 다시 빌드·설치합니다.
 
 ## 검증 안내
 

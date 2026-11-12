@@ -127,6 +127,45 @@ public class KmaForecastParserTest {
     }
 
     @Test
+    public void preservesDisplayValuesIncludingNegativeDecimalTemperatures() throws WeatherException {
+        ForecastHour hour = parse(json().hour(DAY, "0900", "10", "0", "50")
+                .item(DAY, "0900", "TMP", "-2.5").item(DAY, "0900", "SKY", "3")
+                .item(DAY, "0900", "TMN", "-5.0").item(DAY, "0900", "TMX", "4.5").build()).get(0);
+        assertEquals(Double.valueOf(-2.5), hour.temperature);
+        assertEquals(Integer.valueOf(3), hour.sky);
+        assertEquals(Double.valueOf(-5), hour.minTemperature);
+        assertEquals(Double.valueOf(4.5), hour.maxTemperature);
+    }
+
+    @Test
+    public void missingOrInvalidDisplayValuesAreNotInvented() throws WeatherException {
+        List<ForecastHour> hours = parse(json().hour(DAY, "0900", "10", "0", "50")
+                .item(DAY, "0900", "TMP", "-999").item(DAY, "0900", "SKY", "2")
+                .item(DAY, "0900", "TMX", "NaN").hour(DAY, "1000", "10", "0", "50").build());
+        assertNull(hours.get(0).temperature);
+        assertNull(hours.get(0).sky);
+        assertNull(hours.get(0).maxTemperature);
+        assertNull(hours.get(1).temperature);
+        assertNull(hours.get(1).sky);
+    }
+
+    @Test
+    public void refusesDuplicateDisplayValues() {
+        assertRefused(WeatherError.INVALID_RESPONSE, json().hour(DAY, "0900", "10", "0", "50")
+                .item(DAY, "0900", "TMP", "10").item(DAY, "0900", "TMP", "12").build());
+    }
+
+    @Test
+    public void exposesOnlySafeProviderCodesForDiagnosis() {
+        WeatherException error = assertThrows(WeatherException.class, () -> parse(KmaJson.error("30")));
+        assertEquals("KMA_30", error.providerCode);
+        error = assertThrows(WeatherException.class, () -> parse("{\"result\":{\"status\":403}}"));
+        assertEquals("HUB_403", error.providerCode);
+        assertNull(new WeatherException(WeatherError.NOT_AUTHORIZED, "URL?authKey=private").providerCode);
+        assertFalse(error.getMessage().contains("authKey"));
+    }
+
+    @Test
     public void mapsResultCodes() {
         assertRefused(WeatherError.NO_DATA, KmaJson.error("03"));
         assertRefused(WeatherError.NOT_AUTHORIZED, KmaJson.error("30"));

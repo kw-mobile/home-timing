@@ -1,0 +1,60 @@
+import groovy.json.JsonSlurper
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
+// Manual, opt-in provider check. Never prints credentials, request URLs or response bodies.
+gradle.projectsEvaluated {
+    def app = gradle.rootProject.project(':app')
+    app.tasks.register('checkWeatherConnection') {
+        group = 'verification'
+        description = 'Checks KMA HTTP/provider status with the configured app key; outputs no secrets.'
+        doLast {
+            HttpURLConnection connection = null
+            try {
+                def field = app.extensions.getByName('android').defaultConfig.buildConfigFields['KMA_SERVICE_KEY']
+                String key = new JsonSlurper().parseText(field.value)
+                if (!key?.trim()) throw new GradleException('KMA key is absent.')
+                def now = ZonedDateTime.now(ZoneId.of('Asia/Seoul')).minusMinutes(15)
+                int hour = now.hour < 2 ? 23 : 2 + 3 * ((now.hour - 2).intdiv(3))
+                if (now.hour < 2) now = now.minusDays(1)
+                def region = new JsonSlurper().parse(app.file('src/main/assets/regions.json'))
+                        .regions.find { it.name == '서울특별시 마포구' }
+                String query = 'pageNo=1&numOfRows=2000&dataType=JSON&base_date=' +
+                        now.toLocalDate().format(DateTimeFormatter.BASIC_ISO_DATE) + '&base_time=' +
+                        String.format('%02d00', hour) + '&nx=' + region.nx + '&ny=' + region.ny +
+                        '&authKey=' + URLEncoder.encode(key.trim(), 'UTF-8')
+                connection = (HttpURLConnection) new URL(
+                        'https://apihub.kma.go.kr/api/typ02/openApi/VilageFcstInfoService_2.0/getVilageFcst?' + query).openConnection()
+                connection.connectTimeout = 10000
+                connection.readTimeout = 10000
+                connection.setRequestProperty('User-Agent', 'okhttp/4.12.0')
+                int status = connection.responseCode
+                println 'Weather diagnostic HTTP: ' + status
+                def stream = status >= 400 ? connection.errorStream : connection.inputStream
+                String body = stream == null ? '' : stream.getText('UTF-8')
+                def json
+                try { json = new JsonSlurper().parseText(body) } catch (Exception ignored) {
+                    println 'Weather diagnostic body: NON_JSON'
+                    return
+                }
+                if (json.result instanceof Map) {
+                    def code = json.result.status?.toString()
+                    if (code ==~ /[0-9]{3}/) println 'Weather diagnostic provider: HUB_' + code
+                    String message = json.result.message?.toString() ?: ''
+                    println 'Weather diagnostic reason: ' + (message.contains('활용신청') ? 'API_APPLICATION_REQUIRED' :
+                            message.contains('인증키') ? 'KEY_REJECTED' : 'OTHER')
+                } else {
+                    String code = json.response?.header?.resultCode?.toString() ?: ''
+                    if (code ==~ /[0-9]{2}/) println 'Weather diagnostic provider: KMA_' + code
+                    if (code == '00') println 'Weather diagnostic items: ' + json.response.body.items.item.size()
+                }
+            } catch (Exception error) {
+                // Exception messages/causes can contain the authenticated URL.
+                throw new GradleException('Weather diagnostic failed (' + error.class.simpleName + '); sensitive details suppressed.')
+            } finally {
+                connection?.disconnect()
+            }
+        }
+    }
+}

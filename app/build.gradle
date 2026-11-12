@@ -61,7 +61,9 @@ java {
 
 dependencyLocking {
     lockAllConfigurations()
-    lockMode = LockMode.STRICT
+    // Studio resolves temporary *ClasspathCopy configurations without persisted lock state.
+    // DEFAULT still validates existing locks during sync; actual builds require lock state.
+    lockMode = System.getProperty('idea.sync.active') == 'true' ? LockMode.DEFAULT : LockMode.STRICT
 }
 
 dependencies {

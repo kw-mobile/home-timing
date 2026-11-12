@@ -66,6 +66,14 @@
 | 2026-11-12 | 전주용: 14번 방식(에뮬레이터 백엔드 검증) 결정; Claude Code (도구): 임시 하네스 작성·실행·기록 | 두 기기 시연 A·B를 Firebase Emulator Suite와 Android 에뮬레이터 2대(Android 14)로 저장소 단위 실행: 공유 반영·다른 기기 완료 후 알림 취소·완료자 이력·날씨 제안 이동·원래 요일 다음 회차 확인, 동시 완료는 판정 보류. 실제 화면·실기기 시연 전 | [이슈 #54](https://github.com/kw-mobile/home-timing/issues/54), [결과](https://github.com/kw-mobile/home-timing/issues/54#issuecomment-6799749862) |
 | 2026-11-12 | 전주용: 보강 진행 결정; Claude Code (도구): 원인 발견·수정·테스트 작성 및 로컬 검증 | 동시 변경에 진 쪽이 '권한 없음' 대신 서버 재확인으로 '이미 완료/일정 변경/삭제됨'을 받도록 용품·집안일 저장소 보강. 단위 250 통과, 실제 경쟁 재현 미확인 | [이슈 #55](https://github.com/kw-mobile/home-timing/issues/55), [PR #56](https://github.com/kw-mobile/home-timing/pull/56) |
 
+| 2026-11-12 | 사용자(성명 확인 필요): Run 비활성 오류 제보·수정 브랜치와 설정 수정 승인; Codex (도구): 원인 확인·Gradle/안내 수정·로컬 검증 | `debugRuntimeClasspathCopy`의 잠금 정보 누락으로 실패하던 Studio Sync 복구. IDE Sync에서만 DEFAULT로 기존 잠금 검증, 일반 빌드·CI는 STRICT 유지. 버전·잠금 파일 변경 없음. 기준 `bd1522f` + `fix/ide-gradle-sync` 로컬 변경, Windows/JBR 17.0.12·Gradle 8.13에서 Sync 성공 및 `:app:assembleDebug :app:testDebugUnitTest :app:lintDebug` 성공(단위 250·실패 0, Lint 오류 0·버전 경고 16). Firebase 설정 없는 기본 빌드이며 실제 서비스 연결 검증 제외 | [설정·원인](../SETUP.md#android-studio-동기화와-의존성-잠금). gh 미설치로 이슈·PR 미생성, 로컬 인계 |
+
+| 2026-11-12 | 사용자(성명 확인 필요): 날씨 사진 상단 확장 재적용 요청; Codex (도구): Java/XML·디자인 규격 수정·빌드/Lint·에뮬레이터 검증 | 홈 사진을 상태 표시줄·상단 바 뒤까지 확장하고 날짜·기온·하단/패널 위치 유지. 설정 이동 시 기본 상단 복원·홈 복귀 확인. 기준 `bd1522f` + 현재 로컬 변경, Windows/JBR 17.0.12에서 `:app:assembleDebug :app:lintDebug` 성공(오류 0·버전 경고 16). emulator-5554(1080×1920) 사진 y=0~1313·날짜 y=263·기온 y=576·패널 y=1384 확인. 실기기·다크/회전은 이번 재적용에서 미검증 | [디자인 규격](../DESIGN_SYSTEM.md#날씨-사진과-시간대). 기존 Sync 수정 보존, 자동 승인 검토가 커밋·새 브랜치 생성을 거부해 현재 `fix/ide-gradle-sync`에서 로컬 수정만 수행. 이슈·PR 미생성 |
+
+| 2026-11-12 | 사용자(성명 확인 필요): 실제 날씨 연결 요청·인증키 로컬 등록·활용신청 승인 상태 확인; Codex (도구): ViewModel/표시·파서/캐시·테스트·문서 구현 및 로컬 검증 | 홈·날씨 상세를 WeatherRepository와 연결. 기온/하늘/공식 최고·최저, 지역 로컬 저장, 갱신·실패·캐시·테스트 출처 구분, 세탁 판정 연결. 기존 Sync·사진 상단 확장 보존. 기준 `bd1522f` + `fix/ide-gradle-sync` 미커밋 변경, Windows/JBR 17.0.12·Gradle 8.13에서 `:app:assembleDebug :app:testDebugUnitTest :app:lintDebug` 성공(262 통과·건너뜀/실패 0, Lint 오류 0·경고 64: 버전 안내/미사용 리소스). Android 14 에뮬레이터에서 테스트 기온·명시적 테스트 출처 확인. 실제 요청은 PC/앱 모두 HTTP 403, 제공자 HUB_403·API_APPLICATION_REQUIRED로 거부되어 실제 예보 성공 미확인. 승인 계정/API와 현재 키 연결 상태 확인 필요. 초기 에뮬레이터 DNS 오류는 명시 DNS 재시작 후 해소, 시작 중 앱/System UI ANR 관찰로 실기기 안정성·다크/회전은 별도 검증 필요 | [설정·안전한 진단](../SETUP.md#기상청), [검증 기준](../TESTING.md). gh 미설치·기존 자동 승인 거부 범위에 따라 커밋/새 브랜치/PR 없이 로컬 인계, main 미변경 |
+
+| 2026-11-12 | 사용자(성명 확인 필요): 최고·최저 기온 보완 및 오늘 강수 확률 표시 요청; Antigravity (도구): WeatherDisplay/레이아웃/테스트 수정 및 검증 | 기상청 단기예보 공식 TMN/TMX 누락 시 시간별 기온(TMP) 최솟값·최댓값 fallback 적용, 홈 화면 예보 일시 메타텍스트 제거 및 오늘의 강수 확률 표시 추가. `:app:assembleDebug`, `:app:testDebugUnitTest` 262개 통과 확인 | [MVP F-08·F-10](../MVP.md#요구사항-식별자) |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.

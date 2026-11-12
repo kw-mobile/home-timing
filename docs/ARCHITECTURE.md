@@ -8,6 +8,12 @@
 
 기본 패키지는 `com.kwmobile.hometiming`, UI는 Java + XML입니다. 앱 식별자는 [app/build.gradle](../app/build.gradle), 버전은 [환경 설정](SETUP.md)의 기준 파일에서 확인합니다.
 
+## 날씨 화면 연결
+
+`WeatherViewModel`이 `WeatherRepository`의 지역 목록·예보를 비동기로 요청하고, 홈·날씨 화면은 LiveData를 관찰해 로딩·오류·캐시 출처·조회 시각·테스트 상태를 렌더링합니다. Activity는 HTTP를 호출하지 않습니다. 요청 세대로 지역/모드 전환 이전의 늦은 결과를 무효화하고, 회전에는 ViewModel 결과를 유지합니다. 지역은 현재 기기 전용 `weather_ui` 설정에 저장합니다. 계정·집 화면 미연결 상태에서 `HouseRepository.setRegion`을 호출하거나 가족 공용 지역을 바꾸지 않습니다.
+
+`ForecastHour`는 강수·습도 외에 TMP·SKY·TMN·TMX의 nullable 값을 전달합니다. `WeatherDisplay`는 오늘 현재 시각 이후의 가장 가까운 예보와 제공된 일 최저/최고만 선택하며 실황·미제공 기온을 추정하지 않습니다. 기온·예보 시각, 이전 캐시·테스트 여부를 표시합니다. 이전 강수 전용 캐시는 새 표시 필드가 없어 v2 캐시 키와 분리합니다. 세탁 판정은 보관된 시간별 예보를 현재 서울 시각으로 다시 요약해 지난 시간대를 제외합니다. 예시 집안일의 일정 제안도 같은 규칙을 사용하지만 저장·가족 공유 성공을 뜻하지 않으며 화면에 로컬 예시임을 명시합니다.
+
 ## 의존 방향
 
 ```text

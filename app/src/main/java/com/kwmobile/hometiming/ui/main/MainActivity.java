@@ -67,10 +67,15 @@ import java.util.Locale;
 public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
+    private WeatherViewModel weatherVm;
+    private WeatherViewModel.State shownWeatherState;
     private View screen;
     private boolean syncingNavigation;
     private final BroadcastReceiver clock=new BroadcastReceiver() {
-        @Override public void onReceive(Context context,Intent intent) { updateWeather(); }
+        @Override public void onReceive(Context context,Intent intent) {
+            weatherVm.refresh(false);
+            if(s().route.screen.equals("weather")){capture();render();}else updateWeather();
+        }
     };
     private DesignPreviewViewModel.State s() {return vm.state;}
     private int color(int id) {return ContextCompat.getColor(this,id);}
@@ -83,6 +88,8 @@ public final class MainActivity extends AppCompatActivity {
         WindowCompat.setDecorFitsSystemWindows(getWindow(),false);
         binding=ActivityMainBinding.inflate(getLayoutInflater());setContentView(binding.getRoot());
         vm=new ViewModelProvider(this).get(DesignPreviewViewModel.class);vm.restore(saved);
+        weatherVm=new ViewModelProvider(this).get(WeatherViewModel.class);
+        s().region=weatherVm.regionName();
         configureInsets();
         binding.mainContent.setBackgroundColor(color(R.color.ht_background));
         binding.systemNavigationBackdrop.getLayoutParams().height=dp(16);
@@ -105,6 +112,18 @@ public final class MainActivity extends AppCompatActivity {
             @Override public void handleOnBackPressed() {back();}
         });
         if(saved==null)readPreviewIntent(getIntent());render();
+        shownWeatherState=weatherVm.current();
+        weatherVm.state().observe(this,state -> {
+            if(state==shownWeatherState)return;
+            shownWeatherState=state;
+            s().region=weatherVm.regionName();
+            if(screen==null)return;
+            String page=s().route.screen;
+            if(page.equals("home")||page.equals("weather")||page.equals("settings")
+                    ||page.equals("preferences")&&(s().route.id.equals("weather")||s().route.id.equals("region"))) {
+                capture();render();
+            }
+        });
     }
     @Override protected void onNewIntent(Intent intent) {super.onNewIntent(intent);setIntent(intent);capture();readPreviewIntent(intent);render();}
     private void readPreviewIntent(Intent intent) {
@@ -134,7 +153,7 @@ public final class MainActivity extends AppCompatActivity {
     }
     @Override protected void onStart() {
         super.onStart();IntentFilter filter=new IntentFilter(Intent.ACTION_TIME_TICK);filter.addAction(Intent.ACTION_TIME_CHANGED);filter.addAction(Intent.ACTION_TIMEZONE_CHANGED);
-        ContextCompat.registerReceiver(this,clock,filter,ContextCompat.RECEIVER_NOT_EXPORTED);updateWeather();
+        ContextCompat.registerReceiver(this,clock,filter,ContextCompat.RECEIVER_NOT_EXPORTED);weatherVm.refresh(false);updateWeather();
     }
     @Override protected void onStop() {capture();unregisterReceiver(clock);super.onStop();}
     @Override protected void onSaveInstanceState(@NonNull Bundle out) {capture();vm.save(out);super.onSaveInstanceState(out);}
@@ -167,7 +186,16 @@ public final class MainActivity extends AppCompatActivity {
         String name=s().route.screen;
         int pageColor=color(R.color.ht_background);
         binding.mainContent.setBackgroundColor(pageColor);
-        binding.topBar.setBackgroundColor(pageColor);
+        boolean home=name.equals("home");
+        binding.mainContent.setBackgroundColor(home?android.graphics.Color.TRANSPARENT:pageColor);
+        binding.topBar.setBackgroundColor(home?android.graphics.Color.TRANSPARENT:pageColor);
+        binding.homeWeatherBackdrop.setVisibility(home?View.VISIBLE:View.GONE);
+        int toolbarColor=color(home?R.color.ht_photo_text:R.color.ht_text);
+        binding.toolbarTitle.setTextColor(toolbarColor);
+        binding.brandIcon.setImageTintList(ColorStateList.valueOf(toolbarColor));
+        binding.galleryButton.setTextColor(toolbarColor);
+        boolean light=(getResources().getConfiguration().uiMode&Configuration.UI_MODE_NIGHT_MASK)!=Configuration.UI_MODE_NIGHT_YES;
+        WindowCompat.getInsetsController(getWindow(),binding.getRoot()).setAppearanceLightStatusBars(!home&&light);
         int layout;
         switch(name) {
             case "login":layout=R.layout.screen_login;break;case "signup":layout=R.layout.screen_signup;break;
@@ -204,7 +232,10 @@ public final class MainActivity extends AppCompatActivity {
             case "family":bindFamily();break;case "preferences":bindPreferences();break;
             case "components":bindComponents();break;case "gallery":bindGallery();break;default:bindHome();break;
         }
-        motion(screen);FluidMotion.enter(screen,binding.glassBackdrop::refresh);binding.glassBackdrop.refresh();
+        motion(screen);
+        // Home shares its photo with the window background, so keep its geometry fixed.
+        if(!home)FluidMotion.enter(screen,binding.glassBackdrop::refresh);
+        binding.glassBackdrop.refresh();
         ViewCompat.setAccessibilityPaneTitle(screen,toolbarTitle(name));
     }
     private String toolbarTitle(String name) {
@@ -319,6 +350,31 @@ public final class MainActivity extends AppCompatActivity {
         ViewGroup.LayoutParams photoSize=homePhoto.getLayoutParams();photoSize.height=dp(420);homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature=screen.findViewById(R.id.weather_temperature);homeTemperature.setTextSize(64);androidx.core.widget.TextViewCompat.setLineHeight(homeTemperature,Math.round(72*getResources().getDisplayMetrics().scaledDensity));
         LinearLayout photoCopy=(LinearLayout)screen.findViewById(R.id.weather_location).getParent();photoCopy.setPadding(dp(20),dp(16),dp(20),dp(16));
+        // Extend only the background; preserve the hero, text and sheet geometry.
+        homePhoto.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        screen.findViewById(R.id.weather_scrim).setVisibility(View.INVISIBLE);
+        screen.findViewById(R.id.weather_photo).setVisibility(View.INVISIBLE);
+        View homeScreen=screen;
+        Runnable sizeBackdrop=() -> {
+            if(screen!=homeScreen)return;
+            int[] heroPosition=new int[2],rootPosition=new int[2];
+            homePhoto.getLocationInWindow(heroPosition);binding.getRoot().getLocationInWindow(rootPosition);
+            FrameLayout.LayoutParams size=(FrameLayout.LayoutParams)binding.homeWeatherBackdrop.getLayoutParams();
+            int height=Math.max(0,heroPosition[1]+homePhoto.getHeight()-rootPosition[1]);
+            int top=-binding.getRoot().getPaddingTop();
+            if(size.height!=height||size.topMargin!=top) {
+                size.height=height;size.topMargin=top;binding.homeWeatherBackdrop.setLayoutParams(size);
+            }
+        };
+        homePhoto.addOnLayoutChangeListener((v,l,t,r,b,ol,ot,or,ob) -> sizeBackdrop.run());
+        binding.getRoot().addOnLayoutChangeListener(new View.OnLayoutChangeListener() {
+            @Override public void onLayoutChange(View v,int l,int t,int r,int b,int ol,int ot,int or,int ob) {
+                if(screen!=homeScreen){v.removeOnLayoutChangeListener(this);return;}
+                sizeBackdrop.run();
+            }
+        });
+        homePhoto.post(sizeBackdrop);
+        ((NestedScrollView)screen.findViewById(R.id.hero_scroll)).setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener)(v,x,y,oldX,oldY) -> sizeBackdrop.run());
         updateWeather();screen.findViewById(R.id.weather_hero).setOnClickListener(v -> go("weather"));
         screen.findViewById(R.id.weather_hero).setContentDescription(getString(R.string.preview_copy_035));screen.findViewById(R.id.weather_hero).setFocusable(true);
         LinearLayout rows=box(R.id.home_rows);
@@ -348,14 +404,12 @@ public final class MainActivity extends AppCompatActivity {
         boolean unavailable=s().scenario.equals("error")||s().scenario.equals("loading");
         LinearLayout summaryRow=settingsRow(summary,getString(R.string.intent_home_tasks),unavailable?getString(R.string.intent_home_loading):getString(R.string.intent_home_counts,todayCount,lateCount,weekCount),R.drawable.ic_calendar,() -> behavior.setState(BottomSheetBehavior.STATE_EXPANDED));
         summaryRow.setMinimumHeight(dp(64));summaryRow.setPadding(0,dp(8),0,dp(8));
-        boolean weatherUnknown=!s().scenario.equals("normal");
-        Item suggested=null;
-        for(Item candidate:s().store.sorted())if(s().store.proposalTarget(candidate,s().condition.equals("rain"),!weatherUnknown)!=null){suggested=candidate;break;}
-        if(suggested!=null) {
-            LinearLayout proposal=box(R.id.home_weather_suggestion);gap(proposal,8);bindProposal(proposal,suggested,false);
-        } else {
-            LinearLayout proposalRow=settingsRow(box(R.id.home_weather_suggestion),getString(R.string.intent_home_weather),getString(weatherUnknown?R.string.intent_home_weather_unknown:s().condition.equals("rain")?R.string.intent_proposal_no_change:R.string.intent_home_weather_clear),R.drawable.ic_wash,() -> go("weather"));
-            proposalRow.setMinimumHeight(dp(64));proposalRow.setPadding(0,dp(8),0,dp(8));
+        LinearLayout proposalRow=settingsRow(box(R.id.home_weather_suggestion),
+                getString(R.string.intent_home_weather),weatherSummary(),R.drawable.ic_wash,() -> go("weather"));
+        proposalRow.setMinimumHeight(dp(64));proposalRow.setPadding(0,dp(8),0,dp(8));
+        for(Item item:s().store.sorted())if(weatherProposalTarget(item)!=null) {
+            box(R.id.home_weather_suggestion).addView(caption(getString(R.string.weather_ui_fixture_suggestions)));
+            bindProposal(box(R.id.home_weather_suggestion),item,false);break;
         }
         View reopen=screen.findViewById(R.id.home_reopen);
         summary.setVisibility(s().sheetHidden?View.GONE:View.VISIBLE);
@@ -588,15 +642,19 @@ public final class MainActivity extends AppCompatActivity {
                 .setAction(R.string.component_undo,v -> {boolean restored=s().store.undo(receipt);capture();render();notice(getString(restored?R.string.component_undone:R.string.component_undo_unavailable));}).show();
     }
     private void updateWeather() {
-        if(screen==null)return;ImageView photo=screen.findViewById(R.id.weather_photo);if(photo==null)return;
+        if(screen==null)return;ImageView photo=s().route.screen.equals("home")?binding.homeWeatherBackdrop:screen.findViewById(R.id.weather_photo);if(photo==null)return;
         if(s().route.screen.equals("home")) {
             TextView homeDate=screen.findViewById(R.id.home_date);
             if(homeDate!=null)homeDate.setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(getString(R.string.preview_copy_034),Locale.KOREAN)));
         }
-        String period=s().weather.equals("auto")?HomeTimeOfDay.at(ZonedDateTime.now()).name().toLowerCase(Locale.ROOT):s().weather;
+        WeatherDisplay display=weatherDisplay();
+        com.kwmobile.hometiming.domain.ForecastHour current=display==null?null:display.current;
+        String condition=WeatherDisplay.condition(current);
+        String period=!weatherVm.isTestMode()||s().weather.equals("auto")
+                ?HomeTimeOfDay.at(ZonedDateTime.now()).name().toLowerCase(Locale.ROOT):s().weather;
         int image;
-        if(s().condition.equals("rain"))image=R.drawable.weather_rain;
-        else if(s().condition.equals("clouds"))image=R.drawable.weather_clouds;
+        if(condition.equals("rain")||condition.equals("sleet")||condition.equals("shower"))image=R.drawable.weather_rain;
+        else if(!condition.equals("clear"))image=R.drawable.weather_clouds;
         else if(period.equals("night"))image=R.drawable.weather_night;
         else if(period.equals("evening"))image=R.drawable.weather_evening;
         else if(period.equals("morning"))image=R.drawable.weather_morning;
@@ -618,7 +676,7 @@ public final class MainActivity extends AppCompatActivity {
                 photo.setScaleType(ImageView.ScaleType.MATRIX);photo.setImageMatrix(crop);
             });
         }
-        View hero=(View)photo.getParent();hero.setClipToOutline(false);hero.setBackgroundColor(android.graphics.Color.TRANSPARENT);
+        View hero=screen.findViewById(R.id.weather_hero);hero.setClipToOutline(false);hero.setBackgroundColor(android.graphics.Color.TRANSPARENT);
         ((ViewGroup)hero.getParent()).setClipToPadding(false);
         if(hero.getLayoutParams() instanceof LinearLayout.LayoutParams) {
             LinearLayout.LayoutParams fullWidth=(LinearLayout.LayoutParams)hero.getLayoutParams();
@@ -627,62 +685,155 @@ public final class MainActivity extends AppCompatActivity {
             if(!s().route.screen.equals("home"))fullWidth.height=dp(360);
             hero.setLayoutParams(fullWidth);
         }
-        ((TextView)screen.findViewById(R.id.weather_location)).setText(s().region);
-        ((TextView)screen.findViewById(R.id.weather_temperature)).setText(period.equals("night")?"12°":"18°");
-        ((TextView)screen.findViewById(R.id.weather_condition)).setText(s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):period.equals("night")?getString(R.string.preview_copy_140):getString(R.string.preview_copy_141));
-        String time=ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
-        int periodLabel=period.equals("night")?R.string.preview_copy_257:period.equals("evening")?R.string.preview_copy_256:period.equals("morning")?R.string.preview_copy_254:R.string.preview_copy_255;
-        ((TextView)screen.findViewById(R.id.weather_time)).setText(s().weather.equals("auto")?getString(R.string.preview_weather_clock,time):getString(R.string.preview_weather_manual,getString(periodLabel)));
+        ((TextView)screen.findViewById(R.id.weather_location)).setText(weatherVm.regionName());
+        ((TextView)screen.findViewById(R.id.weather_temperature)).setText(degrees(current==null?null:current.temperature));
+        WeatherViewModel.State state=weatherVm.current();
+        String description=state!=null&&state.error!=null?getString(state.error.messageRes):
+                state==null||state.loading&&state.result==null?getString(R.string.weather_ui_loading):
+                getString(weatherConditionText(condition));
+        ((TextView)screen.findViewById(R.id.weather_condition)).setText(description);
+        WeatherDisplay.Day today=display==null?null:display.days.get(PreviewStore.today());
+        ((TextView)screen.findViewById(R.id.weather_high_low)).setText(getString(R.string.weather_ui_high_low,
+                degrees(today==null?null:today.high),degrees(today==null?null:today.low)));
+        Integer pop=today==null?null:today.pop;
+        if(pop==null&&current!=null)pop=current.pop;
+        ((TextView)screen.findViewById(R.id.weather_time)).setText(
+                state==null||state.result==null?(state!=null&&state.error!=null?getString(state.error.messageRes):getString(R.string.weather_ui_loading)):
+                getString(R.string.weather_ui_pop,percent(pop)));
 
     }
-    private void bindWeather() {
-        updateWeather();LinearLayout content=box(R.id.weather_content);
-        if(stateMessage(content,this::render))return;
-        section(content,getString(R.string.preview_copy_144),getString(R.string.preview_copy_145,s().region));
-        LinearLayout forecastHead=horizontal();
-        TextView dayHeading=caption(getString(R.string.preview_forecast_day));forecastHead.addView(dayHeading,new LinearLayout.LayoutParams(0,-2,1));
-        TextView temperatureHeading=caption(getString(R.string.preview_forecast_temperatures));temperatureHeading.setGravity(Gravity.END);forecastHead.addView(temperatureHeading,new LinearLayout.LayoutParams(0,-2,1));content.addView(forecastHead);gap(content,4);
-        for(int i=0;i<3;i++) {
-            LinearLayout row=horizontal();row.setMinimumHeight(dp(62));TextView day=text(i==0?getString(R.string.preview_copy_017):i==1?getString(R.string.preview_copy_146):getString(R.string.preview_copy_147),R.style.TextAppearance_HomeTiming_BodyStrong);day.setLayoutParams(new LinearLayout.LayoutParams(0,-2,1));row.addView(day);
-            ImageView icon=new androidx.appcompat.widget.AppCompatImageView(this);icon.setImageResource(i==1?R.drawable.ic_cloud:s().condition.equals("rain")?R.drawable.ic_rain:R.drawable.ic_sun);icon.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));icon.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);row.addView(icon,new LinearLayout.LayoutParams(dp(22),dp(22)));
-            TextView degrees=label(i==0?"12°   21°":i==1?"11°   19°":"10°   20°");degrees.setGravity(Gravity.END);row.addView(degrees,new LinearLayout.LayoutParams(0,-2,1));row.setContentDescription((i==0?getString(R.string.preview_copy_017):i==1?getString(R.string.preview_copy_146):getString(R.string.preview_copy_147))+(i==1?getString(R.string.preview_copy_148):", "+(s().condition.equals("rain")?getString(R.string.preview_copy_138):getString(R.string.preview_copy_141)))+", "+degrees.getText());content.addView(row);line(content);
+    private WeatherDisplay weatherDisplay() { return weatherVm.display(); }
+    private String degrees(Double value) {
+        return value==null?getString(R.string.weather_ui_dash):String.format(Locale.ROOT,"%.0f°",value);
+    }
+    private String percent(Integer value) {
+        return value==null?getString(R.string.weather_ui_dash):String.format(Locale.ROOT,"%d%%",value);
+    }
+    private int weatherConditionText(String condition) {
+        switch(condition) {
+            case "clear":return R.string.weather_ui_clear;
+            case "clouds":return R.string.weather_ui_clouds;
+            case "overcast":return R.string.weather_ui_overcast;
+            case "rain":return R.string.weather_ui_rain;
+            case "sleet":return R.string.weather_ui_sleet;
+            case "snow":return R.string.weather_ui_snow;
+            case "shower":return R.string.weather_ui_shower;
+            default:return R.string.weather_ui_unknown;
         }
-        gap(content,28);boolean rain=s().condition.equals("rain"),unknown=s().scenario.equals("offline");
-        section(content,getString(R.string.preview_copy_149,unknown?getString(R.string.preview_copy_150):rain?getString(R.string.preview_copy_151):getString(R.string.preview_copy_152)),getString(R.string.preview_copy_153));
-        content.addView(label(unknown?getString(R.string.preview_copy_154):rain?getString(R.string.preview_copy_155):getString(R.string.preview_copy_156)));
-        gap(content,28);section(content,getString(R.string.preview_copy_157),getString(R.string.preview_copy_158));
+    }
+    private java.util.Map<LocalDate,com.kwmobile.hometiming.domain.DailyForecast> weatherDays() { return weatherVm.days(); }
+    private String weatherSummary() {
+        WeatherViewModel.State state=weatherVm.current();
+        if(state==null||state.loading&&state.result==null)return getString(R.string.weather_ui_loading);
+        if(state.error!=null)return BuildConfig.DEBUG&&state.providerCode!=null
+                ?getString(R.string.weather_ui_provider_code,getString(state.error.messageRes),state.providerCode)
+                :getString(state.error.messageRes);
+        if(state.result==null)return getString(R.string.weather_ui_unjudged);
+        com.kwmobile.hometiming.domain.LaundryAdvisor.Verdict verdict=
+                weatherVm.verdict(PreviewStore.today());
+        switch(verdict) {
+            case GOOD:return getString(R.string.weather_ui_good);
+            case CAUTION:return getString(R.string.weather_ui_caution);
+            case BAD:return getString(R.string.weather_ui_bad);
+            default:return getString(R.string.weather_ui_unjudged);
+        }
+    }
+    private String weatherSource() {
+        WeatherViewModel.State state=weatherVm.current();
+        if(state==null||state.result==null)return getString(R.string.weather_ui_loading);
+        int source;
+        switch(state.result.source) {
+            case TEST:source=R.string.weather_ui_source_test;break;
+            case STALE_CACHE:source=R.string.weather_ui_source_stale;break;
+            case CACHE:source=R.string.weather_ui_source_cache;break;
+            default:source=R.string.weather_ui_source_network;
+        }
+        String time=java.time.Instant.ofEpochMilli(state.result.fetchedAtMillis)
+                .atZone(com.kwmobile.hometiming.domain.DateRules.ZONE)
+                .format(DateTimeFormatter.ofPattern("M/d HH:mm",Locale.KOREAN));
+        return getString(R.string.weather_ui_updated,getString(source),time);
+    }
+    private void bindWeather() {
+        updateWeather();
+        LinearLayout content=box(R.id.weather_content);
+        TextView intro=screen.findViewById(R.id.weather_intro);
+        intro.setText(getString(weatherVm.isTestMode()?R.string.weather_ui_source_test:R.string.weather_ui_intro));
+        WeatherViewModel.State state=weatherVm.current();
+        settingsRow(content,getString(R.string.weather_ui_region),weatherVm.regionName(),R.drawable.ic_pin,
+                () -> go("preferences","region"));
+        fullAction(content,getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+        if(state==null||state.result==null) {
+            content.addView(label(weatherSummary()));
+            if(state!=null&&state.error==com.kwmobile.hometiming.data.weather.WeatherError.NOT_CONFIGURED)
+                content.addView(caption(getString(R.string.weather_ui_key_help)));
+            return;
+        }
+        content.addView(caption(weatherSource()));
+        WeatherDisplay display=weatherDisplay();
+        if(display==null)return;
+        gap(content,24);section(content,getString(R.string.weather_ui_days),getString(R.string.weather_ui_days_help));
+        for(int i=0;i<3;i++) {
+            LocalDate date=PreviewStore.today().plusDays(i);
+            WeatherDisplay.Day day=display.days.get(date);
+            String name=date(date);
+            String condition=WeatherDisplay.condition(day==null?null:day.forecast);
+            String forecast=day==null||day.forecast==null?name+" · "+getString(R.string.weather_ui_no_forecast):
+                    getString(R.string.weather_ui_forecast_time,name,day.forecast.hour)+" · "+getString(weatherConditionText(condition));
+            settingsRow(content,forecast,getString(R.string.weather_ui_high_low,
+                    degrees(day==null?null:day.high),degrees(day==null?null:day.low)),
+                    condition.equals("clear")?R.drawable.ic_sun:
+                    condition.equals("rain")||condition.equals("shower")||condition.equals("sleet")?R.drawable.ic_rain:R.drawable.ic_cloud,null);
+            line(content);
+        }
+        gap(content,24);section(content,getString(R.string.weather_ui_laundry),getString(R.string.weather_ui_laundry_help));
+        content.addView(label(weatherSummary()));
+        gap(content,24);section(content,getString(R.string.preview_copy_157),getString(R.string.weather_ui_fixture_suggestions));
         for(Item item:s().store.sorted())if(item.chore&&item.weatherSensitive) {
             settingsRow(content,item.name,getString(R.string.preview_copy_159,date(item.due)),icon(item),() -> go("detail",item.id));
-            bindProposal(content,item,false);
-            gap(content,16);
+            bindProposal(content,item,false);gap(content,16);
         }
-        gap(content,16);content.addView(caption(getString(R.string.preview_copy_166,ZonedDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")))));
+    }
+    private LocalDate weatherProposalTarget(Item item) {
+        if(!item.chore||!item.weatherSensitive||item.proposalDismissed)return null;
+        return weatherVm.proposalTarget(item.due);
     }
     private void bindProposal(LinearLayout parent,Item item,boolean details) {
-        boolean available=s().scenario.equals("normal");
-        LocalDate target=s().store.proposalTarget(item,s().condition.equals("rain"),available);
+        WeatherViewModel.State weatherState=weatherVm.current();
+        LocalDate target=weatherProposalTarget(item);
         WeatherProposalView.State state;
         String reason;
-        if(!available){state=WeatherProposalView.State.UNAVAILABLE;reason=getString(R.string.preview_copy_154);}
-        else if(item.due.isBefore(PreviewStore.today())||item.due.isAfter(PreviewStore.today().plusDays(2))){state=WeatherProposalView.State.OUTSIDE_RANGE;reason=getString(R.string.intent_proposal_outside);}
-        else if(item.proposalDismissed){state=WeatherProposalView.State.KEPT;reason=getString(R.string.intent_proposal_kept);}
-        else if(target==null){state=WeatherProposalView.State.UNCHANGED;reason=getString(R.string.intent_proposal_keep_schedule);}
-        else {state=WeatherProposalView.State.SUGGESTED;reason=getString(R.string.component_proposal_dates,date(item.due),date(target));}
+        if(weatherState==null||weatherState.result==null) {
+            state=WeatherProposalView.State.UNAVAILABLE;reason=weatherSummary();
+        } else if(item.due.isBefore(PreviewStore.today())||!weatherDays().containsKey(item.due)) {
+            state=WeatherProposalView.State.OUTSIDE_RANGE;reason=getString(R.string.intent_proposal_outside);
+        } else if(item.proposalDismissed) {
+            state=WeatherProposalView.State.KEPT;reason=getString(R.string.intent_proposal_kept);
+        } else if(weatherVm.verdict(item.due)
+                ==com.kwmobile.hometiming.domain.LaundryAdvisor.Verdict.UNKNOWN) {
+            state=WeatherProposalView.State.UNAVAILABLE;reason=getString(R.string.weather_ui_unjudged);
+        } else if(target==null) {
+            state=WeatherProposalView.State.UNCHANGED;reason=getString(R.string.intent_proposal_keep_schedule);
+        } else {
+            state=WeatherProposalView.State.SUGGESTED;
+            reason=getString(R.string.weather_ui_fixture_proposal,date(item.due),date(target));
+        }
         WeatherProposalView proposal=new WeatherProposalView(this);
         proposal.bind(state,getString(R.string.component_proposal_title,item.name),reason,getString(R.string.preview_copy_160),false,
-                target==null?null:() -> confirm(getString(R.string.preview_copy_161),getString(R.string.intent_proposal_confirm,item.name,date(target)),getString(R.string.preview_copy_164),() -> {s().store.moveWeatherSuggestion(item.id,target);render();notice(getString(R.string.preview_copy_165));}),
+                target==null?null:() -> confirm(getString(R.string.preview_copy_161),
+                        getString(R.string.weather_ui_fixture_confirm,item.name,date(target)),getString(R.string.preview_copy_164),
+                        () -> {s().store.moveWeatherSuggestion(item.id,target);render();notice(getString(R.string.preview_copy_165));}),
                 () -> {s().store.dismissWeatherSuggestion(item.id);render();},details?() -> go("weather"):null);
         parent.addView(proposal);
     }
     private void bindSettings() {
         LinearLayout body=box(R.id.settings_content);section(body,getString(R.string.preview_copy_168),"");
         settingsRow(body,getString(R.string.preview_copy_169),s().members==1?getString(R.string.preview_solo_house):getString(R.string.preview_house_members,s().members),R.drawable.ic_home,() -> go("family"));line(body);
-        settingsRow(body,getString(R.string.preview_copy_172),s().region+(s().owner?"":getString(R.string.preview_copy_173)),R.drawable.ic_pin,() -> go("preferences","region"));
+        settingsRow(body,getString(R.string.weather_ui_region),weatherVm.regionName(),R.drawable.ic_pin,() -> go("preferences","region"));
         gap(body,28);section(body,getString(R.string.preview_copy_174),"");
         settingsRow(body,getString(R.string.preview_copy_175),s().notifications?s().time+" · "+s().advanceDays+getString(R.string.preview_copy_176):getString(R.string.preview_copy_177),R.drawable.ic_bell,() -> go("preferences","notifications"));line(body);
         settingsRow(body,getString(R.string.preview_copy_178),s().permissionGranted?getString(R.string.preview_copy_179):getString(R.string.preview_copy_180),R.drawable.ic_shield,() -> go("preferences","notifications"));
         gap(body,28);section(body,getString(R.string.preview_copy_181),"");
-        settingsRow(body,getString(R.string.preview_copy_182),s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):getString(R.string.preview_copy_141),R.drawable.ic_cloud,() -> go("preferences","weather"));line(body);
+        settingsRow(body,getString(R.string.weather_ui_mode),getString(weatherVm.isTestMode()?R.string.weather_ui_source_test:R.string.weather_ui_real),R.drawable.ic_cloud,() -> go("preferences","weather"));line(body);
         settingsRow(body,getString(R.string.preview_copy_183),getString(R.string.preview_copy_184),R.drawable.ic_logout,() -> confirm(getString(R.string.preview_copy_185),getString(R.string.preview_copy_186),getString(R.string.preview_copy_183),() -> {s().authFields.clear();vm.tab("login");render();}));
         gap(body,28);body.addView(caption(getString(R.string.preview_copy_187)));
     }
@@ -709,9 +860,15 @@ public final class MainActivity extends AppCompatActivity {
         LinearLayout body=box(R.id.preferences_content);String kind=s().route.id;
         TextView heading=screen.findViewById(R.id.preferences_heading);
         if(kind.equals("region")) {
-            heading.setText(getString(R.string.preview_copy_220));gap(body,12);body.addView(label(getString(R.string.preview_copy_221)));gap(body,24);
-            if(!s().owner){section(body,getString(R.string.preview_copy_222),s().region);return;}
-            for(String region:new String[]{getString(R.string.preview_copy_223),getString(R.string.preview_copy_224),getString(R.string.preview_copy_225),getString(R.string.preview_copy_226)})settingsRow(body,region,region.equals(s().region)?getString(R.string.preview_copy_018):"",R.drawable.ic_pin,() -> {s().region=region;render();notice(getString(R.string.preview_copy_227));});
+            heading.setText(getString(R.string.weather_ui_region));
+            gap(body,12);body.addView(label(weatherVm.regionName()));
+            body.addView(caption(getString(R.string.weather_ui_region_local)));
+            String[] regions=weatherVm.regionNames();
+            if(regions.length==0) {
+                body.addView(caption(getString(R.string.weather_ui_region_loading)));
+                fullAction(body,getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+            } else fullAction(body,getString(R.string.weather_ui_region_choose),true,
+                    () -> choose(getString(R.string.weather_ui_region_choose),regions,weatherVm::selectRegion));
         } else if(kind.equals("notifications")) {
             heading.setText(getString(R.string.preview_copy_175));gap(body,12);body.addView(label(getString(R.string.preview_copy_228)));gap(body,24);
             SwitchMaterial toggle=new SwitchMaterial(this);toggle.setText(getString(R.string.preview_copy_229));toggle.setTextSize(17);toggle.setTextColor(color(R.color.ht_text));toggle.setMinHeight(dp(60));toggle.setChecked(s().notifications);
@@ -734,11 +891,21 @@ public final class MainActivity extends AppCompatActivity {
                 hideKeyboard();confirm(getString(R.string.preview_copy_245),getString(R.string.preview_copy_246),getString(R.string.preview_copy_247),() -> {s().owner=false;s().joined=true;s().members=2;s().route=new DesignPreviewViewModel.Route("family");render();notice(getString(R.string.preview_copy_248));});
             });gap(body,20);body.addView(caption(getString(R.string.preview_copy_249)));
         } else {
-            heading.setText(getString(R.string.preview_copy_250));gap(body,12);body.addView(label(getString(R.string.preview_copy_251)));gap(body,24);section(body,getString(R.string.preview_copy_011),"");
-            chips(body,new String[]{getString(R.string.preview_copy_141),getString(R.string.preview_copy_139),getString(R.string.preview_copy_138)},s().condition.equals("rain")?getString(R.string.preview_copy_138):s().condition.equals("clouds")?getString(R.string.preview_copy_139):getString(R.string.preview_copy_141),value -> {s().condition=value.equals(getString(R.string.preview_copy_138))?"rain":value.equals(getString(R.string.preview_copy_139))?"clouds":"clear";render();});
-            gap(body,16);section(body,getString(R.string.preview_copy_252),"");String[] periods={getString(R.string.preview_copy_253),getString(R.string.preview_copy_254),getString(R.string.preview_copy_255),getString(R.string.preview_copy_256),getString(R.string.preview_copy_257)};String[] keys={"auto","morning","day","evening","night"};
-            chips(body,periods,periods[java.util.Arrays.asList(keys).indexOf(s().weather)],value -> {s().weather=keys[java.util.Arrays.asList(periods).indexOf(value)];render();});
-            fullAction(body,getString(R.string.preview_copy_258),true,() -> go("weather"));gap(body,20);body.addView(caption(getString(R.string.preview_copy_259)));
+            heading.setText(getString(R.string.weather_ui_mode));
+            gap(body,12);body.addView(label(getString(weatherVm.isTestMode()?R.string.weather_ui_source_test:R.string.weather_ui_real)));
+            if(BuildConfig.DEBUG) {
+                SwitchMaterial mode=new SwitchMaterial(this);
+                mode.setText(getString(R.string.weather_ui_test_toggle));mode.setMinHeight(dp(56));
+                mode.setTextColor(color(R.color.ht_text));mode.setChecked(weatherVm.isTestMode());
+                mode.setOnCheckedChangeListener((button,enabled) -> weatherVm.setTestMode(enabled));body.addView(mode);
+                body.addView(caption(getString(R.string.weather_ui_test_help)));
+            }
+            settingsRow(body,getString(R.string.weather_ui_region),weatherVm.regionName(),R.drawable.ic_pin,() -> go("preferences","region"));
+            fullAction(body,getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+            body.addView(caption(weatherSummary()));
+            if(com.kwmobile.hometiming.BuildConfig.KMA_SERVICE_KEY.trim().isEmpty())
+                body.addView(caption(getString(R.string.weather_ui_key_help)));
+            fullAction(body,getString(R.string.preview_copy_258),true,() -> go("weather"));
         }
     }
     private void bindComponents() {
