@@ -74,6 +74,21 @@ class MigrationFlowTest(unittest.TestCase):
         self.assertIn("houses/home/items/filter/history/first", store.docs)
         self.assertEqual("1", store.docs["houses/home"]["fields"]["integrityVersion"]["integerValue"])
 
+    def test_stale_membership_blocks_activation_then_preserves_verified_closing(self):
+        store = Store()
+        owner = store.docs["users/alice"]["fields"]
+        owner["currentHouseId"] = {"stringValue": "other-house"}
+        self.assertEqual(1, migration.migrate(store, apply=True)["blocked_houses"])
+        self.assertEqual("1", store.docs["houses/home"]["fields"]["integrityVersion"]["integerValue"])
+        owner["currentHouseId"] = {"stringValue": "home"}
+        store.docs["houses/home"]["fields"]["closing"] = {"booleanValue": True}
+        self.assertEqual(1, migration.migrate(store, apply=True)["blocked_houses"])
+        store.docs["accountDeletions/alice"] = {
+            "name": "projects/demo-home-timing/databases/(default)/documents/accountDeletions/alice",
+            "fields": {"startedAt": {"timestampValue": "2026-11-12T00:00:00Z"}}, "updateTime": "v1"}
+        self.assertEqual(0, migration.migrate(store, apply=True)["blocked_houses"])
+        self.assertTrue(store.docs["houses/home"]["fields"]["closing"]["booleanValue"])
+
 
 if __name__ == "__main__":
     unittest.main()
