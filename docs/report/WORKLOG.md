@@ -80,6 +80,8 @@
 
 | 2026-11-13 | 사용자(성명 확인 필요): 날씨 브랜치/main 병합 충돌 제보; Codex (도구): 충돌 해결·기능 보존·코드 검토·로컬 검증 | `feature/weather-display-ui`에서 main `14c8071`의 화면 분리 구조에 실제 날씨 표시·지역/테스트 설정·홈 상단 사진·생명주기 갱신을 이관. 늦은 밤 예보 대체·기온/강수 표시 유지. Windows/JBR17에서 `:app:assembleDebug :app:testDebugUnitTest :app:lintDebug --console=plain` 성공(단위270·실패0·건너뜀0), 기기 동작·실제 API 성공 미검증 | [날씨 표시](../../app/src/main/java/com/kwmobile/hometiming/ui/main/PreviewWeather.java). `3a3472c` + main 병합 해결 커밋의 코드로 검증, main 브랜치 미변경 |
 
+| 2026-11-13 | 사용자(성명 확인 필요): 분류 직접 입력·목록 + 버튼·동적 칩 요청; Codex (도구): 구현·코드 검토·로컬 검증 | 기본 분류와 직접 추가/항목 분류 통합, 종류별 분류 분리, 공백/중복/30자 경계 검증·저장 상태 직렬화 테스트. Windows/JDK17에서 `./gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug` 성공(단위 261개, 분류 테스트 3개 포함); `git diff --check` 통과. Lint 세부 경고 미검토. 에뮬레이터 APK 설치·실행 요청 성공, UI 계층 조회 실패로 버튼 조작·큰 글씨·회전 실동작 미검증. 서버 저장·공유 미연결 | [구현](../../app/src/main/java/com/kwmobile/hometiming/ui/main/CategoryDialog.java), [테스트](../../app/src/test/java/com/kwmobile/hometiming/ui/main/CategoryTest.java). 기준 main `14c8071` 이후 이 행과 같은 작업 커밋의 코드 검증. 전용 `feature/custom-categories`, GitHub CLI 미설치로 이슈·PR 미생성 |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.

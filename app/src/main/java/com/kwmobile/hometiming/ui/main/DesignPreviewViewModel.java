@@ -11,6 +11,9 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayDeque;
 import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 
 /** Navigation, form drafts and fixture state. Contains no View or Activity references. */
@@ -58,6 +61,8 @@ public final class DesignPreviewViewModel extends ViewModel {
         public ArrayDeque<Route> back = new ArrayDeque<>();
         public Map<String, Integer> scrolls = new HashMap<>();
         public Map<String, String> authFields = new HashMap<>();
+        public LinkedHashSet<String> itemCategories = new LinkedHashSet<>();
+        public LinkedHashSet<String> choreCategories = new LinkedHashSet<>();
         public Draft draft;
         public Draft componentDraft = new Draft();
         public Map<String, LocalDate> completionDates = new HashMap<>();
@@ -92,7 +97,29 @@ public final class DesignPreviewViewModel extends ViewModel {
         if (state.joinCode == null) state.joinCode = "";
         if (state.completionDates == null) state.completionDates = new HashMap<>();
         if (state.componentDraft == null) state.componentDraft = new Draft();
+        if (state.itemCategories == null) state.itemCategories = new LinkedHashSet<>();
+        if (state.choreCategories == null) state.choreCategories = new LinkedHashSet<>();
         state.initialized = true;
+    }
+
+    public List<String> categories(boolean chore, String[] defaults) {
+        LinkedHashSet<String> result = new LinkedHashSet<>(java.util.Arrays.asList(defaults));
+        result.addAll(chore ? state.choreCategories : state.itemCategories);
+        for (PreviewStore.Item item : state.store.items) {
+            if (item.chore == chore && item.category != null && !item.category.trim().isEmpty())
+                result.add(item.category.trim());
+        }
+        return new ArrayList<>(result);
+    }
+
+    public boolean addCategory(boolean chore, String input, String[] defaults, String allLabel) {
+        String name = input == null ? "" : input.trim();
+        if (name.isEmpty()
+                || name.codePointCount(0, name.length())
+                        > com.kwmobile.hometiming.domain.ItemInputValidator.CATEGORY_MAX_LENGTH
+                || name.equals(allLabel)
+                || categories(chore, defaults).contains(name)) return false;
+        return (chore ? state.choreCategories : state.itemCategories).add(name);
     }
 
     public void save(Bundle out) {

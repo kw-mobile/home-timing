@@ -32,6 +32,7 @@ import java.util.Locale;
 /** Binds local fixture screens without owning lifecycle or saved state. */
 final class OverviewScreens {
     private final Context context;
+    private final DesignPreviewViewModel vm;
     private final View screen;
     private final DesignPreviewViewModel.State preview;
     private final PreviewHost host;
@@ -41,6 +42,7 @@ final class OverviewScreens {
 
     OverviewScreens(View root, DesignPreviewViewModel vm, PreviewHost host, PreviewWidgets ui) {
         this.context = root.getContext();
+        this.vm = vm;
         this.screen = root;
         this.preview = vm.state;
         this.host = host;
@@ -278,20 +280,24 @@ final class OverviewScreens {
                 ui.smallAction(context.getString(R.string.preview_copy_037), () -> host.edit("")));
         controls.addView(add);
         ui.gap(controls, 16);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        List<String> filters = vm.categories(false, categories.defaults(false));
+        filters.add(0, context.getString(R.string.preview_copy_051));
+        if (!filters.contains(preview.filter)) preview.filter = filters.get(0);
         ui.chips(
                 controls,
-                new String[] {
-                    context.getString(R.string.preview_copy_051),
-                    context.getString(R.string.preview_copy_023),
-                    context.getString(R.string.preview_copy_052),
-                    context.getString(R.string.preview_copy_053)
-                },
+                filters.toArray(new String[0]),
                 preview.filter,
                 value -> {
                     host.capture();
                     preview.filter = value;
                     host.render();
-                });
+                },
+                () -> categories.add(false, value -> {
+                    host.capture();
+                    preview.filter = value;
+                    host.render();
+                }));
         LinearLayout rows = ui.box(R.id.item_rows);
         if (ui.stateMessage(rows, preview, host::render, () -> host.edit(""))) return;
         int countItems = 0;
