@@ -206,13 +206,13 @@ public final class ChoreRepository {
         FirebaseFirestore firestore = db;
         DocumentReference ref = chores(firestore, houseId).document();
         Chore chore = ChoreSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
-        return ItemTasks.scoped(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commit(firestore, scope, this::currentUid, tx -> {
             tx.set(ref, ChoreDocuments.choreFields(chore, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.CHORE_COUNT, FieldValue.increment(1),
                     Schema.Houses.CHORE_MUTATION_ID, ref.getId());
             return chore;
-        }), scope, this::currentUid);
+        });
     }
 
     /** Edits the chore the screen showed. A new weekday restarts this occurrence on that weekday. */
@@ -235,7 +235,8 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, shown.occurrenceId, shown.revision);
@@ -244,7 +245,7 @@ public final class ChoreRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /**
@@ -271,7 +272,8 @@ public final class ChoreRepository {
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
         DocumentReference member = memberRef(firestore, houseId, uid);
         String nextOccurrence = newOccurrenceId();
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -287,7 +289,7 @@ public final class ChoreRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, ChoreDocuments.doneLogId(stored.occurrenceId)));
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /**
@@ -315,7 +317,8 @@ public final class ChoreRepository {
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
         DocumentReference member = memberRef(firestore, houseId, uid);
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, occurrenceId, revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -336,7 +339,7 @@ public final class ChoreRepository {
             tx.set(ref, RecordState.preserve(fields, snapshot,
                     ChoreDocuments.movedLogId(next.occurrenceId, next.revision)));
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /** "그대로 두기": hides the suggestion for this occurrence only. */
@@ -355,7 +358,8 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, occurrenceId, revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, occurrenceId, revision);
@@ -366,7 +370,7 @@ public final class ChoreRepository {
                 tx.set(ref, RecordState.preserve(fields, snapshot, null));
             }
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /**

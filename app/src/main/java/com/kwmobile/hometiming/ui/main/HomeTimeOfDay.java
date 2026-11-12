@@ -4,7 +4,10 @@ import java.time.ZonedDateTime;
 
 /** Presentation periods, deliberately independent of weather and astronomical sunrise. */
 enum HomeTimeOfDay {
-    MORNING, DAY, EVENING, NIGHT;
+    MORNING,
+    DAY,
+    EVENING,
+    NIGHT;
 
     static HomeTimeOfDay at(ZonedDateTime time) {
         int hour = time.getHour();

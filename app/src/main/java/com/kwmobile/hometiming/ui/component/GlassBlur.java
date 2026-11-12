@@ -2,7 +2,7 @@ package com.kwmobile.hometiming.ui.component;
 
 /** Three separable box passes approximate a Gaussian on the small backdrop only. */
 final class GlassBlur {
-    private GlassBlur() { }
+    private GlassBlur() {}
 
     static void apply(int[] pixels, int[] scratch, int width, int height, int radius) {
         for (int pass = 0; pass < 3; pass++) {
@@ -11,8 +11,8 @@ final class GlassBlur {
         }
     }
 
-    private static void blur(int[] source, int[] target, int width, int height,
-            int radius, boolean horizontal) {
+    private static void blur(
+            int[] source, int[] target, int width, int height, int radius, boolean horizontal) {
         int lines = horizontal ? height : width;
         int length = horizontal ? width : height;
         int step = horizontal ? 1 : width;
@@ -22,12 +22,14 @@ final class GlassBlur {
             int a = 0, r = 0, g = 0, b = 0;
             for (int k = -radius; k <= radius; k++) {
                 int pixel = source[origin + Math.max(0, Math.min(length - 1, k)) * step];
-                a += pixel >>> 24; r += (pixel >>> 16) & 255;
-                g += (pixel >>> 8) & 255; b += pixel & 255;
+                a += pixel >>> 24;
+                r += (pixel >>> 16) & 255;
+                g += (pixel >>> 8) & 255;
+                b += pixel & 255;
             }
             for (int position = 0; position < length; position++) {
-                target[origin + position * step] = (a / count << 24) | (r / count << 16)
-                        | (g / count << 8) | b / count;
+                target[origin + position * step] =
+                        (a / count << 24) | (r / count << 16) | (g / count << 8) | b / count;
                 int previous = source[origin + Math.max(0, position - radius) * step];
                 int next = source[origin + Math.min(length - 1, position + radius + 1) * step];
                 a += (next >>> 24) - (previous >>> 24);
