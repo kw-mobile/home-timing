@@ -26,11 +26,11 @@ public final class ItemSchedule {
         requireComplete(draft);
         return new Item(id, draft.name, draft.category, draft.startDate, draft.cycleDays,
                 draft.startDate, ReplacementCalculator.nextDueDate(draft.startDate, draft.cycleDays),
-                occurrenceId, 1, draft.productName, draft.location, draft.memo, uid);
+                occurrenceId, 1, draft.productName, draft.location, draft.memo, uid, false);
     }
 
     /**
-     * An edit (F-03) keeps the occurrence. If the item was never completed after its start date,
+     * An edit (F-03) keeps the occurrence. Before the first actual completion,
      * moving the start date moves the last replacement with it; otherwise the last replacement stays
      * and the start date may not pass it. Revision goes up by one only when the schedule changes.
      *
@@ -46,7 +46,7 @@ public final class ItemSchedule {
         }
         Item next = new Item(current.id, draft.name, draft.category, draft.startDate, draft.cycleDays,
                 last, ReplacementCalculator.nextDueDate(last, draft.cycleDays), current.occurrenceId,
-                current.revision, draft.productName, draft.location, draft.memo, current.createdBy);
+                current.revision, draft.productName, draft.location, draft.memo, current.createdBy, current.hasCompleted);
         return next.sameSchedule(current) ? next : withRevision(next, current.revision + 1);
     }
 
@@ -71,7 +71,7 @@ public final class ItemSchedule {
         return new Item(current.id, current.name, current.category, current.startDate, current.cycleDays,
                 replacedDate, ReplacementCalculator.nextDueDate(replacedDate, current.cycleDays),
                 newOccurrenceId, current.revision + 1, current.productName, current.location,
-                current.memo, current.createdBy);
+                current.memo, current.createdBy, true);
     }
 
     /** The history entry written with {@link #complete}, keyed by the finished occurrence. */
@@ -95,13 +95,13 @@ public final class ItemSchedule {
     }
 
     private static boolean neverReplacedSinceStart(Item item) {
-        return item.lastReplacedDate.equals(item.startDate);
+        return !item.hasCompleted;
     }
 
     private static Item withRevision(Item item, int revision) {
         return new Item(item.id, item.name, item.category, item.startDate, item.cycleDays,
                 item.lastReplacedDate, item.nextDueDate, item.occurrenceId, revision, item.productName,
-                item.location, item.memo, item.createdBy);
+                item.location, item.memo, item.createdBy, item.hasCompleted);
     }
 
     private static void requireComplete(ItemDraft draft) {

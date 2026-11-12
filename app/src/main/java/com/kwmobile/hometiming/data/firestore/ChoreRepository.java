@@ -13,6 +13,7 @@ import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
@@ -61,8 +62,6 @@ public final class ChoreRepository {
         void onError(@NonNull ItemError error);
     }
 
-    static final int LOG_DELETE_CHUNK = 400;
-
     private static volatile ChoreRepository instance;
 
     @Nullable
@@ -106,9 +105,9 @@ public final class ChoreRepository {
             return Subscription.NONE;
         }
         Query query = chores(db, houseId).orderBy(Schema.Chores.NEXT_DUE_DATE);
-        ListenerRegistration registration = query.addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(ItemRepository.classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             List<Chore> list = new ArrayList<>();
@@ -129,9 +128,10 @@ public final class ChoreRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
-        ListenerRegistration registration = choreRef(db, houseId, choreId).addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = choreRef(db, houseId, choreId)
+                .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(ItemRepository.classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             listener.onChore(snapshot.exists() ? read(snapshot) : null, snapshot.getMetadata().isFromCache());
@@ -147,9 +147,9 @@ public final class ChoreRepository {
         }
         Query query = choreRef(db, houseId, choreId).collection(Schema.Logs.COLLECTION)
                 .orderBy(Schema.Logs.CREATED_AT, Query.Direction.DESCENDING);
-        ListenerRegistration registration = query.addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(ItemRepository.classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             List<ChoreLog> list = new ArrayList<>();
@@ -186,7 +186,8 @@ public final class ChoreRepository {
         return translate(firestore.runTransaction(tx -> {
             tx.set(ref, ChoreDocuments.choreFields(chore, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
-            tx.update(houseRef(firestore, houseId), Schema.Houses.CHORE_COUNT, FieldValue.increment(1));
+            tx.update(houseRef(firestore, houseId), Schema.Houses.CHORE_COUNT, FieldValue.increment(1),
+                    Schema.Houses.CHORE_MUTATION_ID, ref.getId());
             return chore;
         }));
     }
@@ -207,12 +208,14 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
-        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, shown.occurrenceId, shown.revision);
             Chore next = ChoreSchedule.edit(stored, draft, today);
-            tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+            Map<String, Object> fields = ChoreDocuments.choreFields(next, uid, createdAt(snapshot),
+                    FieldValue.serverTimestamp());
+            tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
         })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
@@ -237,7 +240,7 @@ public final class ChoreRepository {
         DocumentReference ref = choreRef(firestore, houseId, shown.id);
         DocumentReference member = memberRef(firestore, houseId, uid);
         String nextOccurrence = newOccurrenceId();
-        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -247,8 +250,11 @@ public final class ChoreRepository {
             }
             Chore next = ChoreSchedule.complete(stored, doneDate, nextOccurrence);
             tx.set(ref.collection(Schema.Logs.COLLECTION).document(ChoreDocuments.doneLogId(stored.occurrenceId)),
-                    ChoreDocuments.doneLogFields(stored.occurrenceId, doneDate, uid, name, FieldValue.serverTimestamp()));
-            tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+                    ChoreDocuments.doneLogFields(stored.occurrenceId, doneDate, uid, name,
+                            FieldValue.serverTimestamp()));
+            Map<String, Object> fields = ChoreDocuments.choreFields(next, uid, createdAt(snapshot),
+                    FieldValue.serverTimestamp());
+            tx.set(ref, RecordState.preserve(fields, snapshot, ChoreDocuments.doneLogId(stored.occurrenceId)));
             return next;
         })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
@@ -274,7 +280,7 @@ public final class ChoreRepository {
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
         DocumentReference member = memberRef(firestore, houseId, uid);
-        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             String name = tx.get(member).getString(Schema.Members.DISPLAY_NAME);
             Chore stored = requireStored(snapshot);
@@ -290,7 +296,10 @@ public final class ChoreRepository {
                             .document(ChoreDocuments.movedLogId(next.occurrenceId, next.revision)),
                     ChoreDocuments.movedLogFields(next.occurrenceId, stored.nextDueDate, target, reason, uid, name,
                             FieldValue.serverTimestamp()));
-            tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+            Map<String, Object> fields = ChoreDocuments.choreFields(next, uid, createdAt(snapshot),
+                    FieldValue.serverTimestamp());
+            tx.set(ref, RecordState.preserve(fields, snapshot,
+                    ChoreDocuments.movedLogId(next.occurrenceId, next.revision)));
             return next;
         })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
     }
@@ -307,13 +316,15 @@ public final class ChoreRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = choreRef(firestore, houseId, choreId);
-        return ItemRepository.explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, occurrenceId, revision);
             Chore next = ChoreSchedule.dismissSuggestion(stored);
             if (next != stored) {
-                tx.set(ref, ChoreDocuments.choreFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+                Map<String, Object> fields = ChoreDocuments.choreFields(next, uid, createdAt(snapshot),
+                        FieldValue.serverTimestamp());
+                tx.set(ref, RecordState.preserve(fields, snapshot, null));
             }
             return next;
         })), ref, snapshot -> conflictOf(snapshot, occurrenceId, revision));
@@ -321,7 +332,7 @@ public final class ChoreRepository {
 
     /**
      * Deletes a chore with its logs and lowers the house choreCount. Registrant or owner only. Logs
-     * go first in chunks; the last transaction removes the chore and the count together.
+     * are removed after freezing the parent, before the parent and its house count are removed.
      */
     @NonNull
     public Task<Void> delete(String houseId, String choreId) {
@@ -332,50 +343,9 @@ public final class ChoreRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
-        FirebaseFirestore firestore = db;
-        DocumentReference ref = choreRef(firestore, houseId, choreId);
-        DocumentReference house = houseRef(firestore, houseId);
-        Task<Void> task = ref.get(Source.SERVER)
-                .onSuccessTask(choreSnapshot -> house.get(Source.SERVER).onSuccessTask(houseSnapshot -> {
-                    Chore stored = choreSnapshot.exists() ? read(choreSnapshot) : null;
-                    if (stored == null) {
-                        return fail(ItemError.NOT_FOUND);
-                    }
-                    if (!stored.createdBy.equals(uid) && !uid.equals(houseSnapshot.getString(Schema.Houses.OWNER_ID))) {
-                        return fail(ItemError.NOT_ALLOWED);
-                    }
-                    return ref.collection(Schema.Logs.COLLECTION).get(Source.SERVER).onSuccessTask(logs -> {
-                        List<DocumentReference> refs = new ArrayList<>();
-                        for (DocumentSnapshot document : logs.getDocuments()) {
-                            refs.add(document.getReference());
-                        }
-                        return deleteLogsThenChore(firestore, refs, ref, house);
-                    });
-                }));
-        return translate(task);
-    }
-
-    private static Task<Void> deleteLogsThenChore(FirebaseFirestore firestore, List<DocumentReference> logs,
-                                                  DocumentReference chore, DocumentReference house) {
-        Task<Void> chain = Tasks.forResult(null);
-        for (int start = 0; start < logs.size(); start += LOG_DELETE_CHUNK) {
-            List<DocumentReference> chunk =
-                    new ArrayList<>(logs.subList(start, Math.min(logs.size(), start + LOG_DELETE_CHUNK)));
-            chain = chain.onSuccessTask(ignored -> firestore.runTransaction(tx -> {
-                for (DocumentReference ref : chunk) {
-                    tx.delete(ref);
-                }
-                return null;
-            }));
-        }
-        return chain.onSuccessTask(ignored -> firestore.runTransaction(tx -> {
-            if (!tx.get(chore).exists()) {
-                throw new ItemException.Rejection(ItemError.NOT_FOUND);
-            }
-            tx.delete(chore);
-            tx.update(house, Schema.Houses.CHORE_COUNT, FieldValue.increment(-1));
-            return null;
-        }));
+        DocumentReference ref = choreRef(db, houseId, choreId);
+        return translate(DocumentDeletion.delete(db, ref, Schema.Logs.COLLECTION,
+                Schema.Houses.CHORE_COUNT, Schema.Houses.CHORE_MUTATION_ID, uid, this::currentUid));
     }
 
     // ---- Helpers ----
@@ -406,6 +376,7 @@ public final class ChoreRepository {
         if (!snapshot.exists()) {
             throw new ItemException.Rejection(ItemError.NOT_FOUND);
         }
+        RecordState.requireActive(snapshot);
         Chore stored = read(snapshot);
         if (stored == null) {
             throw new ItemException.Rejection(ItemError.UNKNOWN);
@@ -459,7 +430,7 @@ public final class ChoreRepository {
     }
 
     private static ItemException asItemException(Exception e) {
-        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemRepository.classify(e), e);
+        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemTasks.classify(e), e);
     }
 
     private static <T> Task<T> fail(ItemError error) {

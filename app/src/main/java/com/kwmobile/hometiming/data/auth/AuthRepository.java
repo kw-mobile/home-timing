@@ -44,6 +44,7 @@ import java.util.Map;
  */
 public final class AuthRepository {
     private static volatile AuthRepository instance;
+    private final AuthSessionGuard sessions = new AuthSessionGuard();
 
     @Nullable
     private final FirebaseAuth auth;
@@ -93,19 +94,21 @@ public final class AuthRepository {
         if (!AccountInputValidator.validateSignUp(name, address, password, password).isEmpty()) {
             return fail(AuthError.INVALID_INPUT);
         }
+        long generation = sessions.begin();
         Task<Session> task = auth.createUserWithEmailAndPassword(address, password)
                 .onSuccessTask(result -> {
                     FirebaseUser user = result.getUser();
                     if (user == null) {
                         return Tasks.forException(new AuthException(AuthError.UNKNOWN));
                     }
+                    requireSession(generation, user.getUid());
                     UserProfileChangeRequest profile = new UserProfileChangeRequest.Builder()
                             .setDisplayName(name).build();
                     // The house uses the typed name even if the profile update fails.
                     return user.updateProfile(profile)
-                            .continueWithTask(ignored -> prepareHouse(user.getUid(), name));
+                            .continueWithTask(ignored -> prepareHouse(user.getUid(), name, generation));
                 });
-        return translate(task);
+        return sessionResult(task, generation);
     }
 
     @NonNull
@@ -117,19 +120,21 @@ public final class AuthRepository {
         if (!AccountInputValidator.validateSignIn(address, password).isEmpty()) {
             return fail(AuthError.INVALID_INPUT);
         }
+        long generation = sessions.begin();
         Task<Session> task = auth.signInWithEmailAndPassword(address, password)
                 .onSuccessTask(result -> {
                     FirebaseUser user = result.getUser();
                     return user == null
                             ? Tasks.forException(new AuthException(AuthError.UNKNOWN))
-                            : prepareHouse(user);
+                            : prepareHouse(user, generation);
                 });
-        return translate(task);
+        return sessionResult(task, generation);
     }
 
     /**
      * Restores the stored session at app start. Online, it also creates or recovers the house. When
      * the server is unreachable it falls back to the cached user document with {@code offline = true}.
+     * Restoration is rejected while account deletion is running, so it cannot recreate cleaned data.
      */
     @NonNull
     public Task<Session> restoreSession() {
@@ -140,13 +145,19 @@ public final class AuthRepository {
         if (user == null) {
             return fail(AuthError.NOT_SIGNED_IN);
         }
-        return translate(prepareHouse(user)).continueWithTask(task -> {
+        long generation = sessions.restoreGeneration();
+        if (generation < 0) {
+            return fail(AuthError.NOT_SIGNED_IN);
+        }
+        Task<Session> restored = translate(prepareHouse(user, generation)).continueWithTask(task -> {
+            requireSession(generation, user.getUid());
             if (task.isSuccessful() || errorOf(task.getException()) != AuthError.NETWORK) {
                 return task;
             }
-            return cachedSession(user.getUid()).continueWithTask(cached ->
+            return cachedSession(user.getUid(), generation).continueWithTask(cached ->
                     cached.isSuccessful() && cached.getResult() != null ? cached : task);
         });
+        return sessionResult(restored, generation);
     }
 
     @NonNull
@@ -163,6 +174,7 @@ public final class AuthRepository {
 
     /** Signs out on this device. Listeners and local alarms are cleared by their owners. */
     public void signOut() {
+        sessions.begin();
         if (auth != null) {
             auth.signOut();
         }
@@ -193,42 +205,55 @@ public final class AuthRepository {
         if (email == null || password == null || password.isEmpty()) {
             return fail(AuthError.INVALID_INPUT);
         }
+        long generation = sessions.beginDeletion();
+        String uid = user.getUid();
         AuthCredential credential = EmailAuthProvider.getCredential(email, password);
         Task<Void> task = user.reauthenticate(credential)
-                .onSuccessTask(ignored -> cleanUpAccountData(db, user.getUid()))
-                .onSuccessTask(ignored -> deleteAuth(user, AUTH_DELETE_ATTEMPTS));
-        return translate(task);
+                .onSuccessTask(ignored -> {
+                    requireSession(generation, uid);
+                    return cleanUpAccountData(db, uid, generation);
+                })
+                .onSuccessTask(ignored -> deleteAuth(user, AUTH_DELETE_ATTEMPTS, generation));
+        return translate(task).continueWithTask(done -> {
+            sessions.finishDeletion(generation);
+            return sessions.accepts(generation) ? done : fail(AuthError.NOT_SIGNED_IN);
+        });
     }
 
-    private static Task<Void> deleteAuth(FirebaseUser user, int attemptsLeft) {
+    private Task<Void> deleteAuth(FirebaseUser user, int attemptsLeft, long generation) throws AuthException {
+        requireSession(generation, user.getUid());
         return user.delete().continueWithTask(done -> {
             if (done.isSuccessful()) {
                 return done;
             }
             if (attemptsLeft > 1 && classify(done.getException()) == AuthError.NETWORK) {
-                return deleteAuth(user, attemptsLeft - 1);
+                return deleteAuth(user, attemptsLeft - 1, generation);
             }
             return Tasks.forException(new AuthException(AuthError.DELETE_INCOMPLETE, done.getException()));
         });
     }
 
-    private static Task<Void> cleanUpAccountData(FirebaseFirestore firestore, String uid) {
+    private Task<Void> cleanUpAccountData(FirebaseFirestore firestore, String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
         DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(uid);
         return userRef.get(Source.SERVER).onSuccessTask(userSnapshot -> {
+            requireSession(generation, uid);
             String houseId = userSnapshot.exists() ? userSnapshot.getString(Schema.Users.CURRENT_HOUSE_ID) : null;
             if (!userSnapshot.exists()) {
                 return Tasks.forResult(null);
             }
             if (houseId == null || houseId.isEmpty()) {
-                return deleteUserOnly(firestore, userRef);
+                return deleteUserOnly(firestore, userRef, uid, generation);
             }
             DocumentReference houseRef = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
             DocumentReference memberRef = memberRef(firestore, houseId, uid);
             return memberRef.get(Source.SERVER).onSuccessTask(memberSnapshot -> {
+                requireSession(generation, uid);
                 if (!memberSnapshot.exists()) {
-                    return deleteUserOnly(firestore, userRef);
+                    return deleteUserOnly(firestore, userRef, uid, generation);
                 }
                 return houseRef.get(Source.SERVER).onSuccessTask(houseSnapshot -> {
+                    requireSession(generation, uid);
                     Map<String, Object> data = houseSnapshot.getData();
                     House house = data == null ? null : HouseDocuments.toHouse(houseId, data);
                     switch (AccountDeletion.plan(true, house, true, uid)) {
@@ -236,34 +261,41 @@ public final class AuthRepository {
                             return fail(AuthError.OWNER_HAS_MEMBERS);
                         case LEAVE_SHARED_HOUSE:
                             return firestore.runTransaction(tx -> {
+                                requireTransactionSession(generation, uid);
                                 tx.delete(memberRef);
-                                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1));
+                                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
+                                        Schema.Houses.MEMBER_MUTATION_ID, uid);
                                 tx.delete(userRef);
                                 return null;
                             });
                         case DISSOLVE_OWN_HOUSE:
-                            return deleteAllItems(firestore, houseId)
-                                    .onSuccessTask(ignored -> deleteAllChores(firestore, houseId))
-                                    .onSuccessTask(ignored -> dissolveOwnHouse(firestore, houseRef, memberRef, userRef));
+                            return deleteAllItems(firestore, houseId, uid, generation)
+                                    .onSuccessTask(ignored -> deleteAllChores(firestore, houseId, uid, generation))
+                                    .onSuccessTask(ignored -> dissolveOwnHouse(firestore, houseRef, memberRef, userRef, uid, generation));
                         case DELETE_USER_ONLY:
                         case DELETE_AUTH_ONLY:
                         default:
-                            return deleteUserOnly(firestore, userRef);
+                            return deleteUserOnly(firestore, userRef, uid, generation);
                     }
                 });
             });
         });
     }
 
-    private static Task<Void> deleteUserOnly(FirebaseFirestore firestore, DocumentReference userRef) {
+    private Task<Void> deleteUserOnly(FirebaseFirestore firestore, DocumentReference userRef,
+                                      String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
         return firestore.runTransaction(tx -> {
+            requireTransactionSession(generation, uid);
             tx.delete(userRef);
             return null;
         });
     }
 
     /** Items one by one through ItemRepository (history first, itemCount −1 with each item). */
-    private static Task<Void> deleteAllItems(FirebaseFirestore firestore, String houseId) {
+    private Task<Void> deleteAllItems(FirebaseFirestore firestore, String houseId,
+                                      String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
         return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
                 .collection(Schema.Items.COLLECTION).get(Source.SERVER)
                 .onSuccessTask(items -> {
@@ -273,14 +305,19 @@ public final class AuthRepository {
                     }
                     Task<Void> chain = Tasks.forResult(null);
                     for (String itemId : ids) {
-                        chain = chain.onSuccessTask(ignored -> ItemRepository.getInstance().delete(houseId, itemId));
+                        chain = chain.onSuccessTask(ignored -> {
+                            requireSession(generation, uid);
+                            return ItemRepository.getInstance().delete(houseId, itemId);
+                        });
                     }
                     return chain;
                 });
     }
 
     /** Chores one by one through ChoreRepository (logs first, choreCount −1 with each chore). */
-    private static Task<Void> deleteAllChores(FirebaseFirestore firestore, String houseId) {
+    private Task<Void> deleteAllChores(FirebaseFirestore firestore, String houseId,
+                                      String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
         return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
                 .collection(Schema.Chores.COLLECTION).get(Source.SERVER)
                 .onSuccessTask(chores -> {
@@ -290,16 +327,22 @@ public final class AuthRepository {
                     }
                     Task<Void> chain = Tasks.forResult(null);
                     for (String choreId : ids) {
-                        chain = chain.onSuccessTask(ignored -> ChoreRepository.getInstance().delete(houseId, choreId));
+                        chain = chain.onSuccessTask(ignored -> {
+                            requireSession(generation, uid);
+                            return ChoreRepository.getInstance().delete(houseId, choreId);
+                        });
                     }
                     return chain;
                 });
     }
 
     /** The empty one-person house, its invite, member and the user document in one transaction. */
-    private static Task<Void> dissolveOwnHouse(FirebaseFirestore firestore, DocumentReference houseRef,
-                                               DocumentReference memberRef, DocumentReference userRef) {
+    private Task<Void> dissolveOwnHouse(FirebaseFirestore firestore, DocumentReference houseRef,
+                                               DocumentReference memberRef, DocumentReference userRef,
+                                               String uid, long generation) throws AuthException {
+        requireSession(generation, uid);
         return firestore.runTransaction(tx -> {
+            requireTransactionSession(generation, uid);
             DocumentSnapshot houseSnapshot = tx.get(houseRef);
             Map<String, Object> data = houseSnapshot.getData();
             House house = data == null ? null : HouseDocuments.toHouse(houseRef.getId(), data);
@@ -311,6 +354,7 @@ public final class AuthRepository {
                 // Firestore error, so the transaction stops instead of retrying the same state.
                 throw new IllegalStateException("house not empty");
             }
+            requireTransactionSession(generation, uid);
             if (invite != null && invite.exists() && houseRef.getId().equals(invite.getString(Schema.Invites.HOUSE_ID))) {
                 tx.delete(inviteRef);
             }
@@ -323,22 +367,26 @@ public final class AuthRepository {
         });
     }
 
-    private Task<Session> prepareHouse(FirebaseUser user) {
+    private Task<Session> prepareHouse(FirebaseUser user, long generation) {
         return prepareHouse(user.getUid(),
-                HouseholdSetup.fallbackDisplayName(user.getDisplayName(), user.getEmail()));
+                HouseholdSetup.fallbackDisplayName(user.getDisplayName(), user.getEmail()), generation);
     }
 
     /**
      * One transaction, so two devices signing in for the first time cannot create two houses.
      * Transactions need the server, which also keeps setup online-only.
      */
-    private Task<Session> prepareHouse(String uid, String nameForNewUser) {
+    private Task<Session> prepareHouse(String uid, String nameForNewUser, long generation) {
         FirebaseFirestore firestore = db;
         if (firestore == null) {
             return fail(AuthError.NOT_CONFIGURED);
         }
+        if (!isCurrent(generation, uid)) {
+            return fail(AuthError.NOT_SIGNED_IN);
+        }
         DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(uid);
         return firestore.runTransaction(tx -> {
+            requireTransactionSession(generation, uid);
             DocumentSnapshot user = tx.get(userRef);
             String houseId = user.exists() ? user.getString(Schema.Users.CURRENT_HOUSE_ID) : null;
             boolean memberExists = houseId != null && !houseId.isEmpty()
@@ -346,6 +394,7 @@ public final class AuthRepository {
             String storedName = user.getString(Schema.Users.DISPLAY_NAME);
             String name = storedName != null ? storedName : nameForNewUser;
 
+            requireTransactionSession(generation, uid);
             switch (HouseholdSetup.decide(user.exists(), houseId, memberExists)) {
                 case READY:
                     return new Session(uid, houseId, name, false);
@@ -378,13 +427,17 @@ public final class AuthRepository {
     }
 
     /** Resolves to null when nothing usable is cached. */
-    private Task<Session> cachedSession(String uid) {
+    private Task<Session> cachedSession(String uid, long generation) {
         FirebaseFirestore firestore = db;
         if (firestore == null) {
             return Tasks.forResult(null);
         }
+        if (!isCurrent(generation, uid)) {
+            return fail(AuthError.NOT_SIGNED_IN);
+        }
         return firestore.collection(Schema.Users.COLLECTION).document(uid).get(Source.CACHE)
                 .continueWith(task -> {
+                    requireSession(generation, uid);
                     DocumentSnapshot user = task.isSuccessful() ? task.getResult() : null;
                     String houseId = user == null ? null : user.getString(Schema.Users.CURRENT_HOUSE_ID);
                     String name = user == null ? null : user.getString(Schema.Users.DISPLAY_NAME);
@@ -393,6 +446,37 @@ public final class AuthRepository {
                     }
                     return new Session(uid, houseId, name, true);
                 });
+    }
+
+    // Already-issued Firebase SDK calls cannot be cancelled. Ignore stale results and do not
+    // start another data mutation after an account operation replaces this one.
+    private boolean isCurrent(long generation, String uid) {
+        FirebaseUser current = auth == null ? null : auth.getCurrentUser();
+        return sessions.accepts(generation, uid, current == null ? null : current.getUid());
+    }
+
+    private void requireSession(long generation, String uid) throws AuthException {
+        if (!isCurrent(generation, uid)) {
+            throw new AuthException(AuthError.NOT_SIGNED_IN);
+        }
+    }
+
+    private void requireTransactionSession(long generation, String uid) {
+        if (!isCurrent(generation, uid)) {
+            throw new IllegalStateException(new AuthException(AuthError.NOT_SIGNED_IN));
+        }
+    }
+
+    private Task<Session> sessionResult(Task<Session> task, long generation) {
+        return translate(task).continueWithTask(done -> {
+            if (!sessions.accepts(generation)) {
+                return fail(AuthError.NOT_SIGNED_IN);
+            }
+            if (done.isSuccessful()) {
+                requireSession(generation, done.getResult().uid);
+            }
+            return done;
+        });
     }
 
     private static <T> Task<T> translate(Task<T> task) {

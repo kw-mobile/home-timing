@@ -34,6 +34,8 @@ public final class ChoreDocuments {
      */
     public static Map<String, Object> choreFields(Chore chore, String updatedBy, Object createdAt, Object now) {
         Map<String, Object> fields = new HashMap<>();
+        fields.put(Schema.Records.COUNT, 0);
+        fields.put(Schema.Records.DELETING, false);
         fields.put(Schema.Chores.NAME, chore.name);
         fields.put(Schema.Chores.TYPE, chore.type);
         fields.put(Schema.Chores.WEATHER_SENSITIVE, chore.weatherSensitive);
@@ -90,6 +92,9 @@ public final class ChoreDocuments {
     /** Reads a stored chore; null when it does not have the expected shape. */
     public static Chore toChore(String id, Map<String, Object> data) {
         try {
+            if (Boolean.TRUE.equals(data.get(Schema.Records.DELETING))) {
+                return null;
+            }
             Object sensitive = data.get(Schema.Chores.WEATHER_SENSITIVE);
             if (!(sensitive instanceof Boolean)) {
                 return null;

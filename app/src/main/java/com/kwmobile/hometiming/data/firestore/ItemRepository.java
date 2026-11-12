@@ -5,7 +5,6 @@ import androidx.annotation.Nullable;
 
 import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.FirebaseNetworkException;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.CollectionReference;
@@ -13,8 +12,8 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.ListenerRegistration;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.Source;
 import com.kwmobile.hometiming.BuildConfig;
@@ -32,13 +31,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.function.Function;
 
 /**
  * Replacement items of one house (docs/MVP.md F-02~F-05, docs/DATA_MODEL.md items/history).
  *
- * <p>Reads are live listeners that also serve the offline cache ({@code fromCache} tells the screen
- * to keep changes disabled). Every change commits in a transaction: transactions need the server, so
+ * <p>Reads are live listeners that also serve the offline cache. {@code fromCache} describes the
+ * snapshot source, not a complete network connectivity signal. Every change commits in a transaction:
+ * transactions need the server, so
  * an offline change fails with {@link ItemError#NETWORK} instead of showing as saved and waiting in a
  * local queue. Screens pass the {@link Item} they showed so concurrent completion and edits are told
  * apart ({@link ItemError#ALREADY_COMPLETED} vs {@link ItemError#SCHEDULE_CHANGED}).
@@ -63,9 +62,6 @@ public final class ItemRepository {
 
         void onError(@NonNull ItemError error);
     }
-
-    /** History documents removed per transaction while deleting an item (limit 500 writes). */
-    static final int HISTORY_DELETE_CHUNK = 400;
 
     private static volatile ItemRepository instance;
 
@@ -110,9 +106,9 @@ public final class ItemRepository {
             return Subscription.NONE;
         }
         Query query = items(db, houseId).orderBy(Schema.Items.NEXT_DUE_DATE);
-        ListenerRegistration registration = query.addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             List<Item> list = new ArrayList<>();
@@ -133,9 +129,10 @@ public final class ItemRepository {
             listener.onError(ItemError.NOT_CONFIGURED);
             return Subscription.NONE;
         }
-        ListenerRegistration registration = itemRef(db, houseId, itemId).addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = itemRef(db, houseId, itemId)
+                .addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             listener.onItem(snapshot.exists() ? read(snapshot) : null, snapshot.getMetadata().isFromCache());
@@ -151,9 +148,9 @@ public final class ItemRepository {
         }
         Query query = itemRef(db, houseId, itemId).collection(Schema.History.COLLECTION)
                 .orderBy(Schema.History.REPLACED_DATE, Query.Direction.DESCENDING);
-        ListenerRegistration registration = query.addSnapshotListener((snapshot, error) -> {
+        ListenerRegistration registration = query.addSnapshotListener(MetadataChanges.INCLUDE, (snapshot, error) -> {
             if (error != null || snapshot == null) {
-                listener.onError(classify(error));
+                listener.onError(ItemTasks.classify(error));
                 return;
             }
             List<HistoryEntry> list = new ArrayList<>();
@@ -190,7 +187,8 @@ public final class ItemRepository {
         return translate(firestore.runTransaction(tx -> {
             tx.set(ref, ItemDocuments.itemFields(item, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
-            tx.update(houseRef(firestore, houseId), Schema.Houses.ITEM_COUNT, FieldValue.increment(1));
+            tx.update(houseRef(firestore, houseId), Schema.Houses.ITEM_COUNT, FieldValue.increment(1),
+                    Schema.Houses.ITEM_MUTATION_ID, ref.getId());
             return item;
         }));
     }
@@ -210,7 +208,7 @@ public final class ItemRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
-        return explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Item stored = requireStored(snapshot);
             rejectConflict(stored, shown);
@@ -218,7 +216,9 @@ public final class ItemRepository {
                 throw new ItemException.Rejection(ItemError.INVALID_INPUT);
             }
             Item next = ItemSchedule.edit(stored, draft);
-            tx.set(ref, ItemDocuments.itemFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+            Map<String, Object> fields = ItemDocuments.itemFields(next, uid, createdAt(snapshot),
+                    FieldValue.serverTimestamp());
+            tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
         })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
@@ -245,7 +245,7 @@ public final class ItemRepository {
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
         DocumentReference member = houseRef(firestore, houseId).collection(Schema.Members.COLLECTION).document(uid);
         String nextOccurrence = newOccurrenceId();
-        return explainDenial(translate(firestore.runTransaction(tx -> {
+        return ItemTasks.explainDenial(translate(firestore.runTransaction(tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             DocumentSnapshot memberSnapshot = tx.get(member);
             Item stored = requireStored(snapshot);
@@ -261,14 +261,16 @@ public final class ItemRepository {
             HistoryEntry entry = ItemSchedule.historyOf(stored, replacedDate, uid, name);
             tx.set(ref.collection(Schema.History.COLLECTION).document(stored.occurrenceId),
                     ItemDocuments.historyFields(entry, FieldValue.serverTimestamp()));
-            tx.set(ref, ItemDocuments.itemFields(next, uid, createdAt(snapshot), FieldValue.serverTimestamp()));
+            Map<String, Object> fields = ItemDocuments.itemFields(next, uid, createdAt(snapshot),
+                    FieldValue.serverTimestamp());
+            tx.set(ref, RecordState.preserve(fields, snapshot, stored.occurrenceId));
             return next;
         })), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision));
     }
 
     /**
      * Deletes an item with its history and lowers the house itemCount. Registrant or owner only.
-     * History goes first in chunks; the last transaction removes the item and the count together.
+     * The parent is frozen first; each history deletion lowers its count before the parent is removed.
      */
     @NonNull
     public Task<Void> delete(String houseId, String itemId) {
@@ -279,51 +281,9 @@ public final class ItemRepository {
         if (uid == null) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
-        FirebaseFirestore firestore = db;
-        DocumentReference ref = itemRef(firestore, houseId, itemId);
-        DocumentReference house = houseRef(firestore, houseId);
-        Task<Void> task = ref.get(Source.SERVER)
-                .onSuccessTask(itemSnapshot -> house.get(Source.SERVER).onSuccessTask(houseSnapshot -> {
-                    Item stored = itemSnapshot.exists() ? read(itemSnapshot) : null;
-                    if (stored == null) {
-                        return fail(ItemError.NOT_FOUND);
-                    }
-                    if (!stored.canDelete(uid, houseSnapshot.getString(Schema.Houses.OWNER_ID))) {
-                        return fail(ItemError.NOT_ALLOWED);
-                    }
-                    return ref.collection(Schema.History.COLLECTION).get(Source.SERVER)
-                            .onSuccessTask(history -> {
-                                List<DocumentReference> refs = new ArrayList<>();
-                                for (DocumentSnapshot document : history.getDocuments()) {
-                                    refs.add(document.getReference());
-                                }
-                                return deleteHistoryThenItem(firestore, refs, ref, house);
-                            });
-                }));
-        return translate(task);
-    }
-
-    private static Task<Void> deleteHistoryThenItem(FirebaseFirestore firestore, List<DocumentReference> history,
-                                                    DocumentReference item, DocumentReference house) {
-        Task<Void> chain = Tasks.forResult(null);
-        for (int start = 0; start < history.size(); start += HISTORY_DELETE_CHUNK) {
-            List<DocumentReference> chunk =
-                    new ArrayList<>(history.subList(start, Math.min(history.size(), start + HISTORY_DELETE_CHUNK)));
-            chain = chain.onSuccessTask(ignored -> firestore.runTransaction(tx -> {
-                for (DocumentReference ref : chunk) {
-                    tx.delete(ref);
-                }
-                return null;
-            }));
-        }
-        return chain.onSuccessTask(ignored -> firestore.runTransaction(tx -> {
-            if (!tx.get(item).exists()) {
-                throw new ItemException.Rejection(ItemError.NOT_FOUND);
-            }
-            tx.delete(item);
-            tx.update(house, Schema.Houses.ITEM_COUNT, FieldValue.increment(-1));
-            return null;
-        }));
+        DocumentReference ref = itemRef(db, houseId, itemId);
+        return translate(DocumentDeletion.delete(db, ref, Schema.History.COLLECTION,
+                Schema.Houses.ITEM_COUNT, Schema.Houses.ITEM_MUTATION_ID, uid, this::currentUid));
     }
 
     // ---- Helpers ----
@@ -350,6 +310,7 @@ public final class ItemRepository {
         if (!snapshot.exists()) {
             throw new ItemException.Rejection(ItemError.NOT_FOUND);
         }
+        RecordState.requireActive(snapshot);
         Item stored = read(snapshot);
         if (stored == null) {
             throw new ItemException.Rejection(ItemError.UNKNOWN);
@@ -401,42 +362,6 @@ public final class ItemRepository {
         return stored == null ? null : ItemSchedule.conflict(stored, occurrenceId, revision);
     }
 
-    /**
-     * A change that loses a race may be refused by the security rules before the transaction is
-     * retried, which would read as "no permission". On a refusal, the document is read again from
-     * the server and the error says what actually changed.
-     */
-    static <T> Task<T> explainDenial(Task<T> task, DocumentReference ref,
-                                     Function<DocumentSnapshot, ItemSchedule.Conflict> conflictOf) {
-        return task.continueWithTask(done -> {
-            if (done.isSuccessful() || classify(done.getException()) != ItemError.PERMISSION_DENIED) {
-                return done;
-            }
-            return ref.get(Source.SERVER).continueWithTask(read -> {
-                if (!read.isSuccessful()) {
-                    return done;
-                }
-                DocumentSnapshot snapshot = read.getResult();
-                ItemError cause = denialCause(snapshot.exists(), snapshot.exists() ? conflictOf.apply(snapshot) : null);
-                return cause == ItemError.PERMISSION_DENIED ? done : Tasks.forException(new ItemException(cause));
-            });
-        });
-    }
-
-    /** What a refused change ran into, judged from the document as the server has it now. */
-    static ItemError denialCause(boolean exists, @Nullable ItemSchedule.Conflict conflict) {
-        if (!exists) {
-            return ItemError.NOT_FOUND;
-        }
-        if (conflict == ItemSchedule.Conflict.ALREADY_COMPLETED) {
-            return ItemError.ALREADY_COMPLETED;
-        }
-        if (conflict == ItemSchedule.Conflict.SCHEDULE_CHANGED) {
-            return ItemError.SCHEDULE_CHANGED;
-        }
-        return ItemError.PERMISSION_DENIED;
-    }
-
     private static <T> Task<T> translate(Task<T> task) {
         return task.continueWithTask(done -> done.isSuccessful()
                 ? done
@@ -444,29 +369,7 @@ public final class ItemRepository {
     }
 
     private static ItemException asItemException(Exception e) {
-        return e instanceof ItemException ? (ItemException) e : new ItemException(classify(e), e);
-    }
-
-    static ItemError classify(Throwable e) {
-        // Tasks and transactions may wrap the real failure.
-        for (Throwable t = e; t != null; t = t.getCause()) {
-            if (t instanceof ItemException) {
-                return ((ItemException) t).error;
-            }
-            if (t instanceof ItemException.Rejection) {
-                return ((ItemException.Rejection) t).error;
-            }
-            if (t instanceof FirebaseNetworkException) {
-                return ItemError.NETWORK;
-            }
-            if (t instanceof FirebaseFirestoreException) {
-                return ItemError.fromFirestoreCode(((FirebaseFirestoreException) t).getCode().name());
-            }
-            if (t.getCause() == t) {
-                break;
-            }
-        }
-        return ItemError.UNKNOWN;
+        return e instanceof ItemException ? (ItemException) e : new ItemException(ItemTasks.classify(e), e);
     }
 
     private static <T> Task<T> fail(ItemError error) {

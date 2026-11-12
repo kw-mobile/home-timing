@@ -59,9 +59,10 @@ public class AccountDeletionRulesTest extends RulesTestBase {
 
     @Test
     public void ownerAloneAfterDeletingItemsCanDissolve() {
+        assertAllowed(firestore.commit(DAVE, startDeleting(itemPath("house-d", "filter"), "dave")));
         assertAllowed(firestore.commit(DAVE,
                 Write.delete(itemPath("house-d", "filter")),
-                Write.merge("houses/house-d", Fields.of()).increment("itemCount", -1)));
+                Write.merge("houses/house-d", Fields.of().str("itemMutationId", "filter")).increment("itemCount", -1)));
 
         assertAllowed(firestore.commit(DAVE, dissolveAndDelete("dave", "house-d")));
     }

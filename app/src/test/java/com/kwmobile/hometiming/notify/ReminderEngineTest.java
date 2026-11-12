@@ -22,6 +22,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -281,4 +282,103 @@ public class ReminderEngineTest {
 
         assertTrue(set.isEmpty());
     }
+
+    @Test
+    public void changingTheTimeDuringAServerCheckKeepsTheNewReservation() {
+        PlannedReminder nine = due("a", "occ-1", 9_000);
+        PlannedReminder ten = due("a", "occ-1", 10_000);
+        engine.apply(Collections.singletonList(nine));
+        engine.apply(Collections.singletonList(ten));
+
+        for (ReminderDecision oldAnswer : ReminderDecision.values()) {
+            assertFalse(engine.onDecision(nine, oldAnswer));
+            assertEquals(10_000, engine.pending(ten.key).fireAtMillis);
+        }
+        assertTrue(shown.isEmpty());
+        engine.apply(Collections.singletonList(ten));
+        assertNotNull(engine.pending(ten.key));
+        engine.onDecision(ten, ReminderDecision.FIRE);
+        assertEquals(1, shown.size());
+    }
+
+    private ReminderSession session(AtomicReference<String> uid, ReminderEngine target) {
+        return new ReminderSession(target, new ReminderSession.BindingStore() {
+            @Override
+            public String uid() { return stored.get("owner_uid"); }
+
+            @Override
+            public String houseId() { return stored.get("owner_house"); }
+
+            @Override
+            public void save(String owner, String houseId) {
+                stored.put("owner_uid", owner);
+                stored.put("owner_house", houseId);
+            }
+        }, uid::get);
+    }
+
+    @Test
+    public void signOutThenSignInAndHouseChangeDiscardEveryOldResponse() {
+        AtomicReference<String> uid = new AtomicReference<>("alice");
+        ReminderSession session = session(uid, engine);
+        ReminderSession.Token oldListener = session.start("house-a");
+        PlannedReminder a = due("a", "occ-1", 100);
+        session.apply(session.beginSync(), "house-a", Collections.singletonList(a));
+        ReminderSession.Pending oldCheck = session.pending(a.key);
+        ReminderSession.Sync oldWorker = session.beginSync();
+
+        session.end();
+        session.start("house-a"); // Even the same account and house is a new session.
+        session.apply(session.beginSync(), "house-a", Collections.singletonList(a));
+        session.apply(oldWorker, "house-a", Collections.emptyList());
+        assertFalse(session.onDecision(oldCheck, ReminderDecision.FIRE));
+        ReminderRules.Tracker tracker = new ReminderRules.Tracker();
+        tracker.update(Collections.singletonList(new ScheduleState(Kind.ITEM, "a", "occ-1", 1)));
+        session.onChanges(oldListener, tracker.update(Collections.emptyList()));
+        assertNotNull(session.pending(a.key));
+
+        ReminderSession.Sync beforeMove = session.beginSync();
+        session.start("house-b");
+        PlannedReminder b = new PlannedReminder(new ReminderKey(Kind.ITEM, "house-b", "b", Type.DUE, "occ-9"),
+                1, 200, DUE, "침구", 0);
+        session.apply(session.beginSync(), "house-b", Collections.singletonList(b));
+        session.apply(beforeMove, "house-a", Collections.singletonList(a));
+        assertNull(session.pending(a.key));
+        assertNotNull(session.pending(b.key));
+
+        ReminderSession.Sync aliceWork = session.beginSync();
+        uid.set("bob"); // Auth can change before screen callbacks reach the manager.
+        session.clear(aliceWork.session);
+        assertNull(session.pending(b.key));
+        session.start("house-b");
+        session.apply(session.beginSync(), "house-b", Collections.singletonList(b));
+        session.apply(aliceWork, "house-b", Collections.emptyList());
+        assertNotNull(session.pending(b.key));
+        assertTrue(shown.isEmpty());
+    }
+
+    @Test
+    public void settingsChangeInvalidatesAnOldSyncAndRestartKeepsOnlyItsOwner() {
+        AtomicReference<String> uid = new AtomicReference<>("alice");
+        ReminderSession session = session(uid, engine);
+        session.start("house-a");
+        ReminderSession.Sync oldSettings = session.beginSync();
+        PlannedReminder nine = due("a", "occ-1", 9_000);
+        PlannedReminder ten = due("a", "occ-1", 10_000);
+        session.invalidateSync();
+        session.apply(oldSettings, "house-a", Collections.singletonList(nine));
+        assertNull(session.pending(nine.key));
+        session.apply(session.beginSync(), "house-a", Collections.singletonList(ten));
+
+        clear(set);
+        session(uid, newEngine()).rearm();
+        assertEquals(1, set.size());
+        uid.set("bob");
+        clear(set);
+        ReminderSession otherAccount = session(uid, newEngine());
+        otherAccount.rearm();
+        assertTrue(set.isEmpty());
+        assertNull(otherAccount.pending(ten.key));
+    }
+
 }

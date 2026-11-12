@@ -40,6 +40,16 @@ service cloud.firestore {
     function isText(v, max) { return v is string && v.trim().size() > 0 && v.size() <= max; }
     function optionalText(data, key, max) { return !(key in data) || isText(data[key], max); }
     function isId(v) { return v is string && v.size() > 0 && v.size() <= 64; }
+    function isTarget(v) { return v is string && v.matches('[^/]{1,160}'); }
+    function houseReady(houseId) { return get(houseDoc(houseId)).data.integrityVersion == 2; }
+    function validRecords(d) {
+      return d.recordCount is int && d.recordCount >= 0 && d.deleting is bool
+          && (!('recordMutationId' in d) || isTarget(d.recordMutationId));
+    }
+    function sameRecordTarget(a, b) {
+      return a.get('recordMutationId', '') == b.get('recordMutationId', '');
+    }
+
 
     // Product dates are yyyy-MM-dd days in Asia/Seoul.
     function isDate(v) { return v is string && v.matches('[0-9]{4}-[0-9]{2}-[0-9]{2}'); }
@@ -104,6 +114,7 @@ service cloud.firestore {
             && hasExactly(data, ['houseId', 'createdBy', 'createdAt'])
             && isId(data.houseId)
             && data.createdBy == me()
+            && houseReady(data.houseId)
             && get(houseDoc(data.houseId)).data.ownerId == me()
             && data.createdAt == request.time
             && getAfter(houseDoc(data.houseId)).data.activeInviteCode == code;
@@ -113,7 +124,8 @@ service cloud.firestore {
       // A code still live for any house is never overwritten; an expired one may be reused.
       allow update: if isIssue() && !inviteLive(resource.data);
       // The owner of the invite's house removes it (reissue, stop, or dissolving that house).
-      allow delete: if signedIn() && get(houseDoc(resource.data.houseId)).data.ownerId == me();
+      allow delete: if signedIn() && houseReady(resource.data.houseId)
+          && get(houseDoc(resource.data.houseId)).data.ownerId == me();
     }
 
     // ---- houses/{houseId} ----
@@ -124,8 +136,9 @@ service cloud.firestore {
       // and with the caller's user document pointing at it.
       allow create: if signedIn()
           && hasExactly(request.resource.data,
-              ['ownerId', 'memberCount', 'itemCount', 'choreCount', 'createdAt', 'updatedAt'])
+              ['ownerId', 'memberCount', 'itemCount', 'choreCount', 'integrityVersion', 'createdAt', 'updatedAt'])
           && request.resource.data.ownerId == me()
+          && request.resource.data.integrityVersion == 2
           && request.resource.data.memberCount == 1
           && request.resource.data.itemCount == 0
           && request.resource.data.choreCount == 0
@@ -134,39 +147,36 @@ service cloud.firestore {
           && existsAfter(memberDoc(houseId, me()))
           && getAfter(userDoc(me())).data.currentHouseId == houseId;
 
-      function memberCountMovesBy(delta) {
-        return changed().hasOnly(['memberCount'])
-            && request.resource.data.memberCount == resource.data.memberCount + delta;
+      // Both the count holder and target document validate this binding, so one delta
+      // cannot authorize several creations/deletions or a count-only write.
+      function countMutation(collection, countField, targetField) {
+        let id = request.resource.data[targetField];
+        let target = /databases/$(database)/documents/houses/$(houseId)/$(collection)/$(id);
+        return isTarget(id) && changed().hasOnly([countField, targetField])
+            && request.resource.data[countField] is int && request.resource.data[countField] >= 0
+            && ((request.resource.data[countField] == resource.data[countField] + 1
+                    && !exists(target) && existsAfter(target))
+                || (request.resource.data[countField] == resource.data[countField] - 1
+                    && exists(target) && !existsAfter(target)));
       }
 
-      // Each branch changes only its own fields.
-      allow update: if signedIn() && (
-          // itemCount moves by one with each item create/delete (checked on the item).
-          (isMember(houseId)
-              && changed().hasOnly(['itemCount'])
-              && request.resource.data.itemCount >= 0
-              && (request.resource.data.itemCount == resource.data.itemCount + 1
-                  || request.resource.data.itemCount == resource.data.itemCount - 1))
-          // choreCount moves by one with each chore create/delete (checked on the chore).
-          || (isMember(houseId)
-              && changed().hasOnly(['choreCount'])
-              && request.resource.data.choreCount >= 0
-              && (request.resource.data.choreCount == resource.data.choreCount + 1
-                  || request.resource.data.choreCount == resource.data.choreCount - 1))
-          // Join: +1 exactly when the caller's member document appears in this commit (max 6).
-          || (memberCountMovesBy(1)
-              && request.resource.data.memberCount <= 6
-              && !exists(memberDoc(houseId, me()))
-              && existsAfter(memberDoc(houseId, me())))
-          // Leave: -1 when a non-owner caller's own member document disappears.
-          || (memberCountMovesBy(-1)
-              && resource.data.ownerId != me()
-              && exists(memberDoc(houseId, me()))
-              && !existsAfter(memberDoc(houseId, me())))
-          // Remove: the owner lowers the count; the member delete rule requires this -1.
-          || (memberCountMovesBy(-1)
-              && resource.data.ownerId == me()
-              && request.resource.data.memberCount >= 1)
+      function memberMutation() {
+        let id = request.resource.data.memberMutationId;
+        let target = memberDoc(houseId, id);
+        return isTarget(id) && changed().hasOnly(['memberCount', 'memberMutationId'])
+            && request.resource.data.memberCount is int
+            && request.resource.data.memberCount >= 1 && request.resource.data.memberCount <= 6
+            && ((request.resource.data.memberCount == resource.data.memberCount + 1
+                    && id == me() && !exists(target) && existsAfter(target))
+                || (request.resource.data.memberCount == resource.data.memberCount - 1
+                    && (id == me() || resource.data.ownerId == me())
+                    && id != resource.data.ownerId && exists(target) && !existsAfter(target)));
+      }
+
+      allow update: if signedIn() && houseReady(houseId) && (
+          (isMember(houseId) && countMutation('items', 'itemCount', 'itemMutationId'))
+          || (isMember(houseId) && countMutation('chores', 'choreCount', 'choreMutationId'))
+          || memberMutation()
           // Invite: the owner points at an invite for this house, or stops inviting.
           || (resource.data.ownerId == me()
               && changed().hasOnly(['activeInviteCode'])
@@ -183,7 +193,7 @@ service cloud.firestore {
 
       // The owner dissolves their own empty one-person house while moving elsewhere (joining) or
       // deleting their account (the user document goes in the same commit).
-      allow delete: if isOwner(houseId)
+      allow delete: if isOwner(houseId) && houseReady(houseId)
           && resource.data.memberCount == 1
           && resource.data.itemCount == 0
           && resource.data.choreCount == 0
@@ -199,6 +209,7 @@ service cloud.firestore {
         // Founding a new house (first sign-in, recovery, leaving).
         function isFounding() {
           return !exists(houseDoc(houseId))
+              && getAfter(houseDoc(houseId)).data.integrityVersion == 2
               && getAfter(houseDoc(houseId)).data.ownerId == me()
               && hasExactly(request.resource.data, ['displayName', 'joinedAt'])
               && request.resource.data.displayName == getAfter(userDoc(me())).data.displayName;
@@ -210,7 +221,8 @@ service cloud.firestore {
           let data = request.resource.data;
           let house = get(houseDoc(houseId)).data;
           let previousHouse = get(userDoc(me())).data.currentHouseId;
-          return exists(houseDoc(houseId))
+          return exists(houseDoc(houseId)) && houseReady(houseId)
+              && getAfter(houseDoc(houseId)).data.memberMutationId == me()
               && hasExactly(data, ['displayName', 'joinedAt', 'inviteCode'])
               && isInviteCode(data.inviteCode)
               && house.activeInviteCode == data.inviteCode
@@ -230,7 +242,9 @@ service cloud.firestore {
             && (isFounding() || isJoining());
 
         function houseCountDropsByOne() {
-          return getAfter(houseDoc(houseId)).data.memberCount == get(houseDoc(houseId)).data.memberCount - 1;
+          return houseReady(houseId)
+              && getAfter(houseDoc(houseId)).data.memberMutationId == memberId
+              && getAfter(houseDoc(houseId)).data.memberCount == get(houseDoc(houseId)).data.memberCount - 1;
         }
 
         allow delete: if signedIn() && (
@@ -248,10 +262,11 @@ service cloud.firestore {
         function validItem(d) {
           return d.keys().hasAll(['name', 'category', 'startDate', 'cycleDays', 'lastReplacedDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting'])
               && d.keys().hasOnly(['name', 'category', 'startDate', 'cycleDays', 'lastReplacedDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt', 'productName', 'location', 'memo'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'productName', 'location', 'memo'])
+              && validRecords(d)
               && isText(d.name, 60)
               && isText(d.category, 30)
               && isDate(d.startDate) && notFuture(d.startDate)
@@ -270,13 +285,19 @@ service cloud.firestore {
         }
 
         function itemCountAfterIs(delta) {
-          return getAfter(houseDoc(houseId)).data.itemCount == get(houseDoc(houseId)).data.itemCount + delta;
+          return houseReady(houseId) && getAfter(houseDoc(houseId)).data.itemMutationId == itemId
+              && getAfter(houseDoc(houseId)).data.itemCount == get(houseDoc(houseId)).data.itemCount + delta;
         }
 
         // Edit (F-03): same occurrence; revision +1 exactly when schedule fields change.
         function isEdit() {
           let next = request.resource.data;
-          return next.occurrenceId == resource.data.occurrenceId
+          return !resource.data.deleting && !next.deleting
+              && next.recordCount == resource.data.recordCount && sameRecordTarget(next, resource.data)
+              && (resource.data.recordCount > 0
+                  ? next.lastReplacedDate == resource.data.lastReplacedDate
+                  : next.lastReplacedDate == next.startDate)
+              && next.occurrenceId == resource.data.occurrenceId
               && next.revision == resource.data.revision
                   + (changed().hasAny(['startDate', 'cycleDays', 'lastReplacedDate', 'nextDueDate']) ? 1 : 0);
         }
@@ -287,7 +308,9 @@ service cloud.firestore {
           let next = request.resource.data;
           let finished = resource.data.occurrenceId;
           return changed().hasOnly(['lastReplacedDate', 'nextDueDate', 'occurrenceId', 'revision',
-                  'updatedBy', 'updatedAt'])
+                  'updatedBy', 'updatedAt', 'recordCount', 'recordMutationId'])
+              && !resource.data.deleting && !next.deleting
+              && next.recordCount == resource.data.recordCount + 1 && next.recordMutationId == finished
               && next.occurrenceId != finished
               && next.revision == resource.data.revision + 1
               && next.lastReplacedDate >= resource.data.lastReplacedDate
@@ -295,24 +318,43 @@ service cloud.firestore {
               && existsAfter(historyDoc(houseId, itemId, finished));
         }
 
+        function canDelete() { return resource.data.createdBy == me() || isOwner(houseId); }
+
+        function isDeletionStep() {
+          let old = resource.data;
+          let next = request.resource.data;
+          let id = next.get('recordMutationId', '_');
+          let record = /databases/$(database)/documents/houses/$(houseId)/items/$(itemId)/history/$(id);
+          return canDelete() && next.deleting
+              && ((!old.deleting && next.recordCount == old.recordCount && sameRecordTarget(next, old)
+                      && changed().hasOnly(['deleting', 'updatedBy', 'updatedAt']))
+                  || (old.deleting && isTarget(id) && next.recordCount == old.recordCount - 1
+                      && changed().hasOnly(['recordCount', 'recordMutationId', 'updatedBy', 'updatedAt'])
+                      && exists(record) && !existsAfter(record)));
+        }
+
         allow read: if isMember(houseId);
 
-        allow create: if isMember(houseId)
+        allow create: if isMember(houseId) && houseReady(houseId)
             && validItem(request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
             && request.resource.data.revision == 1
+            && request.resource.data.recordCount == 0 && request.resource.data.deleting == false
+            && !('recordMutationId' in request.resource.data)
             && request.resource.data.lastReplacedDate == request.resource.data.startDate
             && itemCountAfterIs(1);
 
-        allow update: if isMember(houseId)
+        allow update: if isMember(houseId) && houseReady(houseId)
+            && validRecords(resource.data)
             && validItem(request.resource.data)
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
-            && (isEdit() || isCompletion());
+            && (isEdit() || isCompletion() || isDeletionStep());
 
         // Registrant or owner (MVP). History is deleted in the same or earlier commits.
-        allow delete: if isMember(houseId)
+        allow delete: if isMember(houseId) && houseReady(houseId)
+            && resource.data.deleting && resource.data.recordCount == 0
             && (resource.data.createdBy == me() || isOwner(houseId))
             && itemCountAfterIs(-1);
 
@@ -320,7 +362,11 @@ service cloud.firestore {
         match /history/{occurrenceId} {
           allow read: if isMember(houseId);
 
-          allow create: if isMember(houseId)
+          allow create: if isMember(houseId) && houseReady(houseId)
+              && !get(itemDoc(houseId, itemId)).data.deleting
+              && !getAfter(itemDoc(houseId, itemId)).data.deleting
+              && getAfter(itemDoc(houseId, itemId)).data.recordCount == get(itemDoc(houseId, itemId)).data.recordCount + 1
+              && getAfter(itemDoc(houseId, itemId)).data.recordMutationId == occurrenceId
               && get(itemDoc(houseId, itemId)).data.occurrenceId == occurrenceId
               && getAfter(itemDoc(houseId, itemId)).data.occurrenceId != occurrenceId
               && hasExactly(request.resource.data,
@@ -334,7 +380,10 @@ service cloud.firestore {
               && request.resource.data.createdAt == request.time;
 
           // Removed only while deleting the item, by those who may delete it.
-          allow delete: if isMember(houseId)
+          allow delete: if isMember(houseId) && houseReady(houseId)
+              && get(itemDoc(houseId, itemId)).data.deleting && getAfter(itemDoc(houseId, itemId)).data.deleting
+              && getAfter(itemDoc(houseId, itemId)).data.recordCount == get(itemDoc(houseId, itemId)).data.recordCount - 1
+              && getAfter(itemDoc(houseId, itemId)).data.recordMutationId == occurrenceId
               && (get(itemDoc(houseId, itemId)).data.createdBy == me() || isOwner(houseId));
         }
       }
@@ -351,10 +400,11 @@ service cloud.firestore {
         function validChore(d) {
           return d.keys().hasAll(['name', 'type', 'weatherSensitive', 'weekday', 'plannedDueDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting'])
               && d.keys().hasOnly(['name', 'type', 'weatherSensitive', 'weekday', 'plannedDueDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt', 'dismissedOccurrenceId', 'lastDoneDate', 'location', 'memo'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'dismissedOccurrenceId', 'lastDoneDate', 'location', 'memo'])
+              && validRecords(d)
               && isText(d.name, 60)
               && d.type in ['BEDDING_WASH', 'OUTDOOR_DRY', 'VENTILATION', 'CLEANING', 'ETC']
               && d.weatherSensitive is bool
@@ -374,7 +424,8 @@ service cloud.firestore {
         function onWeekday(d, weekday) { return day(d).dayOfWeek() == weekday; }
 
         function choreCountAfterIs(delta) {
-          return getAfter(houseDoc(houseId)).data.choreCount == get(houseDoc(houseId)).data.choreCount + delta;
+          return houseReady(houseId) && getAfter(houseDoc(houseId)).data.choreMutationId == choreId
+              && getAfter(houseDoc(houseId)).data.choreCount == get(houseDoc(houseId)).data.choreCount + delta;
         }
 
         // Same occurrence: an edit, moving this occurrence, or dismissing its suggestion. Revision
@@ -382,7 +433,12 @@ service cloud.firestore {
         function isSameOccurrence() {
           let next = request.resource.data;
           let old = resource.data;
-          return next.occurrenceId == old.occurrenceId
+          return !old.deleting && !next.deleting
+              && (next.weekday == old.weekday && next.nextDueDate != old.nextDueDate
+                  ? (next.recordCount == old.recordCount + 1
+                      && next.recordMutationId == 'moved_' + next.occurrenceId + '_' + string(next.revision))
+                  : (next.recordCount == old.recordCount && sameRecordTarget(next, old)))
+              && next.occurrenceId == old.occurrenceId
               && !changed().hasAny(['lastDoneDate'])
               && next.revision == old.revision
                   + (changed().hasAny(['weekday', 'plannedDueDate', 'nextDueDate', 'weatherSensitive',
@@ -396,6 +452,7 @@ service cloud.firestore {
                   : (next.plannedDueDate == old.plannedDueDate
                       && (next.nextDueDate == old.nextDueDate
                           || (notPast(next.nextDueDate)
+                              && !exists(logDoc('moved_' + next.occurrenceId + '_' + string(next.revision)))
                               && existsAfter(logDoc('moved_' + next.occurrenceId + '_' + string(next.revision)))))));
         }
 
@@ -408,7 +465,10 @@ service cloud.firestore {
           let previous = day(old.plannedDueDate);
           let done = day(next.lastDoneDate);
           return changed().hasOnly(['plannedDueDate', 'nextDueDate', 'occurrenceId', 'revision',
-                  'lastDoneDate', 'dismissedOccurrenceId', 'updatedBy', 'updatedAt'])
+                  'lastDoneDate', 'dismissedOccurrenceId', 'updatedBy', 'updatedAt', 'recordCount', 'recordMutationId'])
+              && !old.deleting && !next.deleting
+              && next.recordCount == old.recordCount + 1
+              && next.recordMutationId == 'done_' + old.occurrenceId
               && next.occurrenceId != old.occurrenceId
               && next.revision == old.revision + 1
               && next.plannedDueDate == next.nextDueDate
@@ -420,27 +480,46 @@ service cloud.firestore {
               && existsAfter(logDoc('done_' + old.occurrenceId));
         }
 
+        function canDelete() { return resource.data.createdBy == me() || isOwner(houseId); }
+
+        function isDeletionStep() {
+          let old = resource.data;
+          let next = request.resource.data;
+          let id = next.get('recordMutationId', '_');
+          let record = /databases/$(database)/documents/houses/$(houseId)/chores/$(choreId)/logs/$(id);
+          return canDelete() && next.deleting
+              && ((!old.deleting && next.recordCount == old.recordCount && sameRecordTarget(next, old)
+                      && changed().hasOnly(['deleting', 'updatedBy', 'updatedAt']))
+                  || (old.deleting && isTarget(id) && next.recordCount == old.recordCount - 1
+                      && changed().hasOnly(['recordCount', 'recordMutationId', 'updatedBy', 'updatedAt'])
+                      && exists(record) && !existsAfter(record)));
+        }
+
         allow read: if isMember(houseId);
 
-        allow create: if isMember(houseId)
+        allow create: if isMember(houseId) && houseReady(houseId)
             && validChore(request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
             && request.resource.data.revision == 1
+            && request.resource.data.recordCount == 0 && request.resource.data.deleting == false
+            && !('recordMutationId' in request.resource.data)
             && request.resource.data.plannedDueDate == request.resource.data.nextDueDate
             && onWeekday(request.resource.data.plannedDueDate, request.resource.data.weekday)
             && !('dismissedOccurrenceId' in request.resource.data)
             && !('lastDoneDate' in request.resource.data)
             && choreCountAfterIs(1);
 
-        allow update: if isMember(houseId)
+        allow update: if isMember(houseId) && houseReady(houseId)
+            && validRecords(resource.data)
             && validChore(request.resource.data)
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
-            && (isSameOccurrence() || isCompletion());
+            && (isSameOccurrence() || isCompletion() || isDeletionStep());
 
         // Registrant or owner, like items. Logs are deleted in the same or earlier commits.
-        allow delete: if isMember(houseId)
+        allow delete: if isMember(houseId) && houseReady(houseId)
+            && resource.data.deleting && resource.data.recordCount == 0
             && (resource.data.createdBy == me() || isOwner(houseId))
             && choreCountAfterIs(-1);
 
@@ -473,14 +552,20 @@ service cloud.firestore {
 
           allow read: if isMember(houseId);
 
-          allow create: if isMember(houseId)
+          allow create: if isMember(houseId) && houseReady(houseId)
+              && !get(choreDoc()).data.deleting && !getAfter(choreDoc()).data.deleting
+              && getAfter(choreDoc()).data.recordCount == get(choreDoc()).data.recordCount + 1
+              && getAfter(choreDoc()).data.recordMutationId == logId
               && request.resource.data.actorId == me()
               && request.resource.data.actorName == get(memberDoc(houseId, me())).data.displayName
               && request.resource.data.createdAt == request.time
               && (isDoneLog(request.resource.data) || isMovedLog(request.resource.data));
 
           // Removed only while deleting the chore, by those who may delete it.
-          allow delete: if isMember(houseId)
+          allow delete: if isMember(houseId) && houseReady(houseId)
+              && get(choreDoc()).data.deleting && getAfter(choreDoc()).data.deleting
+              && getAfter(choreDoc()).data.recordCount == get(choreDoc()).data.recordCount - 1
+              && getAfter(choreDoc()).data.recordMutationId == logId
               && (get(choreDoc()).data.createdBy == me() || isOwner(houseId));
         }
       }
