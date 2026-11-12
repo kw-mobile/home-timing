@@ -40,6 +40,22 @@ final class ItemTasks {
         });
     }
 
+    /** Runs a write within its original session and translates its final result. */
+    static <T> Task<T> commit(FirebaseFirestore db, OperationScope.Token scope, Supplier<String> uid,
+                              Transaction.Function<T> body) {
+        return scoped(transaction(db, scope, uid, body), scope, uid);
+    }
+
+    /** Also re-reads a denied write to report a stale occurrence instead of a permission error. */
+    static <T> Task<T> commitWithConflictCheck(FirebaseFirestore db, OperationScope.Token scope,
+                                               Supplier<String> uid, DocumentReference ref,
+                                               Function<DocumentSnapshot, ItemSchedule.Conflict> conflictOf,
+                                               Transaction.Function<T> body) {
+        Task<T> write = transaction(db, scope, uid, body);
+        Task<T> explained = explainDenial(write, ref, conflictOf, scope, uid);
+        return scoped(explained, scope, uid);
+    }
+
     static <T> Task<T> scoped(Task<T> task, OperationScope.Token scope, Supplier<String> uid) {
         return task.continueWithTask(done -> {
             if (!OperationScope.getInstance().isCurrent(scope, uid.get())) {

@@ -207,13 +207,13 @@ public final class ItemRepository {
         FirebaseFirestore firestore = db;
         DocumentReference ref = items(firestore, houseId).document();
         Item item = ItemSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
-        return ItemTasks.scoped(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commit(firestore, scope, this::currentUid, tx -> {
             tx.set(ref, ItemDocuments.itemFields(item, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.ITEM_COUNT, FieldValue.increment(1),
                     Schema.Houses.ITEM_MUTATION_ID, ref.getId());
             return item;
-        }), scope, this::currentUid);
+        });
     }
 
     /** Edits the item the screen showed (F-03). Fails if it was completed or rescheduled meanwhile. */
@@ -235,7 +235,8 @@ public final class ItemRepository {
         }
         FirebaseFirestore firestore = db;
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             Item stored = requireStored(snapshot);
             rejectConflict(stored, shown);
@@ -247,7 +248,7 @@ public final class ItemRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, null));
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /**
@@ -276,7 +277,8 @@ public final class ItemRepository {
         DocumentReference ref = itemRef(firestore, houseId, shown.id);
         DocumentReference member = houseRef(firestore, houseId).collection(Schema.Members.COLLECTION).document(uid);
         String nextOccurrence = newOccurrenceId();
-        return ItemTasks.scoped(ItemTasks.explainDenial(ItemTasks.transaction(firestore, scope, this::currentUid, tx -> {
+        return ItemTasks.commitWithConflictCheck(firestore, scope, this::currentUid, ref,
+                snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), tx -> {
             DocumentSnapshot snapshot = tx.get(ref);
             DocumentSnapshot memberSnapshot = tx.get(member);
             Item stored = requireStored(snapshot);
@@ -296,7 +298,7 @@ public final class ItemRepository {
                     FieldValue.serverTimestamp());
             tx.set(ref, RecordState.preserve(fields, snapshot, stored.occurrenceId));
             return next;
-        }), ref, snapshot -> conflictOf(snapshot, shown.occurrenceId, shown.revision), scope, this::currentUid), scope, this::currentUid);
+        });
     }
 
     /**

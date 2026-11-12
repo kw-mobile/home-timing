@@ -158,54 +158,68 @@ public final class ReminderRepository {
         if (expectedUid == null || !expectedUid.equals(currentUid())) {
             return fail(ItemError.NOT_SIGNED_IN);
         }
-        FirebaseFirestore firestore = db;
-        DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(expectedUid);
-        Task<ReminderSnapshot> task = firestore.collection(Schema.AccountDeletions.COLLECTION).document(expectedUid)
+        DocumentReference user = db.collection(Schema.Users.COLLECTION).document(expectedUid);
+        Task<DocumentSnapshot> userRead = db.collection(Schema.AccountDeletions.COLLECTION).document(expectedUid)
                 .get(Source.SERVER).onSuccessTask(marker -> marker.exists()
-                        ? ReminderRepository.<DocumentSnapshot>fail(ItemError.PERMISSION_DENIED) : userRef.get(Source.SERVER)).onSuccessTask(user -> {
-            if (!expectedUid.equals(currentUid())) {
-                return fail(ItemError.NOT_SIGNED_IN);
-            }
-            String houseId = user.getString(Schema.Users.CURRENT_HOUSE_ID);
-            String notifyTime = user.getString(Schema.Users.NOTIFY_TIME);
-            Long advanceDays = user.getLong(Schema.Users.ADVANCE_DAYS);
-            if (houseId == null || notifyTime == null || advanceDays == null) {
-                return fail(ItemError.NOT_FOUND);
-            }
-            if (expectedHouseId != null && !expectedHouseId.equals(houseId)) {
+                        ? fail(ItemError.PERMISSION_DENIED) : user.get(Source.SERVER));
+        Task<ReminderSnapshot> snapshot = userRead.onSuccessTask(profile ->
+                readHouseTargets(expectedUid, expectedHouseId, profile));
+        return snapshot.continueWithTask(done -> done.isSuccessful()
+                ? done : Tasks.forException(asItemException(done.getException())));
+    }
+
+    /** Pins the settings before reading the house's reminder targets. */
+    private Task<ReminderSnapshot> readHouseTargets(String uid, @Nullable String expectedHouseId,
+                                                    DocumentSnapshot user) {
+        if (!uid.equals(currentUid())) {
+            return fail(ItemError.NOT_SIGNED_IN);
+        }
+        String houseId = user.getString(Schema.Users.CURRENT_HOUSE_ID);
+        String notifyTime = user.getString(Schema.Users.NOTIFY_TIME);
+        Long advanceDays = user.getLong(Schema.Users.ADVANCE_DAYS);
+        if (houseId == null || notifyTime == null || advanceDays == null) {
+            return fail(ItemError.NOT_FOUND);
+        }
+        if (expectedHouseId != null && !expectedHouseId.equals(houseId)) {
+            return fail(ItemError.PERMISSION_DENIED);
+        }
+        DocumentReference house = db.collection(Schema.Houses.COLLECTION).document(houseId);
+        Task<QuerySnapshot> itemsRead = house.get(Source.SERVER).onSuccessTask(home -> {
+            if (!home.exists() || Boolean.TRUE.equals(home.getBoolean(Schema.Houses.CLOSING))) {
                 return fail(ItemError.PERMISSION_DENIED);
             }
-            DocumentReference house = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
-            return house.get(Source.SERVER).onSuccessTask(home -> {
-                if (!home.exists() || Boolean.TRUE.equals(home.getBoolean(Schema.Houses.CLOSING))) {
-                    return ReminderRepository.<QuerySnapshot>fail(ItemError.PERMISSION_DENIED);
-                }
-                return house.collection(Schema.Items.COLLECTION).get(Source.SERVER);
-            }).onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
-                            .onSuccessTask(chores -> userRef.get(Source.SERVER).onSuccessTask(latest -> {
-                                if (!expectedUid.equals(currentUid())) {
-                                    return fail(ItemError.NOT_SIGNED_IN);
-                                }
-                                if (!houseId.equals(latest.getString(Schema.Users.CURRENT_HOUSE_ID))) {
-                                    return fail(ItemError.PERMISSION_DENIED);
-                                }
-                                if (!notifyTime.equals(latest.getString(Schema.Users.NOTIFY_TIME))
-                                        || !advanceDays.equals(latest.getLong(Schema.Users.ADVANCE_DAYS))) {
-                                    return fail(ItemError.SCHEDULE_CHANGED);
-                                }
-                                return house.collection(Schema.Members.COLLECTION).document(expectedUid)
-                                        .get(Source.SERVER).onSuccessTask(member -> {
-                                            if (!expectedUid.equals(currentUid())) {
-                                                return fail(ItemError.NOT_SIGNED_IN);
-                                            }
-                                            return member.exists() ? Tasks.forResult(new ReminderSnapshot(houseId,
-                                                    notifyTime, advanceDays.intValue(), readItems(items), readChores(chores)))
-                                                    : fail(ItemError.PERMISSION_DENIED);
-                                        });
-                            })));
+            return house.collection(Schema.Items.COLLECTION).get(Source.SERVER);
         });
-        return task.continueWithTask(done -> done.isSuccessful()
-                ? done : Tasks.forException(asItemException(done.getException())));
+        return itemsRead.onSuccessTask(items -> house.collection(Schema.Chores.COLLECTION).get(Source.SERVER)
+                .onSuccessTask(chores -> confirmSnapshot(uid, houseId, notifyTime, advanceDays, items, chores)));
+    }
+
+    /** Rejects a mixed snapshot if identity, house, settings or membership changed during the reads. */
+    private Task<ReminderSnapshot> confirmSnapshot(String uid, String houseId, String notifyTime,
+                                                   Long advanceDays, QuerySnapshot items, QuerySnapshot chores) {
+        DocumentReference user = db.collection(Schema.Users.COLLECTION).document(uid);
+        return user.get(Source.SERVER).onSuccessTask(latest -> {
+            if (!uid.equals(currentUid())) {
+                return fail(ItemError.NOT_SIGNED_IN);
+            }
+            if (!houseId.equals(latest.getString(Schema.Users.CURRENT_HOUSE_ID))) {
+                return fail(ItemError.PERMISSION_DENIED);
+            }
+            if (!notifyTime.equals(latest.getString(Schema.Users.NOTIFY_TIME))
+                    || !advanceDays.equals(latest.getLong(Schema.Users.ADVANCE_DAYS))) {
+                return fail(ItemError.SCHEDULE_CHANGED);
+            }
+            DocumentReference member = db.collection(Schema.Houses.COLLECTION).document(houseId)
+                    .collection(Schema.Members.COLLECTION).document(uid);
+            return member.get(Source.SERVER).onSuccessTask(membership -> {
+                if (!uid.equals(currentUid())) {
+                    return fail(ItemError.NOT_SIGNED_IN);
+                }
+                return membership.exists() ? Tasks.forResult(new ReminderSnapshot(houseId,
+                        notifyTime, advanceDays.intValue(), readItems(items), readChores(chores)))
+                        : fail(ItemError.PERMISSION_DENIED);
+            });
+        });
     }
 
     /** Saves the personal reminder settings. Online only, like every other change. */

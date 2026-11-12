@@ -21,19 +21,11 @@ import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Source;
 import com.google.firebase.firestore.Transaction;
 import com.kwmobile.hometiming.BuildConfig;
-import com.kwmobile.hometiming.data.firestore.ChoreRepository;
-import com.kwmobile.hometiming.data.firestore.HouseDocuments;
 import com.kwmobile.hometiming.data.firestore.HouseholdSetup;
 import com.kwmobile.hometiming.data.firestore.ItemException;
-import com.kwmobile.hometiming.data.firestore.ItemRepository;
 import com.kwmobile.hometiming.data.firestore.Schema;
-import com.kwmobile.hometiming.domain.AccountDeletion;
 import com.kwmobile.hometiming.domain.AccountInputValidator;
-import com.kwmobile.hometiming.domain.House;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Email accounts (docs/MVP.md F-01) and the one-person house every signed-in user belongs to.
@@ -214,13 +206,14 @@ public final class AuthRepository {
         long generation = sessions.beginDeletion();
         String uid = user.getUid();
         AuthCredential credential = EmailAuthProvider.getCredential(email, password);
+        AccountDeletionCoordinator deletion = new AccountDeletionCoordinator(
+                db, sessions, this::currentUid, uid, generation);
         Task<Void> task = user.reauthenticate(credential)
                 .onSuccessTask(ignored -> user.getIdToken(true))
                 .onSuccessTask(ignored -> {
                     requireSession(generation, uid);
-                    return beginAccountDeletion(db, uid, generation);
+                    return deletion.removeData();
                 })
-                .onSuccessTask(ignored -> cleanUpAccountData(db, uid, generation))
                 .onSuccessTask(ignored -> deleteAuth(user, AUTH_DELETE_ATTEMPTS, generation));
         return translate(task).continueWithTask(done -> {
             sessions.finishDeletion(generation);
@@ -238,200 +231,6 @@ public final class AuthRepository {
                 return deleteAuth(user, attemptsLeft - 1, generation);
             }
             return Tasks.forException(new AuthException(AuthError.DELETE_INCOMPLETE, done.getException()));
-        });
-    }
-
-    /** Freezes account/house state before any destructive cleanup, even across devices. */
-    private Task<Void> beginAccountDeletion(FirebaseFirestore firestore, String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        DocumentReference receipt = firestore.collection(Schema.AccountDeletions.COLLECTION).document(uid);
-        DocumentReference user = firestore.collection(Schema.Users.COLLECTION).document(uid);
-        return firestore.runTransaction(tx -> {
-            requireTransactionSession(generation, uid);
-            DocumentSnapshot marker = tx.get(receipt);
-            DocumentSnapshot profile = tx.get(user);
-            DocumentReference accessRef = firestore.collection(Schema.InviteLookups.COLLECTION).document(uid);
-            DocumentSnapshot access = tx.get(accessRef);
-            String houseId = profile.getString(Schema.Users.CURRENT_HOUSE_ID);
-            DocumentReference houseRef = houseId == null ? null : firestore.collection(Schema.Houses.COLLECTION).document(houseId);
-            DocumentReference memberRef = houseId == null ? null : memberRef(firestore, houseId, uid);
-            DocumentSnapshot member = memberRef == null ? null : tx.get(memberRef);
-            DocumentSnapshot home = member != null && member.exists() ? tx.get(houseRef) : null;
-            House house = home == null || home.getData() == null ? null : HouseDocuments.toHouse(houseId, home.getData());
-            if (house != null && house.isOwner(uid) && house.memberCount > 1) {
-                throw new IllegalStateException(new AuthException(AuthError.OWNER_HAS_MEMBERS));
-            }
-            DocumentReference inviteRef = house == null || house.activeInviteCode == null ? null
-                    : firestore.collection(Schema.Invites.COLLECTION).document(house.activeInviteCode);
-            DocumentSnapshot invite = inviteRef == null ? null : tx.get(inviteRef);
-            requireTransactionSession(generation, uid);
-            if (!marker.exists()) {
-                tx.set(receipt, java.util.Collections.singletonMap(Schema.AccountDeletions.STARTED_AT,
-                        FieldValue.serverTimestamp()));
-            }
-            if (access.exists()) {
-                tx.delete(accessRef);
-            }
-            if (house != null && house.isOwner(uid)) {
-                if (!Boolean.TRUE.equals(home.getBoolean(Schema.Houses.CLOSING))) {
-                    tx.update(houseRef, Schema.Houses.CLOSING, true,
-                            Schema.Houses.ACTIVE_INVITE_CODE, FieldValue.delete(),
-                            Schema.Houses.UPDATED_AT, FieldValue.serverTimestamp());
-                }
-                if (invite != null && invite.exists() && houseId.equals(invite.getString(Schema.Invites.HOUSE_ID))) {
-                    tx.delete(inviteRef);
-                }
-                return houseId;
-            }
-            if (member != null && member.exists()) {
-                tx.delete(memberRef);
-                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
-                        Schema.Houses.MEMBER_MUTATION_ID, uid);
-            }
-            if (profile.exists()) {
-                tx.delete(user);
-            }
-            return null;
-        }).onSuccessTask(houseId -> {
-            requireSession(generation, uid);
-            if (houseId != null && !OperationScope.getInstance().bindIfGeneration(generation, uid, houseId)) {
-                return fail(AuthError.NOT_SIGNED_IN);
-            }
-            return Tasks.forResult(null);
-        });
-    }
-
-    private Task<Void> cleanUpAccountData(FirebaseFirestore firestore, String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        DocumentReference userRef = firestore.collection(Schema.Users.COLLECTION).document(uid);
-        return userRef.get(Source.SERVER).onSuccessTask(userSnapshot -> {
-            requireSession(generation, uid);
-            String houseId = userSnapshot.exists() ? userSnapshot.getString(Schema.Users.CURRENT_HOUSE_ID) : null;
-            if (!userSnapshot.exists()) {
-                return Tasks.forResult(null);
-            }
-            if (houseId == null || houseId.isEmpty()) {
-                return deleteUserOnly(firestore, userRef, uid, generation);
-            }
-            DocumentReference houseRef = firestore.collection(Schema.Houses.COLLECTION).document(houseId);
-            DocumentReference memberRef = memberRef(firestore, houseId, uid);
-            return memberRef.get(Source.SERVER).onSuccessTask(memberSnapshot -> {
-                requireSession(generation, uid);
-                if (!memberSnapshot.exists()) {
-                    return deleteUserOnly(firestore, userRef, uid, generation);
-                }
-                return houseRef.get(Source.SERVER).onSuccessTask(houseSnapshot -> {
-                    requireSession(generation, uid);
-                    Map<String, Object> data = houseSnapshot.getData();
-                    House house = data == null ? null : HouseDocuments.toHouse(houseId, data);
-                    switch (AccountDeletion.plan(true, house, true, uid)) {
-                        case BLOCKED_OWNER_WITH_MEMBERS:
-                            return fail(AuthError.OWNER_HAS_MEMBERS);
-                        case LEAVE_SHARED_HOUSE:
-                            return firestore.runTransaction(tx -> {
-                                requireTransactionSession(generation, uid);
-                                tx.delete(memberRef);
-                                tx.update(houseRef, Schema.Houses.MEMBER_COUNT, FieldValue.increment(-1),
-                                        Schema.Houses.MEMBER_MUTATION_ID, uid);
-                                tx.delete(userRef);
-                                return null;
-                            });
-                        case DISSOLVE_OWN_HOUSE:
-                            return deleteAllItems(firestore, houseId, uid, generation)
-                                    .onSuccessTask(ignored -> deleteAllChores(firestore, houseId, uid, generation))
-                                    .onSuccessTask(ignored -> dissolveOwnHouse(firestore, houseRef, memberRef, userRef, uid, generation));
-                        case DELETE_USER_ONLY:
-                        case DELETE_AUTH_ONLY:
-                        default:
-                            return deleteUserOnly(firestore, userRef, uid, generation);
-                    }
-                });
-            });
-        });
-    }
-
-    private Task<Void> deleteUserOnly(FirebaseFirestore firestore, DocumentReference userRef,
-                                      String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        return firestore.runTransaction(tx -> {
-            requireTransactionSession(generation, uid);
-            tx.delete(userRef);
-            return null;
-        });
-    }
-
-    /** Items one by one through ItemRepository (history first, itemCount −1 with each item). */
-    private Task<Void> deleteAllItems(FirebaseFirestore firestore, String houseId,
-                                      String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
-                .collection(Schema.Items.COLLECTION).get(Source.SERVER)
-                .onSuccessTask(items -> {
-                    List<String> ids = new ArrayList<>();
-                    for (DocumentSnapshot document : items.getDocuments()) {
-                        ids.add(document.getId());
-                    }
-                    Task<Void> chain = Tasks.forResult(null);
-                    for (String itemId : ids) {
-                        chain = chain.onSuccessTask(ignored -> {
-                            requireSession(generation, uid);
-                            return ItemRepository.getInstance().delete(houseId, itemId);
-                        });
-                    }
-                    return chain;
-                });
-    }
-
-    /** Chores one by one through ChoreRepository (logs first, choreCount −1 with each chore). */
-    private Task<Void> deleteAllChores(FirebaseFirestore firestore, String houseId,
-                                      String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        return firestore.collection(Schema.Houses.COLLECTION).document(houseId)
-                .collection(Schema.Chores.COLLECTION).get(Source.SERVER)
-                .onSuccessTask(chores -> {
-                    List<String> ids = new ArrayList<>();
-                    for (DocumentSnapshot document : chores.getDocuments()) {
-                        ids.add(document.getId());
-                    }
-                    Task<Void> chain = Tasks.forResult(null);
-                    for (String choreId : ids) {
-                        chain = chain.onSuccessTask(ignored -> {
-                            requireSession(generation, uid);
-                            return ChoreRepository.getInstance().delete(houseId, choreId);
-                        });
-                    }
-                    return chain;
-                });
-    }
-
-    /** The empty one-person house, its invite, member and the user document in one transaction. */
-    private Task<Void> dissolveOwnHouse(FirebaseFirestore firestore, DocumentReference houseRef,
-                                               DocumentReference memberRef, DocumentReference userRef,
-                                               String uid, long generation) throws AuthException {
-        requireSession(generation, uid);
-        return firestore.runTransaction(tx -> {
-            requireTransactionSession(generation, uid);
-            DocumentSnapshot houseSnapshot = tx.get(houseRef);
-            Map<String, Object> data = houseSnapshot.getData();
-            House house = data == null ? null : HouseDocuments.toHouse(houseRef.getId(), data);
-            DocumentReference inviteRef = house == null || house.activeInviteCode == null ? null
-                    : firestore.collection(Schema.Invites.COLLECTION).document(house.activeInviteCode);
-            DocumentSnapshot invite = inviteRef == null ? null : tx.get(inviteRef);
-            if (house != null && !house.isEmptyOnePerson()) {
-                // Something was added meanwhile; calling again deletes it first. Not a retryable
-                // Firestore error, so the transaction stops instead of retrying the same state.
-                throw new IllegalStateException("house not empty");
-            }
-            requireTransactionSession(generation, uid);
-            if (invite != null && invite.exists() && houseRef.getId().equals(invite.getString(Schema.Invites.HOUSE_ID))) {
-                tx.delete(inviteRef);
-            }
-            tx.delete(memberRef);
-            if (house != null) {
-                tx.delete(houseRef);
-            }
-            tx.delete(userRef);
-            return null;
         });
     }
 
@@ -530,8 +329,13 @@ public final class AuthRepository {
     // Already-issued Firebase SDK calls cannot be cancelled. Ignore stale results and do not
     // start another data mutation after an account operation replaces this one.
     private boolean isCurrent(long generation, String uid) {
+        return sessions.accepts(generation, uid, currentUid());
+    }
+
+    @Nullable
+    private String currentUid() {
         FirebaseUser current = auth == null ? null : auth.getCurrentUser();
-        return sessions.accepts(generation, uid, current == null ? null : current.getUid());
+        return current == null ? null : current.getUid();
     }
 
     private void requireSession(long generation, String uid) throws AuthException {

@@ -81,3 +81,5 @@ PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 
 | 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 개선 승인; Codex (도구): 취약점 확인·의존성 패치·검증 | Guava32.1.3-android의 CVE-2026-102554 영향 범위를 공식 권고로 확인하고33.7.2-android로 패치. Wrapper로 잠금 재생성, 기본 빌드·단위255·Lint 통과, 출시 런타임147좌표 OSV 재조회 매칭0. 원격 악용 재현은 아님, AGP 내부 도구 매칭은 별도 | [이슈 #60](https://github.com/kw-mobile/home-timing/issues/60), [PR #61](https://github.com/kw-mobile/home-timing/pull/61) |
 
 | 2026-11-12 | 사용자(성명 확인 필요): 전체 보안 수정 승인·흐름 단위 테스트 요구; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | 서버의 계정 삭제·집 정리 수명, 이전 소속 제거, 회차 ID·초대 요청 제한, 공통 작업 세대·캐시 구독 경계, 알림 설정 즉시 반영·중복 방지, 누락 예보·초대 오류 수정. 단위 258·규칙 121·전환 흐름 3, 로컬 Auth/Firestore 정리→복원 거부→Auth 삭제 후 고아 없음 확인. 사용자 지정 계정으로 운영 메타데이터 6항목 조회 확인, 배포·전환·실기기 미수행 | [이슈 #59](https://github.com/kw-mobile/home-timing/issues/59), [PR #62](https://github.com/kw-mobile/home-timing/pull/62); [운영 점검](SECURITY_OPERATIONS.md) |
+
+| 2026-11-12 | 사용자(성명 확인 필요): UI까지 정리 범위·흐름 단위 검증 원칙 결정; Codex (도구): 설계·구현·검증·독립 교차 리뷰 | MainActivity 화면 바인딩을 기능별로 분리하고 공통 표시 도구 추출. Auth 계정 데이터 삭제·House 초대 절차 분리, Item/Chore 실행 합성·Reminder 서버 읽기 단계 정리. 공개 API·화면·저장 상태 유지 | [이슈 #63](https://github.com/kw-mobile/home-timing/issues/63) |
