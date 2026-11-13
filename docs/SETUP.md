@@ -126,6 +126,67 @@ firebase deploy --only firestore:rules --project kw-mobile-home-timing --account
 
 PC에서 같은 앱 설정으로 제공자 응답만 확인하려면 JDK 17 터미널에서 `./gradlew.bat -I scripts/weather/check-connection.init.gradle :app:checkWeatherConnection --console=plain -q`를 실행합니다(macOS/Linux는 `./gradlew`). 이 수동 진단은 키·요청 URL·원문 응답을 출력하지 않습니다. 명령 종료 코드가 0이어도 API 성공을 뜻하지 않으며 출력의 HTTP 상태와 `KMA_00`을 함께 확인합니다. `HTTP 403` / `HUB_403` / `API_APPLICATION_REQUIRED`가 나오면 활용신청 화면의 승인 계정·대상 API와 현재 키의 연결 상태를 API허브에서 확인합니다. 키를 교체했다면 앱을 다시 빌드·설치합니다.
 
+## Release APK
+
+[Android release APK](../.github/workflows/android-release.yml)는 main에 포함된 커밋의 `vX.Y.Z` 태그를 push하면 서명 APK와 SHA-256 파일을 GitHub Releases에 게시합니다. 일반 브랜치·PR에서는 배포하지 않습니다. 태그와 릴리스는 버전마다 새로 만들고 기존 게시물을 덮어쓰지 않습니다. Play Store 배포는 포함하지 않습니다.
+
+### 로컬 키와 서명 빌드 (Windows)
+
+JDK 17을 `JAVA_HOME`으로 지정하고 프로젝트 루트에서 실행합니다.
+
+```powershell
+./scripts/release/signing.ps1 -Action CreateKey
+./scripts/release/signing.ps1 -Action Build -VersionName 0.1.0 -VersionCode 2
+```
+
+- 첫 명령은 `.signing/home-timing-release.jks`(RSA3072, alias `hometiming`, 10,000일)와 `password.dpapi.xml`을 생성합니다. 기존 키/비밀번호 파일이 있으면 덮어쓰지 않습니다.
+- 비밀번호는 난수로 생성하며 해당 Windows 사용자·PC에서만 복호화되는 DPAPI로 저장합니다. 디렉터리 권한도 현재 사용자로 제한합니다. 키·비밀번호는 Git과 로그에 넣지 않습니다.
+- 장기 보관할 키는 별도 안전한 저장소에 백업하고 비밀번호는 비밀번호 관리자에 보관하세요. **DPAPI XML을 복사하는 것만으로 다른 PC에서 복구할 수 없습니다.** 현재 PC에서 비밀번호 관리자로 옮길 때만 아래 명령을 직접 실행합니다. 채팅·이슈·스크린샷에 붙여넣지 않고, 붙여넣은 뒤 클립보드를 비웁니다.
+- `-SigningDirectory`로 기존 키 디렉터리를 지정할 수 있습니다. worktree 안에 키를 만들었다면 안전한 별도 백업을 확인하기 전 그 worktree를 삭제하지 않습니다.
+
+```powershell
+(Import-Clixml .signing/password.dpapi.xml).GetNetworkCredential().Password | Set-Clipboard
+# 비밀번호 관리자에 저장한 다음:
+Set-Clipboard -Value ''
+```
+
+서명 빌드는 네 환경 변수 `RELEASE_STORE_FILE`·`RELEASE_STORE_PASSWORD`·`RELEASE_KEY_ALIAS`·`RELEASE_KEY_PASSWORD`를 사용합니다. 스크립트는 값을 현재 프로세스에만 주입하고 종료 시 복원합니다. 다른 OS에서는 같은 환경 변수를 지정하고 Wrapper로 빌드합니다. 키가 없으면 release 빌드는 실패하며 debug 빌드·IDE Sync는 영향을 받지 않습니다. 서명 산출물은 `app/build/outputs/apk/release/app-release.apk`입니다. debug 설치본과 서명 키가 달라 그대로 업데이트 설치할 수 없습니다.
+
+### GitHub 최초 준비
+
+1. 저장소 `Settings → Secrets and variables → Actions`에 다음 Repository secrets를 등록합니다. 암호화된 로컬 키를 그대로 사용하며 새 키로 교체하지 않습니다.
+
+| 이름 | 값 |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | JKS 파일의 Base64 인코딩 |
+| `ANDROID_STORE_PASSWORD` | 키 저장소 비밀번호 |
+| `ANDROID_KEY_ALIAS` | `hometiming` |
+| `ANDROID_KEY_PASSWORD` | 생성 시 저장소와 같은 비밀번호 |
+
+현재 PC에서는 GitHub CLI 인증 후 아래 명령으로 값을 콘솔에 출력하지 않고 stdin으로 등록할 수 있습니다. 기존 이름이 하나라도 있으면 서명 키 교체를 피하기 위해 중단하므로 기존 키와 설정을 먼저 확인합니다. 중간 실패 시 이미 등록된 secret은 남을 수 있습니다.
+
+```powershell
+./scripts/release/signing.ps1 -Action UploadSecrets
+```
+
+CLI가 PATH에 없으면 `-GhPath 'GitHub CLI 실행 파일 경로'`를 추가합니다. fine-grained PAT에는 해당 저장소의 **Secrets: Read and write**가 필요합니다. 워크플로 파일 push에는 **Workflows: Read and write**와 **Contents: Read and write**가 필요합니다. 조직 승인이 필요한 경우 승인 후 진행합니다. 토큰은 스크립트·저장소에 저장하지 않습니다. Actions 실행 중에는 PAT 대신 작업의 `GITHUB_TOKEN`을 사용합니다.
+
+2. 워크플로 PR을 검토·병합한 다음, 최신 main의 배포할 커밋에 아직 사용하지 않은 태그를 만듭니다. 아래 버전은 예시이므로 실제 릴리스 버전으로 바꿉니다.
+
+```sh
+git fetch origin main
+git tag -a v0.1.0 origin/main -m "Home Timing v0.1.0"
+git push origin v0.1.0
+```
+
+`versionName`은 태그의 `v`를 뺀 값이고 `versionCode`는 이 워크플로의 `github.run_number + 1`입니다(개발 기본값은 1). 배포 버전은 작업 실행 순서로 증가합니다. 워크플로를 삭제·재생성하거나 다른 경로로 전환해 번호가 초기화되면 기존 게시 APK의 코드보다 큰 값이 되도록 정책을 먼저 조정합니다. 같은 실행의 재실행은 같은 코드를 사용합니다.
+
+3. Actions의 서명·단위 테스트·Lint·APK 검증이 모두 성공하면 Releases에서 `home-timing-vX.Y.Z.apk`와 `.apk.sha256`을 내려받습니다. 서명 키는 runner 임시 디렉터리에서만 복원하고 종료 시 삭제하며 캐시·배포 파일에 포함하지 않습니다. 첫 실제 게시 성공은 해당 Actions URL로 별도 확인합니다.
+
+이 배포 빌드는 개인 `local.properties`·기상청 키·Firebase 설정 파일을 가져오지 않는 기본 빌드입니다. 실제 서비스 설정과 동작 검증은 위 [외부 서비스](#외부-서비스)를 따릅니다. 키 없는 APK는 실제 날씨 대신 설정 안내를 표시합니다. APK에 포함하는 API 키를 비밀 저장소로 취급하지 않습니다.
+
+공식 기준: [Android 앱 서명](https://developer.android.com/studio/publish/app-signing), [GitHub Actions secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
+
 ## 검증 안내
 
 최초 설정 후에는 기본 빌드를 확인합니다. 이후에는 [변경별 검증·결과 기록·산출물 안내](TESTING.md)를 따릅니다. 문서만 바꾸는 작업에는 Android 빌드를 요구하지 않습니다.
