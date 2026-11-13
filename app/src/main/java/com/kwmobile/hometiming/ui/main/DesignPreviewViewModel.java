@@ -122,6 +122,34 @@ public final class DesignPreviewViewModel extends ViewModel {
         return (chore ? state.choreCategories : state.itemCategories).add(name);
     }
 
+    public List<String> customCategories(boolean chore, String[] defaults) {
+        List<String> result = categories(chore, defaults);
+        result.removeAll(java.util.Arrays.asList(defaults));
+        return result;
+    }
+
+    public boolean categoryInUse(boolean chore, String name) {
+        for (PreviewStore.Item item : state.store.items) {
+            if (item.chore == chore && item.category != null
+                    && name.equals(item.category.trim())) return true;
+        }
+        return draftUsesCategory(state.draft, chore, name)
+                || draftUsesCategory(state.componentDraft, chore, name);
+    }
+
+    private boolean draftUsesCategory(Draft draft, boolean chore, String name) {
+        return draft != null && draft.chore == chore && draft.category != null
+                && name.equals(draft.category.trim());
+    }
+
+    public boolean deleteCategory(boolean chore, String name, String[] defaults, String allLabel) {
+        if (!customCategories(chore, defaults).contains(name)
+                || categoryInUse(chore, name)) return false;
+        boolean removed = (chore ? state.choreCategories : state.itemCategories).remove(name);
+        if (removed && !chore && name.equals(state.filter)) state.filter = allLabel;
+        return removed;
+    }
+
     public void save(Bundle out) {
         out.putSerializable("preview_state", state);
     }

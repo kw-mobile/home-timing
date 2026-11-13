@@ -6,4 +6,10 @@
     <string name="category_add_action">추가</string>
     <string name="category_invalid">분류명을 1~30자로 입력해 주세요. ‘전체’는 사용할 수 없어요.</string>
     <string name="category_duplicate">이미 있는 분류예요. 다른 이름을 입력해 주세요.</string>
+    <string name="category_manage">분류 관리</string>
+    <string name="category_delete_title">분류 삭제</string>
+    <string name="category_delete_action">삭제</string>
+    <string name="category_delete_message">‘%1$s’ 분류를 삭제할까요?</string>
+    <string name="category_delete_empty">삭제할 사용자 분류가 없어요. 기본 분류는 유지돼요.</string>
+    <string name="category_delete_in_use">항목이나 작성 중인 입력에서 사용 중인 분류예요. 먼저 다른 분류로 바꾼 뒤 삭제해 주세요.</string>
 </resources>

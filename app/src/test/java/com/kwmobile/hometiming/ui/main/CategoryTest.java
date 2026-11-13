@@ -31,6 +31,57 @@ public class CategoryTest {
         assertFalse(vm.categories(false, DEFAULTS).contains("서재"));
     }
 
+    @Test public void deleteResetsFilterSurvivesRestoreAndAllowsReadding() throws Exception {
+        DesignPreviewViewModel vm = new DesignPreviewViewModel();
+        assertTrue(vm.addCategory(false, "침실", DEFAULTS, "전체"));
+        vm.state.filter = "침실";
+        assertTrue(vm.deleteCategory(false, "침실", DEFAULTS, "전체"));
+        assertEquals("전체", vm.state.filter);
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        new ObjectOutputStream(bytes).writeObject(vm.state);
+        vm.state = (DesignPreviewViewModel.State) new ObjectInputStream(
+                new ByteArrayInputStream(bytes.toByteArray())).readObject();
+        assertFalse(vm.categories(false, DEFAULTS).contains("침실"));
+        assertFalse(vm.deleteCategory(false, "침실", DEFAULTS, "전체"));
+        assertTrue(vm.addCategory(false, "침실", DEFAULTS, "전체"));
+    }
+
+    @Test public void usedCategoryIsPreservedUntilItemChangesCategory() {
+        DesignPreviewViewModel vm = new DesignPreviewViewModel();
+        assertTrue(vm.addCategory(false, "서재", DEFAULTS, "전체"));
+        vm.state.store.find("filter").category = " 서재 ";
+        assertFalse(vm.deleteCategory(false, "서재", DEFAULTS, "전체"));
+        assertEquals(" 서재 ", vm.state.store.find("filter").category);
+        vm.state.store.find("filter").category = "기타";
+        assertTrue(vm.deleteCategory(false, "서재", DEFAULTS, "전체"));
+        assertNotNull(vm.state.store.find("filter"));
+    }
+
+    @Test public void protectsDraftsAndSeparatesItemAndChoreDeletion() {
+        DesignPreviewViewModel vm = new DesignPreviewViewModel();
+        assertTrue(vm.addCategory(false, "침실", DEFAULTS, "전체"));
+        assertTrue(vm.addCategory(true, "침실", DEFAULTS, "전체"));
+        vm.state.draft = new DesignPreviewViewModel.Draft();
+        vm.state.draft.category = "침실";
+        assertFalse(vm.deleteCategory(false, "침실", DEFAULTS, "전체"));
+        assertTrue(vm.deleteCategory(true, "침실", DEFAULTS, "전체"));
+        assertEquals("침실", vm.state.draft.category);
+        vm.state.draft.category = "기타";
+        vm.state.componentDraft.category = "침실";
+        assertFalse(vm.deleteCategory(false, "침실", DEFAULTS, "전체"));
+        vm.state.componentDraft.category = "기타";
+        assertTrue(vm.deleteCategory(false, "침실", DEFAULTS, "전체"));
+    }
+
+    @Test public void cannotDeleteDefaultsOrUnknownCategory() {
+        DesignPreviewViewModel vm = new DesignPreviewViewModel();
+        assertFalse(vm.deleteCategory(false, "기타", DEFAULTS, "전체"));
+        assertFalse(vm.deleteCategory(false, "욕실", DEFAULTS, "전체"));
+        assertFalse(vm.deleteCategory(false, "없는 분류", DEFAULTS, "전체"));
+        assertFalse(vm.deleteCategory(false, null, DEFAULTS, "전체"));
+        assertEquals(Arrays.asList(DEFAULTS), vm.categories(false, DEFAULTS));
+    }
+
     @Test public void customCategoriesSurviveSavedStateSerialization() throws Exception {
         DesignPreviewViewModel vm = new DesignPreviewViewModel();
         assertTrue(vm.addCategory(false, "침실", DEFAULTS, "전체"));
