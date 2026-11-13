@@ -72,10 +72,10 @@ final class ItemScreens {
                     d.chore = value.equals(context.getString(R.string.preview_copy_088));
                     d.cycle = d.chore ? "7" : "60";
                     d.cycleEdited = false;
-                    d.category =
-                            d.chore
-                                    ? context.getString(R.string.preview_copy_089)
-                                    : context.getString(R.string.preview_copy_053);
+                    CategoryDialog categories = new CategoryDialog(context, vm, ui);
+                    d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore),
+                            context.getString(d.chore
+                                    ? R.string.preview_copy_089 : R.string.preview_copy_053));
                     d.weather = d.chore;
                     d.dirty = true;
                     host.render();
@@ -104,6 +104,8 @@ final class ItemScreens {
     }
 
     private void bindEditorCategory(DesignPreviewViewModel.Draft d) {
+        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore), d.category);
         LinearLayout category = ui.box(R.id.editor_category);
         ui.gap(category, 16);
         ui.settingsRow(
@@ -112,13 +114,17 @@ final class ItemScreens {
                 d.category,
                 0,
                 () ->
-                        new CategoryDialog(context, vm, ui).choose(
+                        categories.choose(
                                 d.chore,
                                 d.category,
                                 value -> {
                                     host.capture();
                                     d.category = value;
                                     d.dirty = true;
+                                    host.render();
+                                },
+                                () -> {
+                                    host.capture();
                                     host.render();
                                 }));
         ui.line(category);

@@ -63,6 +63,8 @@ public final class DesignPreviewViewModel extends ViewModel {
         public Map<String, String> authFields = new HashMap<>();
         public LinkedHashSet<String> itemCategories = new LinkedHashSet<>();
         public LinkedHashSet<String> choreCategories = new LinkedHashSet<>();
+        public LinkedHashSet<String> removedItemCategories = new LinkedHashSet<>();
+        public LinkedHashSet<String> removedChoreCategories = new LinkedHashSet<>();
         public Draft draft;
         public Draft componentDraft = new Draft();
         public Map<String, LocalDate> completionDates = new HashMap<>();
@@ -104,6 +106,7 @@ public final class DesignPreviewViewModel extends ViewModel {
 
     public List<String> categories(boolean chore, String[] defaults) {
         LinkedHashSet<String> result = new LinkedHashSet<>(java.util.Arrays.asList(defaults));
+        result.removeAll(removedCategories(chore));
         result.addAll(chore ? state.choreCategories : state.itemCategories);
         for (PreviewStore.Item item : state.store.items) {
             if (item.chore == chore && item.category != null && !item.category.trim().isEmpty())
@@ -122,10 +125,34 @@ public final class DesignPreviewViewModel extends ViewModel {
         return (chore ? state.choreCategories : state.itemCategories).add(name);
     }
 
-    public List<String> customCategories(boolean chore, String[] defaults) {
-        List<String> result = categories(chore, defaults);
-        result.removeAll(java.util.Arrays.asList(defaults));
-        return result;
+    private LinkedHashSet<String> removedCategories(boolean chore) {
+        // Older serialized preview states do not contain these fields.
+        if (state.removedItemCategories == null) state.removedItemCategories = new LinkedHashSet<>();
+        if (state.removedChoreCategories == null) state.removedChoreCategories = new LinkedHashSet<>();
+        return chore ? state.removedChoreCategories : state.removedItemCategories;
+    }
+
+    public String defaultCategory(boolean chore, String[] defaults, String preferred) {
+        List<String> names = categories(chore, defaults);
+        return names.contains(preferred) ? preferred : names.get(0);
+    }
+
+    public boolean renameCategory(
+            boolean chore, String oldName, String input, String[] defaults, String allLabel) {
+        String name = input == null ? "" : input.trim();
+        List<String> names = categories(chore, defaults);
+        if (!names.contains(oldName) || name.isEmpty() || name.equals(allLabel)
+                || name.codePointCount(0, name.length())
+                        > com.kwmobile.hometiming.domain.ItemInputValidator.CATEGORY_MAX_LENGTH
+                || (!name.equals(oldName) && names.contains(name))) return false;
+        if (name.equals(oldName)) return true;
+        removedCategories(chore).add(oldName);
+        LinkedHashSet<String> custom = chore ? state.choreCategories : state.itemCategories;
+        custom.remove(oldName);
+        custom.add(name);
+        moveCategoryReferences(chore, oldName, name);
+        if (!chore && oldName.equals(state.filter)) state.filter = name;
+        return true;
     }
 
     public boolean categoryInUse(boolean chore, String name) {
@@ -142,12 +169,33 @@ public final class DesignPreviewViewModel extends ViewModel {
                 && name.equals(draft.category.trim());
     }
 
-    public boolean deleteCategory(boolean chore, String name, String[] defaults, String allLabel) {
-        if (!customCategories(chore, defaults).contains(name)
-                || categoryInUse(chore, name)) return false;
-        boolean removed = (chore ? state.choreCategories : state.itemCategories).remove(name);
-        if (removed && !chore && name.equals(state.filter)) state.filter = allLabel;
-        return removed;
+    public boolean deleteCategory(
+            boolean chore, String name, String replacement, String[] defaults, String allLabel) {
+        List<String> names = categories(chore, defaults);
+        if (!names.contains(name) || names.size() <= 1 || name.equals(replacement)) return false;
+        if (categoryInUse(chore, name) && !names.contains(replacement)) return false;
+        removedCategories(chore).add(name);
+        (chore ? state.choreCategories : state.itemCategories).remove(name);
+        moveCategoryReferences(chore, name, replacement);
+        if (!chore && name.equals(state.filter)) state.filter = allLabel;
+        return true;
+    }
+
+    private void moveCategoryReferences(boolean chore, String name, String replacement) {
+        for (PreviewStore.Item item : state.store.items) {
+            if (item.chore == chore && item.category != null && name.equals(item.category.trim())) {
+                item.category = replacement;
+                item.revision++;
+            }
+        }
+        if (draftUsesCategory(state.draft, chore, name)) {
+            state.draft.category = replacement;
+            state.draft.dirty = true;
+        }
+        if (draftUsesCategory(state.componentDraft, chore, name)) {
+            state.componentDraft.category = replacement;
+            state.componentDraft.dirty = true;
+        }
     }
 
     public void save(Bundle out) {
