@@ -82,6 +82,8 @@
 
 | 2026-11-13 | 사용자(성명 확인 필요): 분류 직접 입력·목록 + 버튼·동적 칩 요청; Codex (도구): 구현·코드 검토·로컬 검증 | 기본 분류와 직접 추가/항목 분류 통합, 종류별 분류 분리, 공백/중복/30자 경계 검증·저장 상태 직렬화 테스트. 초기 별도 브랜치에서 단위261 통과 후 현재 날씨 브랜치에 이관. 최종 `0f4ab9a`에서 Windows/JBR17·Gradle8.13으로 `./gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --console=plain` 성공(단위273·실패0·건너뜀0, Lint 오류0·경고65: 버전16/미사용 리소스49); `git diff --check` 통과. emulator-5554(1080×1920)에서 목록 + → Study 입력·추가 → 선택된 칩·0개 필터 표시, 등록 폼 분류 선택의 Study·+ 직접 입력 표시 확인. 큰 글씨·회전 실동작·실기기 미검증. 서버 저장·공유 미연결 | [구현](../../app/src/main/java/com/kwmobile/hometiming/ui/main/CategoryDialog.java), [테스트](../../app/src/test/java/com/kwmobile/hometiming/ui/main/CategoryTest.java). 원본 `39741a6`을 `feature/weather-display-ui`의 `0f4ab9a`로 가져와 병합 해결 `a09e06d`와 함께 검증. GitHub CLI 미설치로 PR 본문 갱신 미수행, main 브랜치 미변경 |
 
+| 2026-11-13 | 사용자(성명 확인 필요): 분류 삭제 요청; Codex (도구): UI·상태 로직 구현, 코드 검토·단위 테스트·로컬 검증 | 목록/분류 선택의 ‘분류 관리’에서 사용자 분류 삭제 확인 제공. 기본 분류와 항목·초안에서 사용 중인 분류 보호, 삭제 필터 전체 복귀·종류별 분리·삭제 후 상태 복원/재추가 검증. 코드 `69a961e`, Windows/JBR17.0.12·Gradle8.13에서 `./gradlew.bat :app:assembleDebug :app:testDebugUnitTest :app:lintDebug --console=plain` 성공(277개·실패/건너뜀0, 분류7개 포함). Lint 오류0·경고65(버전16/미사용 리소스49), `git diff --check` 통과. adb 연결 기기 없음으로 실제 버튼·취소·큰 글씨·회전 UI 미검증. 서버 저장·공유 미연결 | [구현](../../app/src/main/java/com/kwmobile/hometiming/ui/main/CategoryDialog.java), [테스트](../../app/src/test/java/com/kwmobile/hometiming/ui/main/CategoryTest.java). main 기준 `bb68b4f`, 전용 `feature/category-delete`. GitHub CLI 미설치로 이슈·PR 미생성, 로컬 인계·미병합. 사람의 구현/기기 검증 기여는 확인 필요 |
+
 ## 기록 예시
 
 아래는 형식 예시이며 실제 실적이 아닙니다. 새 기록은 위 표에 추가합니다.
