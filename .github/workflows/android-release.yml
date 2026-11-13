@@ -1,0 +1,108 @@
+name: Android release APK
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Sign, verify and publish APK
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Validate version tag and main ancestry
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$RELEASE_TAG" =~ ^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Use a stable version tag such as v0.1.0."
+            exit 1
+          fi
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          echo "RELEASE_VERSION=${RELEASE_TAG#v}" >> "$GITHUB_ENV"
+          # Default development versionCode is 1. Preserve workflow history for monotonic codes.
+          echo "RELEASE_CODE=$((GITHUB_RUN_NUMBER + 1))" >> "$GITHUB_ENV"
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5
+        with:
+          distribution: temurin
+          java-version-file: .java-version
+      - name: Set up Gradle and validate wrapper
+        uses: gradle/actions/setup-gradle@4c125117fe7c5aed11272ec4213f602f012f89f2 # v5
+        with:
+          cache-disabled: true
+      - name: Read pinned SDK versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          for entry in 'compileSdk COMPILE_SDK' 'buildTools BUILD_TOOLS' 'cmdlineTools CMDLINE_TOOLS'; do
+            read -r key variable <<< "$entry"
+            value=$(sed -n "s/^$key = \"\\([^\"]*\\)\"/\\1/p" gradle/libs.versions.toml)
+            test -n "$value"
+            echo "$variable=$value" >> "$GITHUB_ENV"
+          done
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd # v4
+        with:
+          cmdline-tools-version: ${{ env.CMDLINE_TOOLS }}
+          packages: platform-tools platforms;android-${{ env.COMPILE_SDK }} build-tools;${{ env.BUILD_TOOLS }}
+          log-accepted-android-sdk-licenses: false
+      - name: Build and verify signed release
+        shell: bash
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          RELEASE_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          RELEASE_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          RELEASE_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for name in KEYSTORE_BASE64 RELEASE_STORE_PASSWORD RELEASE_KEY_ALIAS RELEASE_KEY_PASSWORD; do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::Missing release signing secret: $name"
+              exit 1
+            fi
+          done
+          umask 077
+          export RELEASE_STORE_FILE="$RUNNER_TEMP/home-timing-release.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RELEASE_STORE_FILE"
+          unset KEYSTORE_BASE64
+          ./gradlew --no-daemon --no-configuration-cache --no-build-cache --console=plain \
+            "-PreleaseVersionName=$RELEASE_VERSION" "-PreleaseVersionCode=$RELEASE_CODE" \
+            :app:testReleaseUnitTest :app:lintRelease :app:assembleRelease
+          "$ANDROID_HOME/build-tools/$BUILD_TOOLS/apksigner" verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk
+          # All build, lint, test and signature checks must pass before publishing.
+          mkdir -p dist
+          cp app/build/outputs/apk/release/app-release.apk "dist/home-timing-v$RELEASE_VERSION.apk"
+          cd dist
+          sha256sum "home-timing-v$RELEASE_VERSION.apk" > "home-timing-v$RELEASE_VERSION.apk.sha256"
+      - name: Publish versioned GitHub Release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          # Refuse duplicate releases rather than overwrite published signed assets.
+          gh release create "$RELEASE_TAG" dist/*.apk dist/*.sha256 \
+            --verify-tag --draft --title "Home Timing $RELEASE_TAG" --generate-notes
+          gh release edit "$RELEASE_TAG" --draft=false
+      - name: Remove signing material
+        if: always()
+        shell: bash
+        run: rm -f "$RUNNER_TEMP/home-timing-release.jks"

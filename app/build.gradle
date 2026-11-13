@@ -22,6 +22,20 @@ if (localConfigFile.exists()) {
 def kmaServiceKey = providers.environmentVariable('KMA_SERVICE_KEY')
         .orElse(localConfig.getProperty('KMA_SERVICE_KEY', '')).get()
 
+// Signing values are supplied only for local release builds and trusted tag jobs.
+def releaseSigning = ['RELEASE_STORE_FILE', 'RELEASE_STORE_PASSWORD',
+                      'RELEASE_KEY_ALIAS', 'RELEASE_KEY_PASSWORD'].collectEntries {
+    [(it): providers.environmentVariable(it).orNull]
+}
+def hasReleaseSigning = releaseSigning.values().every { it != null && !it.isBlank() }
+def releaseVersionName = providers.gradleProperty('releaseVersionName').orElse('0.1.0').get()
+def releaseVersionCode = providers.gradleProperty('releaseVersionCode').orElse('1').get()
+if (!(releaseVersionName ==~ /(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)\.(?:0|[1-9]\d*)/) ||
+        !(releaseVersionCode ==~ /[1-9]\d*/) ||
+        new BigInteger(releaseVersionCode) > 2100000000) {
+    throw new GradleException('Invalid releaseVersionName (X.Y.Z) or releaseVersionCode (1..2100000000).')
+}
+
 android {
     namespace 'com.kwmobile.hometiming'
     compileSdk libs.versions.compileSdk.get().toInteger()
@@ -31,11 +45,29 @@ android {
         applicationId 'com.kwmobile.hometiming'
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
-        versionCode 1
-        versionName '0.1.0'
+        versionCode releaseVersionCode.toInteger()
+        versionName releaseVersionName
 
         buildConfigField 'String', 'KMA_SERVICE_KEY', JsonOutput.toJson(kmaServiceKey)
         buildConfigField 'boolean', 'FIREBASE_CONFIGURED', firebaseConfigured.toString()
+    }
+
+    signingConfigs {
+        release {
+            if (hasReleaseSigning) {
+                storeFile rootProject.file(releaseSigning.RELEASE_STORE_FILE)
+                storePassword releaseSigning.RELEASE_STORE_PASSWORD
+                keyAlias releaseSigning.RELEASE_KEY_ALIAS
+                keyPassword releaseSigning.RELEASE_KEY_PASSWORD
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+            debuggable false
+        }
     }
 
     buildFeatures {
@@ -50,6 +82,20 @@ android {
 
     lint {
         abortOnError true
+    }
+}
+
+// Never silently produce an unsigned APK when a release is requested.
+tasks.register('checkReleaseSigning') {
+    doLast {
+        if (!hasReleaseSigning || !rootProject.file(releaseSigning.RELEASE_STORE_FILE).isFile()) {
+            throw new GradleException('Release signing is missing. Follow docs/SETUP.md#release-apk.')
+        }
+    }
+}
+tasks.configureEach {
+    if (name == 'preReleaseBuild') {
+        dependsOn tasks.named('checkReleaseSigning')
     }
 }
 

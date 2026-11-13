@@ -80,12 +80,23 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 
 `NO-SOURCE`는 테스트 없음, SKIPPED는 미실행입니다. Lint 성공에 경고가 있다면 경고 유형을 적고, 근거 없이 없었다고 쓰지 않습니다. 빌드 성공은 실기기 동작 증명이 아니고, 테스트 날씨는 실제 API 연결 증명이 아닙니다.
 
+## Release APK 검증
+
+키 준비·배포 절차는 [SETUP](SETUP.md#release-apk)을 따릅니다.
+
+- 키 없는 환경에서 기본 debug 빌드·단위 테스트·Lint가 성공하는지, `:app:assembleRelease`는 서명 설정 누락으로 실패하는지 확인합니다.
+- 로컬 서명으로 `:app:assembleRelease :app:testReleaseUnitTest :app:lintRelease`를 실행하고 SDK의 `apksigner verify --verbose --print-certs app/build/outputs/apk/release/app-release.apk`로 유효한 서명과 공개 인증서 SHA-256을 확인합니다. SDK 경로·Build Tools 버전은 각 환경과 카탈로그를 사용합니다.
+- `aapt dump badging`으로 applicationId·versionName·versionCode를 확인하고 `application-debuggable`이 없는지 확인합니다. 공개 인증서 지문만 기록하고 개인 키·비밀번호는 출력하지 않습니다.
+- `actionlint .github/workflows/android-release.yml .github/workflows/android.yml`로 구문을 확인합니다. 잘못된 태그, main 외 커밋, 누락 secret, 빌드/서명 실패에서는 게시 단계에 도달하지 않아야 합니다.
+- 실제 배포 후 Actions URL·태그·커밋·APK 해시·인증서 지문을 기록하고 다운로드한 SHA-256과 APK를 비교합니다. 이전 release APK와 동일 서명으로 업데이트 설치되는지는 별도 기기 검증입니다.
+- 로컬 성공과 실제 태그 배포 성공은 구분합니다. PR 검증은 비밀값을 사용하거나 Releases에 게시하지 않습니다.
+
 ## 산출물과 CI
 
 - APK: `app/build/outputs/apk/debug/app-debug.apk`
 - Lint: `app/build/reports/lint-results-debug.html`
 - JUnit: `app/build/reports/tests/testDebugUnitTest/index.html` (테스트가 있을 때 생성)
-- CI는 Wrapper·도구 설정 후 키 없는 빌드·단위 테스트 작업·Lint를 단일 작업에서 실행합니다. 자동 배포·에뮬레이터 행렬은 구성하지 않습니다.
+- Android verification CI는 Wrapper·도구 설정 후 키 없는 debug 빌드·단위 테스트·Lint를 실행합니다. 별도 Android release APK 워크플로는 main에 포함된 커밋의 버전 태그에만 서명 release 빌드·단위 테스트·Lint·서명 검증 후 GitHub Releases에 게시합니다. 에뮬레이터 행렬은 구성하지 않습니다.
 - Android 워크플로는 앱·Gradle·JDK 설정·해당 워크플로 변경에 실행합니다. 문서와 독립된 Notion 스크립트 변경에는 Android 빌드를 실행하지 않고, Notion 전용 검증 작업에서 Python 계약 테스트를 확인합니다. `workflow_dispatch`로 수동 실행할 수 있습니다. 혼합 PR은 PR 전체 변경에 코드가 포함되므로 문서만 추가 push해도 다시 실행될 수 있습니다.
 - 이 워크플로를 추후 필수 검사로 지정한다면 경로 필터로 건너뛴 PR도 병합 가능한지 함께 검토합니다. 저장소 보호 설정은 이 문서로 변경되지 않습니다.
 
