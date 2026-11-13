@@ -47,6 +47,7 @@ public final class DesignPreviewViewModel extends ViewModel {
                 cycle = "60";
         public LocalDate date = PreviewStore.today();
         public int weekday = date.getDayOfWeek().getValue();
+        public int itemPresetScrollX;
         public boolean chore = false,
                 weather = false,
                 dirty = false,
@@ -63,6 +64,8 @@ public final class DesignPreviewViewModel extends ViewModel {
         public Map<String, String> authFields = new HashMap<>();
         public LinkedHashSet<String> itemCategories = new LinkedHashSet<>();
         public LinkedHashSet<String> choreCategories = new LinkedHashSet<>();
+        public LinkedHashSet<String> removedItemCategories = new LinkedHashSet<>();
+        public LinkedHashSet<String> removedChoreCategories = new LinkedHashSet<>();
         public Draft draft;
         public Draft componentDraft = new Draft();
         public Map<String, LocalDate> completionDates = new HashMap<>();
@@ -104,6 +107,7 @@ public final class DesignPreviewViewModel extends ViewModel {
 
     public List<String> categories(boolean chore, String[] defaults) {
         LinkedHashSet<String> result = new LinkedHashSet<>(java.util.Arrays.asList(defaults));
+        result.removeAll(removedCategories(chore));
         result.addAll(chore ? state.choreCategories : state.itemCategories);
         for (PreviewStore.Item item : state.store.items) {
             if (item.chore == chore && item.category != null && !item.category.trim().isEmpty())
@@ -120,6 +124,93 @@ public final class DesignPreviewViewModel extends ViewModel {
                 || name.equals(allLabel)
                 || categories(chore, defaults).contains(name)) return false;
         return (chore ? state.choreCategories : state.itemCategories).add(name);
+    }
+
+    public boolean applyItemPreset(String name, String category, int days, String[] defaults) {
+        Draft draft = state.draft;
+        if (draft == null || draft.chore || name == null || name.trim().isEmpty()
+                || name.trim().length() > 60 || days < 1 || days > 730) return false;
+        List<String> names = categories(false, defaults);
+        draft.name = name.trim();
+        draft.category = names.contains(category) ? category
+                : defaultCategory(false, defaults, draft.category);
+        draft.cycle = String.valueOf(days);
+        draft.cycleEdited = true;
+        draft.dirty = true;
+        return true;
+    }
+
+    private LinkedHashSet<String> removedCategories(boolean chore) {
+        // Older serialized preview states do not contain these fields.
+        if (state.removedItemCategories == null) state.removedItemCategories = new LinkedHashSet<>();
+        if (state.removedChoreCategories == null) state.removedChoreCategories = new LinkedHashSet<>();
+        return chore ? state.removedChoreCategories : state.removedItemCategories;
+    }
+
+    public String defaultCategory(boolean chore, String[] defaults, String preferred) {
+        List<String> names = categories(chore, defaults);
+        return names.contains(preferred) ? preferred : names.get(0);
+    }
+
+    public boolean renameCategory(
+            boolean chore, String oldName, String input, String[] defaults, String allLabel) {
+        String name = input == null ? "" : input.trim();
+        List<String> names = categories(chore, defaults);
+        if (!names.contains(oldName) || name.isEmpty() || name.equals(allLabel)
+                || name.codePointCount(0, name.length())
+                        > com.kwmobile.hometiming.domain.ItemInputValidator.CATEGORY_MAX_LENGTH
+                || (!name.equals(oldName) && names.contains(name))) return false;
+        if (name.equals(oldName)) return true;
+        removedCategories(chore).add(oldName);
+        LinkedHashSet<String> custom = chore ? state.choreCategories : state.itemCategories;
+        custom.remove(oldName);
+        custom.add(name);
+        moveCategoryReferences(chore, oldName, name);
+        if (!chore && oldName.equals(state.filter)) state.filter = name;
+        return true;
+    }
+
+    public boolean categoryInUse(boolean chore, String name) {
+        for (PreviewStore.Item item : state.store.items) {
+            if (item.chore == chore && item.category != null
+                    && name.equals(item.category.trim())) return true;
+        }
+        return draftUsesCategory(state.draft, chore, name)
+                || draftUsesCategory(state.componentDraft, chore, name);
+    }
+
+    private boolean draftUsesCategory(Draft draft, boolean chore, String name) {
+        return draft != null && draft.chore == chore && draft.category != null
+                && name.equals(draft.category.trim());
+    }
+
+    public boolean deleteCategory(
+            boolean chore, String name, String replacement, String[] defaults, String allLabel) {
+        List<String> names = categories(chore, defaults);
+        if (!names.contains(name) || names.size() <= 1 || name.equals(replacement)) return false;
+        if (categoryInUse(chore, name) && !names.contains(replacement)) return false;
+        removedCategories(chore).add(name);
+        (chore ? state.choreCategories : state.itemCategories).remove(name);
+        moveCategoryReferences(chore, name, replacement);
+        if (!chore && name.equals(state.filter)) state.filter = allLabel;
+        return true;
+    }
+
+    private void moveCategoryReferences(boolean chore, String name, String replacement) {
+        for (PreviewStore.Item item : state.store.items) {
+            if (item.chore == chore && item.category != null && name.equals(item.category.trim())) {
+                item.category = replacement;
+                item.revision++;
+            }
+        }
+        if (draftUsesCategory(state.draft, chore, name)) {
+            state.draft.category = replacement;
+            state.draft.dirty = true;
+        }
+        if (draftUsesCategory(state.componentDraft, chore, name)) {
+            state.componentDraft.category = replacement;
+            state.componentDraft.dirty = true;
+        }
     }
 
     public void save(Bundle out) {

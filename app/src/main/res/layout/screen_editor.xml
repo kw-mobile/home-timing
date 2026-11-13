@@ -6,6 +6,7 @@
         <Space android:layout_width="1dp" android:layout_height="20dp"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_kind"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_015" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" android:labelFor="@id/edit_name"/>
+        <LinearLayout android:id="@+id/editor_item_presets" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
         <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_name" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_016" android:inputType="text" android:imeOptions="actionNext"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/edit_name_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_category"/>
@@ -14,7 +15,6 @@
         <androidx.appcompat.widget.AppCompatEditText android:id="@+id/edit_cycle" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_021" android:inputType="number" android:imeOptions="actionNext"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/edit_cycle_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/editor_chore"/>
-        <LinearLayout android:id="@+id/editor_presets" android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:id="@+id/cycle_help" android:text="@string/design_022" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:layout_marginTop="@dimen/ht_space_12"/>
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/next_due_preview"

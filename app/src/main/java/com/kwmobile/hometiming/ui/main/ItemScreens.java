@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.res.ColorStateList;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.HorizontalScrollView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
@@ -16,7 +17,6 @@ import com.kwmobile.hometiming.R;
 import com.kwmobile.hometiming.data.preview.PreviewStore;
 import com.kwmobile.hometiming.data.preview.PreviewStore.Item;
 import com.kwmobile.hometiming.ui.component.CompletionDateView;
-import com.kwmobile.hometiming.ui.component.CyclePresetView;
 import com.kwmobile.hometiming.ui.component.OptionalItemFieldsView;
 
 import java.time.LocalDate;
@@ -45,6 +45,7 @@ final class ItemScreens {
         DesignPreviewViewModel.Draft d = preview.draft;
         bindEditorKind(d);
         bindEditorFields(d);
+        bindEditorItemPresets(d);
         bindEditorCategory(d);
         bindEditorDate(d);
         bindEditorCycle(d);
@@ -72,14 +73,53 @@ final class ItemScreens {
                     d.chore = value.equals(context.getString(R.string.preview_copy_088));
                     d.cycle = d.chore ? "7" : "60";
                     d.cycleEdited = false;
-                    d.category =
-                            d.chore
-                                    ? context.getString(R.string.preview_copy_089)
-                                    : context.getString(R.string.preview_copy_053);
+                    CategoryDialog categories = new CategoryDialog(context, vm, ui);
+                    d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore),
+                            context.getString(d.chore
+                                    ? R.string.preview_copy_089 : R.string.preview_copy_053));
                     d.weather = d.chore;
                     d.dirty = true;
                     host.render();
                 });
+    }
+
+    private void bindEditorItemPresets(DesignPreviewViewModel.Draft d) {
+        LinearLayout container = ui.box(R.id.editor_item_presets);
+        container.removeAllViews();
+        container.setVisibility(d.chore ? View.GONE : View.VISIBLE);
+        if (d.chore) return;
+        HorizontalScrollView scroll = new HorizontalScrollView(context);
+        scroll.setHorizontalScrollBarEnabled(false);
+        LinearLayout choices = ui.horizontal();
+        int[] labels = {R.string.item_preset_brush, R.string.item_preset_sponge,
+                R.string.item_preset_filter, R.string.item_preset_pillowcase};
+        int[] categories = {R.string.preview_copy_023, R.string.preview_copy_052,
+                R.string.preview_copy_023, R.string.preview_copy_053};
+        int[] days = {90, 30, 60, 7};
+        CategoryDialog categoryDialog = new CategoryDialog(context, vm, ui);
+        for (int i = 0; i < labels.length; i++) {
+            final int index = i;
+            MaterialButton button = ui.smallAction(context.getString(labels[i]), () -> {
+                if (!vm.applyItemPreset(context.getString(labels[index]),
+                        context.getString(categories[index]), days[index],
+                        categoryDialog.defaults(false))) return;
+                ((EditText) screen.findViewById(R.id.edit_name)).setText(d.name);
+                ((EditText) screen.findViewById(R.id.edit_cycle)).setText(d.cycle);
+                ui.clearError(R.id.edit_name_error);
+                ui.clearError(R.id.edit_cycle_error);
+                ui.box(R.id.editor_category).removeAllViews();
+                bindEditorCategory(d);
+            });
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-2, ui.dp(48));
+            size.setMarginEnd(ui.dp(8));
+            choices.addView(button, size);
+        }
+        scroll.addView(choices, new android.widget.FrameLayout.LayoutParams(-2, -2));
+        int savedScrollX = d.itemPresetScrollX;
+        scroll.setOnScrollChangeListener((view, x, y, oldX, oldY) -> d.itemPresetScrollX = x);
+        container.addView(scroll, new LinearLayout.LayoutParams(-1, -2));
+        scroll.post(() -> scroll.scrollTo(savedScrollX, 0));
+        ui.gap(container, 8);
     }
 
     private void bindEditorFields(DesignPreviewViewModel.Draft d) {
@@ -104,6 +144,8 @@ final class ItemScreens {
     }
 
     private void bindEditorCategory(DesignPreviewViewModel.Draft d) {
+        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore), d.category);
         LinearLayout category = ui.box(R.id.editor_category);
         ui.gap(category, 16);
         ui.settingsRow(
@@ -112,13 +154,17 @@ final class ItemScreens {
                 d.category,
                 0,
                 () ->
-                        new CategoryDialog(context, vm, ui).choose(
+                        categories.choose(
                                 d.chore,
                                 d.category,
                                 value -> {
                                     host.capture();
                                     d.category = value;
                                     d.dirty = true;
+                                    host.render();
+                                },
+                                () -> {
+                                    host.capture();
                                     host.render();
                                 }));
         ui.line(category);
@@ -202,35 +248,6 @@ final class ItemScreens {
                         d.dirty = true;
                     });
             chore.addView(sensitive);
-        }
-        if (!d.chore) {
-            CyclePresetView presets = new CyclePresetView(context);
-            presets.bind(
-                    new String[] {
-                        context.getString(R.string.component_preset_brush),
-                        context.getString(R.string.component_preset_filter),
-                        context.getString(R.string.component_preset_sponge)
-                    },
-                    index -> {
-                        String next = String.valueOf(new int[] {90, 60, 30}[index]);
-                        Runnable apply =
-                                () -> {
-                                    host.capture();
-                                    d.cycle = next;
-                                    d.cycleEdited = true;
-                                    d.dirty = true;
-                                    host.render();
-                                };
-                        if (d.cycleEdited && !d.cycle.equals(next))
-                            ui.confirm(
-                                    context.getString(R.string.component_preset_replace),
-                                    context.getString(
-                                            R.string.component_preset_replace_help, d.cycle, next),
-                                    context.getString(R.string.component_preset_apply),
-                                    apply);
-                        else apply.run();
-                    });
-            ui.box(R.id.editor_presets).addView(presets);
         }
     }
 
