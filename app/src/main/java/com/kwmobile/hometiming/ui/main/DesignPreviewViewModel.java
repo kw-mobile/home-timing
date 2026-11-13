@@ -47,6 +47,7 @@ public final class DesignPreviewViewModel extends ViewModel {
                 cycle = "60";
         public LocalDate date = PreviewStore.today();
         public int weekday = date.getDayOfWeek().getValue();
+        public int itemPresetScrollX;
         public boolean chore = false,
                 weather = false,
                 dirty = false,
@@ -123,6 +124,20 @@ public final class DesignPreviewViewModel extends ViewModel {
                 || name.equals(allLabel)
                 || categories(chore, defaults).contains(name)) return false;
         return (chore ? state.choreCategories : state.itemCategories).add(name);
+    }
+
+    public boolean applyItemPreset(String name, String category, int days, String[] defaults) {
+        Draft draft = state.draft;
+        if (draft == null || draft.chore || name == null || name.trim().isEmpty()
+                || name.trim().length() > 60 || days < 1 || days > 730) return false;
+        List<String> names = categories(false, defaults);
+        draft.name = name.trim();
+        draft.category = names.contains(category) ? category
+                : defaultCategory(false, defaults, draft.category);
+        draft.cycle = String.valueOf(days);
+        draft.cycleEdited = true;
+        draft.dirty = true;
+        return true;
     }
 
     private LinkedHashSet<String> removedCategories(boolean chore) {

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="item_preset_brush">칫솔</string>
+    <string name="item_preset_sponge">수세미</string>
+    <string name="item_preset_filter">샤워필터</string>
+    <string name="item_preset_pillowcase">베개커버</string>
+</resources>
