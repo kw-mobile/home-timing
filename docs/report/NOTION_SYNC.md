@@ -9,7 +9,16 @@
 - 사람·작업별 근거 색인: [WORKLOG](WORKLOG.md)
 - 확정 제품·구조·환경·검증 계약: [문서 안내](../README.md)의 저장소 문서
 
-기존 Development History는 병합 PR의 복사본입니다. 원본 PR·댓글·WORKLOG를 유지하므로 같은 내용을 이슈마다 다시 복사하지 않습니다. [전환 및 MVP 통합 이슈 #72](https://github.com/kw-mobile/home-timing/issues/72)에서 근거와 남은 이전 범위를 관리합니다. Notion에만 있는 기획·수동 메모는 원문을 읽고 해당 기준 문서 또는 이슈로 옮겨야 하며, 원문 미확인 상태를 이전 완료로 기록하지 않습니다.
+기존 Development History는 병합 PR의 복사본입니다. 원본 PR·댓글·WORKLOG를 유지하므로 같은 내용을 이슈마다 다시 복사하지 않습니다. [전환 및 MVP 통합 이슈 #72](https://github.com/kw-mobile/home-timing/issues/72)에서 근거와 남은 이전 범위를 관리합니다. 2026-11-14 Notion 데스크톱 앱에서 블록 소진 안내를 확인하고, 프로젝트와 하위 페이지를 내보냈습니다(51개 파일). 읽은 원문을 아래 이슈로 이전했습니다.
+
+| 자료 | GitHub 이전 위치 |
+| --- | --- |
+| PRD·TRD 전체 본문 | [#74](https://github.com/kw-mobile/home-timing/issues/74) |
+| BE 체크리스트 전체 본문 | [#75](https://github.com/kw-mobile/home-timing/issues/75) |
+| 초기 기획 DOCX의 추출 본문·Cal 7건·예정 역할 배정 | [#76](https://github.com/kw-mobile/home-timing/issues/76) |
+| Development History 33건 | 각 행의 원본 PR·댓글과 WORKLOG 유지 |
+
+자료 이전 이슈의 닫힘은 원문 이전 완료를 뜻하며 기능 구현·실기기 검증 완료를 뜻하지 않습니다. 과거 계획은 현재 MVP 계약을 덮어쓰지 않습니다. 프로젝트 루트의 팀 연락처·개인 메일은 GitHub에 옮기지 않았습니다. 내보낸 원본 ZIP과 DOCX는 사용자의 Downloads에 로컬 보존했고 저장소에 커밋하지 않았습니다. Notion 댓글·버전 이력과 프로젝트 밖 개인 페이지는 내보내기 대상이 아니며 이전 완료로 주장하지 않습니다.
 
 ## 중단과 기존 자료 보존
 
