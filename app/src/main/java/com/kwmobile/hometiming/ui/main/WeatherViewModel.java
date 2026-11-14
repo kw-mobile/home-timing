@@ -35,6 +35,8 @@ public final class WeatherViewModel extends AndroidViewModel {
     private final MutableLiveData<State> state = new MutableLiveData<>(new State(true, null, null));
     private List<Region> regions = Collections.emptyList();
     private String regionName;
+    private Region houseRegion;
+    private boolean sharedRegionRequired;
     private boolean resolvingRegions, requesting, disposed;
     private int generation;
     private long requestedAt;
@@ -60,6 +62,28 @@ public final class WeatherViewModel extends AndroidViewModel {
         return names;
     }
 
+    public Region findRegion(String name) {
+        for (Region value : regions) if (value.name.equals(name)) return value;
+        return null;
+    }
+
+    public void useSharedRegion(com.kwmobile.hometiming.domain.House house) {
+        sharedRegionRequired = true;
+        if (house == null || !house.hasRegion()) {
+            if (houseRegion == null && current() != null && current().error == WeatherError.REGION_NOT_SET) return;
+            houseRegion = null;
+            regionName = getApplication().getString(com.kwmobile.hometiming.R.string.mvp_region_unset);
+            invalidate();
+            publish(new State(false, null, WeatherError.REGION_NOT_SET));
+            return;
+        }
+        if (houseRegion != null && houseRegion.name.equals(house.regionName)
+                && houseRegion.nx == house.nx && houseRegion.ny == house.ny) return;
+        houseRegion = Region.of(house.regionName, house.nx, house.ny);
+        regionName = house.regionName;
+        invalidate(); refresh(true);
+    }
+
     public void selectRegion(String name) {
         for (Region region : regions) if (region.name.equals(name)) {
             regionName = name;
@@ -71,7 +95,6 @@ public final class WeatherViewModel extends AndroidViewModel {
     }
 
     public void setTestMode(boolean enabled) {
-        if (!BuildConfig.DEBUG) return;
         repository.setTestMode(enabled);
         invalidate();
         refresh(true);
@@ -137,13 +160,16 @@ public final class WeatherViewModel extends AndroidViewModel {
             });
             return;
         }
+        if (sharedRegionRequired && houseRegion == null) {
+            publish(new State(false, null, WeatherError.REGION_NOT_SET)); return;
+        }
         if (requesting) return;
         State previous = current();
         long now = android.os.SystemClock.elapsedRealtime();
         if (!force && previous != null && previous.error == WeatherError.NOT_CONFIGURED) return;
         if (!force && requestedAt > 0 && now - requestedAt < 300_000) return;
-        Region selected = null;
-        for (Region region : regions) if (region.name.equals(regionName)) { selected = region; break; }
+        Region selected = houseRegion;
+        if (!sharedRegionRequired) for (Region region : regions) if (region.name.equals(regionName)) { selected = region; break; }
         if (selected == null) { publish(new State(false, null, WeatherError.REGION_NOT_SET)); return; }
         requesting = true;
         requestedAt = now;

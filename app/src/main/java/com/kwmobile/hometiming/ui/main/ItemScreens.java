@@ -275,6 +275,7 @@ final class ItemScreens {
     }
 
     private void bindEditorSubmit(DesignPreviewViewModel.Draft d) {
+        if (host.mvp() != null) ((TextView) screen.findViewById(R.id.editor_footer)).setText(R.string.mvp_remote_save_help);
         MaterialButton submit = screen.findViewById(R.id.edit_submit);
         submit.setText(
                 d.id.isEmpty()
@@ -311,6 +312,11 @@ final class ItemScreens {
                     }
                     if (preview.scenario.equals("error")) {
                         host.notice(context.getString(R.string.preview_copy_102));
+                        return;
+                    }
+                    if (host.mvp() != null) {
+                        host.hideKeyboard();
+                        host.mvp().saveDraft();
                         return;
                     }
                     Item item =
@@ -494,8 +500,8 @@ final class ItemScreens {
                         : item.cycle + context.getString(R.string.preview_copy_118),
                 0,
                 null);
-        ui.settingsRow(
-                body, context.getString(R.string.preview_copy_094), ui.date(item.start), 0, null);
+        if (!preview.live || !item.chore) ui.settingsRow(body, context.getString(R.string.preview_copy_094),
+                ui.date(item.serverItem == null ? item.start : item.serverItem.startDate), 0, null);
         if (item.productName != null && !item.productName.isEmpty())
             ui.settingsRow(
                     body,
@@ -542,9 +548,10 @@ final class ItemScreens {
                         () ->
                                 ui.confirm(
                                         context.getString(R.string.preview_copy_126),
-                                        context.getString(R.string.preview_copy_127),
+                                        context.getString(host.mvp() == null ? R.string.preview_copy_127 : R.string.mvp_delete_item_help),
                                         context.getString(R.string.preview_copy_125),
                                         () -> {
+                                            if (host.mvp() != null) { host.mvp().delete(item); return; }
                                             preview.store.delete(item.id);
                                             vm.back();
                                             host.render();
@@ -567,6 +574,6 @@ final class ItemScreens {
             body.addView(ui.caption(context.getString(R.string.intent_delete_permission)));
         }
         ui.gap(body, 20);
-        body.addView(ui.caption(context.getString(R.string.preview_copy_129)));
+        body.addView(ui.caption(context.getString(host.mvp() == null ? R.string.preview_copy_129 : R.string.mvp_remote_save_help)));
     }
 }

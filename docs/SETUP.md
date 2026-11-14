@@ -92,7 +92,7 @@ firebase firestore:indexes --project kw-mobile-home-timing --account 팀원Gmail
 3. Firebase Console의 프로젝트 설정 → 일반 → Android 앱에서 `google-services.json`을 내려받아 **`app/google-services.json`**에 둡니다. 파일은 Git에서 제외됩니다. `local.properties` 전체는 개인 SDK 경로·기상청 키가 있으므로 공유하지 않습니다.
 4. `./gradlew -PrequireFirebase=true :app:assembleDebug`로 실제 설정이 있는 기본 빌드를 확인합니다. 이 옵션은 파일 존재를 검사하며 실제 가입·로그인·규칙·두 기기 공유 성공을 보장하지 않습니다.
 
-설정 파일이 있으면 Google Services 플러그인이 적용됩니다. 없으면 기본 화면 빌드만 가능합니다. `BuildConfig.FIREBASE_CONFIGURED`로 기능 진입을 막고 설정을 안내하는 것은 후속 기능 구현의 책임입니다.
+설정 파일이 있으면 Google Services 플러그인이 적용됩니다. 없으면 기본 화면 빌드만 가능합니다. 일반 실행은 `BuildConfig.FIREBASE_CONFIGURED`가 false일 때 로그인 설정 안내를 표시하고 실제 작업은 실패로 처리합니다.
 
 #### 규칙 수정과 배포
 
@@ -120,7 +120,7 @@ firebase deploy --only firestore:rules --project kw-mobile-home-timing --account
 
 `local.properties.example`을 참고해 자신의 `local.properties`에 `KMA_SERVICE_KEY`로 인증키를 넣습니다. 변수 이름은 기존 설정을 유지하며 값은 API허브 `authKey`입니다. Android Studio가 만든 `sdk.dir`을 덮어쓰지 마세요. URL 인코딩은 네트워크 계층에서 처리합니다. CI나 터미널에서는 같은 이름의 환경 변수로 주입할 수 있고 환경 변수가 우선합니다.
 
-키를 로컬에 저장한 뒤 앱을 다시 빌드·설치해야 `BuildConfig.KMA_SERVICE_KEY`에 반영됩니다. Sync만 하거나 실행 중인 앱을 새로고침하는 것으로는 키가 바뀌지 않습니다. 앱의 설정 → 날씨 설정에서 테스트 모드를 끄고, 날씨 지역을 선택해 조회합니다. 현재 지역 선택은 이 기기에만 저장하며 Firebase 로그인 없이 날씨 연결을 확인할 수 있습니다. 키 없음·권한 거부·조회 실패 때는 예시 기온으로 대체하지 않습니다. 실제 성공 여부는 화면의 기상청 예보·조회 시각과 지역을 확인해 기록하고 테스트 모드 성공과 구분합니다.
+키를 로컬에 저장한 뒤 앱을 다시 빌드·설치해야 `BuildConfig.KMA_SERVICE_KEY`에 반영됩니다. Sync만 하거나 실행 중인 앱을 새로고침하는 것으로는 키가 바뀌지 않습니다. 앱의 설정 → 날씨 설정에서 테스트 모드를 끄고, 날씨 지역을 선택해 조회합니다. 일반 실행의 지역은 로그인한 집에 저장되어 가족에게 공유됩니다. debug 디자인 미리보기의 지역만 기기 로컬에 저장합니다. 키 없음·권한 거부·조회 실패 때는 예시 기온으로 대체하지 않습니다. 실제 성공 여부는 화면의 기상청 예보·조회 시각과 지역을 확인해 기록하고 테스트 모드 성공과 구분합니다.
 
 키는 `BuildConfig.KMA_SERVICE_KEY`로 제공됩니다. Git에서 제외해도 APK에 넣은 키는 비밀 저장소처럼 보호되지 않습니다. HTTP 로그에는 키가 포함된 URL을 남기지 않아야 합니다. `data/weather`는 HTTP 로깅을 설치하지 않고, 실패 예외에 원인 예외를 담지 않습니다.
 
@@ -128,7 +128,9 @@ PC에서 같은 앱 설정으로 제공자 응답만 확인하려면 JDK 17 터�
 
 ## Release APK
 
-[Android release APK](../.github/workflows/android-release.yml)는 main에 포함된 커밋의 `vX.Y.Z` 태그를 push하면 서명 APK와 SHA-256 파일을 GitHub Releases에 게시합니다. 일반 브랜치·PR에서는 배포하지 않습니다. 태그와 릴리스는 버전마다 새로 만들고 기존 게시물을 덮어쓰지 않습니다. Play Store 배포는 포함하지 않습니다.
+[Android release APK](../.github/workflows/android-release.yml)는 main에 포함된 커밋의 `vX.Y.Z` 태그를 push하면 서명 APK와 SHA-256 파일을 GitHub Releases에 게시합니다. 일반 브랜치·PR에서는 배포하지 않습니다. 배포 APK는 `GOOGLE_SERVICES_JSON`·`KMA_SERVICE_KEY` secrets를 주입하고 `-PrequireFirebase=true`로 빌드합니다. 설정이 없으면 게시 전에 실패합니다. 빌드에 포함된 설정은 실제 서비스/API 성공의 증명이 아니므로 배포 노트에 실제 검증 결과를 적습니다. 태그와 릴리스는 버전마다 새로 만들고 기존 게시물을 덮어쓰지 않습니다. Play Store 배포는 포함하지 않습니다.
+
+Firebase/날씨 설정은 현재 프로젝트의 `app/google-services.json`과 `local.properties`의 `KMA_SERVICE_KEY`를 확인한 뒤 GitHub Secrets의 `GOOGLE_SERVICES_JSON`·`KMA_SERVICE_KEY`로 등록합니다. 파일/키 내용을 저장소·이슈·로그에 출력하지 않습니다. 서명 secret 네 개는 아래 기존 절차를 유지합니다. 2026-11-14 진단에서는 기존 로컬 키가 HTTP 401 / HUB_401 / KEY_REJECTED였으므로 실제 날씨 확인에는 유효한 키가 필요합니다.
 
 ### 로컬 키와 서명 빌드 (Windows)
 
@@ -183,7 +185,7 @@ git push origin v0.1.0
 
 3. Actions의 서명·단위 테스트·Lint·APK 검증이 모두 성공하면 Releases에서 `home-timing-vX.Y.Z.apk`와 `.apk.sha256`을 내려받습니다. 서명 키는 runner 임시 디렉터리에서만 복원하고 종료 시 삭제하며 캐시·배포 파일에 포함하지 않습니다. 첫 실제 게시 성공은 해당 Actions URL로 별도 확인합니다.
 
-이 배포 빌드는 개인 `local.properties`·기상청 키·Firebase 설정 파일을 가져오지 않는 기본 빌드입니다. 실제 서비스 설정과 동작 검증은 위 [외부 서비스](#외부-서비스)를 따릅니다. 키 없는 APK는 실제 날씨 대신 설정 안내를 표시합니다. APK에 포함하는 API 키를 비밀 저장소로 취급하지 않습니다.
+배포 빌드는 위에 등록한 Firebase/기상청 secrets를 읽습니다. 기본 PR CI는 이 secrets를 사용하지 않습니다. 서비스 설정과 실제 동작 검증은 위 [외부 서비스](#외부-서비스)를 따릅니다. 인증키가 거부되면 APK 빌드가 성공해도 날씨 조회는 실패하므로 배포 노트에 구분합니다. APK에 포함하는 API 키를 비밀 저장소로 취급하지 않습니다.
 
 공식 기준: [Android 앱 서명](https://developer.android.com/studio/publish/app-signing), [GitHub Actions secrets](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets).
 

@@ -27,6 +27,7 @@ final class CategoryDialog {
     }
 
     String[] defaults(boolean chore) {
+        if (vm.state.live && chore) return new String[] {"세탁", "건조", "환기", "청소", "기타"};
         return new String[] {
             context.getString(chore ? R.string.preview_copy_089 : R.string.preview_copy_023),
             context.getString(chore ? R.string.preview_copy_092 : R.string.preview_copy_052),
@@ -37,17 +38,17 @@ final class CategoryDialog {
     void choose(boolean chore, String selected, Consumer<String> pick, Runnable changed) {
         List<String> names = vm.categories(chore, defaults(chore));
         if (!names.contains(selected)) names.add(selected);
-        names.add(context.getString(R.string.category_add_option));
-        new MaterialAlertDialogBuilder(context)
+        if (!vm.state.live || !chore) names.add(context.getString(R.string.category_add_option));
+        MaterialAlertDialogBuilder chooser = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.preview_copy_091)
                 .setItems(names.toArray(new String[0]), (dialog, index) -> {
-                    if (index == names.size() - 1) add(chore, pick);
+                    if ((!vm.state.live || !chore) && index == names.size() - 1) add(chore, pick);
                     else pick.accept(names.get(index));
                 })
-                .setNeutralButton(R.string.category_edit,
-                        (dialog, which) -> editCategories(chore, changed))
-                .setNegativeButton(R.string.preview_copy_288, null)
-                .show();
+                .setNegativeButton(R.string.preview_copy_288, null);
+        if (!vm.state.live) chooser.setNeutralButton(R.string.category_edit,
+                (dialog, which) -> editCategories(chore, changed));
+        chooser.show();
     }
 
     private void editCategories(boolean chore, Runnable changed) {

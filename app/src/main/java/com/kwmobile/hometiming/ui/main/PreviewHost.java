@@ -8,6 +8,14 @@ import java.time.LocalDate;
 
 /** Shell operations needed by fixture screens; no Activity or binding escapes. */
 interface PreviewHost {
+    MvpViewModel mvp();
+
+    void notificationPermission();
+
+    void notificationSettings();
+
+    void exactAlarmSettings();
+
     void go(String screen, String id);
 
     default void go(String screen) {

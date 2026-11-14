@@ -29,6 +29,8 @@ final class AccountScreens {
     }
 
     void bindAuth(String mode) {
+        android.widget.TextView footer = screen.findViewById(R.id.auth_footer);
+        if (host.mvp() != null && footer != null) footer.setText(R.string.mvp_auth_help);
         int[] ids = {R.id.auth_email, R.id.auth_password, R.id.auth_name, R.id.auth_confirm};
         for (int id : ids) {
             EditText field = screen.findViewById(id);
@@ -73,6 +75,17 @@ final class AccountScreens {
         View change = screen.findViewById(R.id.auth_switch);
         if (change != null)
             change.setOnClickListener(v -> host.go(mode.equals("login") ? "signup" : "login"));
+        if (host.mvp() != null) {
+            submit.setEnabled(!host.mvp().busy());
+            if (host.mvp().busy()) submit.setText(R.string.mvp_saving);
+            if (mode.equals("login")) {
+                LinearLayout options = ui.box(R.id.auth_options);
+                ui.fullAction(options, context.getString(R.string.mvp_retry_session), false, () -> host.mvp().restore());
+                if (host.mvp().hasStoredAccount()) ui.fullAction(options,
+                        context.getString(R.string.mvp_delete_account), false,
+                        () -> MvpHouseholdScreens.deleteAccount(context, host, ui));
+            }
+        }
         submit.setOnClickListener(
                 v -> {
                     boolean valid = validateEmail();
@@ -103,6 +116,13 @@ final class AccountScreens {
                         return;
                     }
                     host.hideKeyboard();
+                    if (host.mvp() != null) {
+                        String name = mode.equals("signup") ? ((EditText) screen.findViewById(R.id.auth_name)).getText().toString() : "";
+                        host.mvp().authenticate(mode, name,
+                                ((EditText) screen.findViewById(R.id.auth_email)).getText().toString(),
+                                password == null ? "" : password.getText().toString());
+                        return;
+                    }
                     submit.setEnabled(false);
                     submit.setText(context.getString(R.string.preview_copy_076));
                     String key = preview.route.key();

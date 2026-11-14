@@ -58,6 +58,7 @@ public final class DesignPreviewViewModel extends ViewModel {
     public static final class State implements Serializable {
         private static final long serialVersionUID = 1L;
         public PreviewStore store = new PreviewStore();
+        public boolean live;
         public Route route = new Route("home");
         public ArrayDeque<Route> back = new ArrayDeque<>();
         public Map<String, Integer> scrolls = new HashMap<>();
@@ -96,7 +97,7 @@ public final class DesignPreviewViewModel extends ViewModel {
             Serializable value = saved.getSerializable("preview_state");
             if (value instanceof State) state = (State) value;
         }
-        if (state.members == 0) state.members = 2;
+        if (!state.live && state.members == 0) state.members = 2;
         if (state.joinCode == null) state.joinCode = "";
         if (state.completionDates == null) state.completionDates = new HashMap<>();
         if (state.componentDraft == null) state.componentDraft = new Draft();
@@ -214,7 +215,9 @@ public final class DesignPreviewViewModel extends ViewModel {
     }
 
     public void save(Bundle out) {
-        out.putSerializable("preview_state", state);
+        // ViewModels retain in-memory drafts during rotation. Live credentials and cached remote
+        // presentation are never persisted to the OS saved-state Bundle.
+        if (!state.live) out.putSerializable("preview_state", state);
     }
 
     public void navigate(String screen, String id) {
@@ -254,7 +257,7 @@ public final class DesignPreviewViewModel extends ViewModel {
             d.chore = item.chore;
             d.weather = item.weatherSensitive;
             d.cycle = String.valueOf(item.cycle);
-            d.date = item.start;
+            d.date = item.serverItem == null ? item.start : item.serverItem.startDate;
         }
         state.draft = d;
         state.scrolls.remove(new Route("editor", id).key());

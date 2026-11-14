@@ -123,7 +123,7 @@ final class OverviewScreens {
             for (Item item : soon) itemRows.bind(rows, item, false);
         }
         ui.gap(rows, 16);
-        rows.addView(ui.caption(context.getString(R.string.preview_copy_045)));
+        rows.addView(ui.caption(context.getString(host.mvp() == null ? R.string.preview_copy_045 : R.string.mvp_shared_data)));
         return heading;
     }
 
