@@ -17,7 +17,7 @@
 | 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |
 | 변경 후 무엇을 확인하고 어떤 근거를 남기는가 | [TESTING.md](TESTING.md) |
 | 누가 무엇을 했는지, 보고서 근거를 어떻게 모으는가 | [report/README.md](report/README.md) |
-| Notion 자동 개발 기록 | [report/NOTION_SYNC.md](report/NOTION_SYNC.md) |
+| GitHub 개발 기록·Notion 중단 | [report/NOTION_SYNC.md](report/NOTION_SYNC.md) |
 | 운영 보안 설정·잠금 의존성 점검 | [운영 보안 확인](report/SECURITY_OPERATIONS.md) |
 | 실제 작업과 참여자 기록 | [report/WORKLOG.md](report/WORKLOG.md) |
 | 최초 환경 설정·작업 시작·완료 스킬 | [SKILLS.md](SKILLS.md) |
@@ -41,7 +41,7 @@ docs/
 └─ report/
    ├─ README.md          참여자 기록·PR/댓글 기준·최종 보고서 목차
    ├─ WORKLOG.md         작업별 참여자·결과·근거 색인
-   └─ NOTION_SYNC.md     Development History 자동 기록 연결
+   └─ NOTION_SYNC.md     GitHub 기록 기준·기존 Notion 보존
 ```
 
 ## 문서 관리 원칙

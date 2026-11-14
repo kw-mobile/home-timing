@@ -103,3 +103,5 @@ YYYY-MM-DD | @구현자: 교체일 계산 구현; @검증자: 윤년/월말 검�
 ```
 
 PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 항목은 보고서 작성 전에 실제 참여자에게 확인합니다. 기록을 채우기 위해 수행하지 않은 작업이나 사람을 추가하지 않습니다.
+
+| 2026-11-14 | 사용자(성명 확인 필요): Notion 중단·GitHub 전환 요청; Codex (도구): GitHub 현황 조사·자동 쓰기 중단·문서 수정 | Notion 동기화 HTTP 403 근거 보존, NOTION_SYNC_ENABLED=false 및 병합 쓰기 workflow 제거. 기존 PR·WORKLOG를 기록 원본으로 유지하고 Notion 단독 자료 이전은 원문 확인 범위로 구분. 문서/diff·Python 계약 검증 | [이슈 #72](https://github.com/kw-mobile/home-timing/issues/72), PR 링크는 게시 후 갱신 |
