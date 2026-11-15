@@ -88,3 +88,7 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. OCR은 동�
 개인 알림 설정은 `ReminderManager.updateSettings`로 저장합니다. 저장 성공을 반환하기 전에 동기화된 일정과 새 설정으로 로컬 예약을 다시 계산하므로, 서버 재동기화가 지연돼도 이전 시각 예약을 유지하지 않습니다. 이후 전체 서버 읽기로 새 항목까지 보완합니다. 계정 삭제 상태·닫힌 집은 알림 서버 확인과 계획에서 제외합니다.
 
 세션 복원 요청은 별도 순서 번호로 최신 결과만 채택합니다. 같은 계정·집의 오프라인 복원은 기존 알림·구독을 불필요하게 지우지 않고, 실제 집 변경을 확인했을 때 이전 scope를 무효화합니다. 설정만으로 다시 만든 로컬 알림 계획은 이미 발송한 회차의 중복 방지 기록을 지우지 않습니다. 전체 서버 스냅샷만 사라진 회차를 확정해 그 기록을 정리합니다.
+
+## 휴대폰 캘린더 투영
+
+`CalendarEntry`가 실제 Item/Chore의 현재 예정일과 최근 완료일을 순수 Java 값으로 투영합니다. `DeviceCalendarManager`는 기기별 opt-in과 UID/집 바인딩·OperationScope 무효화를 관리하고, 기존 `ReminderRepository.readFromServer`의 서버·소속 검증을 재사용합니다. 데이터 조회와 Provider 쓰기를 직렬화해 오래된 응답 역전을 막습니다. `DeviceCalendarStore`는 선택한 캘린더와 설치별 임의 토큰의 정확한 마커에 한해서 Calendar Provider를 읽고 수정하며, 항목·다음/완료 키로 재시도와 중복을 정리합니다. 전체 개인 일정은 읽지 않습니다. 관리 마커는 Provider의 CUSTOM_APP_URI에 두고 사용자에게 보이는 설명에는 앱에서 수정·완료하라는 안내만 표시합니다. `DeviceCalendarWorker`가 온라인에서 주기적으로 갱신합니다. 설정 Activity는 `CalendarSettingsViewModel`을 통해 권한·선택·해제·재시도를 표시합니다.

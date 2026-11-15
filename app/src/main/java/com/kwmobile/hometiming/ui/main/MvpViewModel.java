@@ -24,6 +24,7 @@ public final class MvpViewModel extends AndroidViewModel {
     private final ChoreRepository chores = ChoreRepository.getInstance();
     private final HouseRepository houses = HouseRepository.getInstance();
     private final ReminderManager reminders;
+    private final com.kwmobile.hometiming.data.calendar.DeviceCalendarManager calendars;
     private final MutableLiveData<Integer> changes = new MutableLiveData<>(0);
     private final List<Subscription> subscriptions = new ArrayList<>();
     private Subscription history = Subscription.NONE;
@@ -42,6 +43,7 @@ public final class MvpViewModel extends AndroidViewModel {
     public MvpViewModel(@NonNull Application app) {
         super(app);
         reminders = ReminderManager.getInstance(app);
+        calendars = com.kwmobile.hometiming.data.calendar.DeviceCalendarManager.get(app);
     }
 
     public String notifyTime() { return ui.state.time; }
@@ -145,6 +147,7 @@ public final class MvpViewModel extends AndroidViewModel {
             }
         }));
         reminders.onSessionStarted(value.houseId);
+        calendars.start(value.uid, value.houseId);
         ReminderRepository.getInstance().readFromServer().addOnSuccessListener(settings -> {
             if (!current(token) || busy) return;
             ui.state.time = settings.notifyTime;
@@ -156,7 +159,7 @@ public final class MvpViewModel extends AndroidViewModel {
 
     private void recoverMembership() {
         closeSubscriptions();
-        reminders.onSessionEnded();
+        reminders.onSessionEnded(); calendars.end();
         clearData();
         session = null;
         ui.state.draft = null;
@@ -309,13 +312,13 @@ public final class MvpViewModel extends AndroidViewModel {
         Session previous = session;
         // The commit removes access to the old house before its Task callback may arrive.
         // Detach first so the resulting listener denial cannot discard our own successful move.
-        closeSubscriptions(); reminders.onSessionEnded();
+        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
         run(houses.join(code), ignored -> changeHouse(), () -> bind(previous));
     }
     public void leave() {
         if (!writable()) return;
         Session previous = session;
-        closeSubscriptions(); reminders.onSessionEnded();
+        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
         run(houses.leave(previous.houseId), ignored -> changeHouse(), () -> bind(previous));
     }
     public void removeMember(String uid) {
@@ -331,20 +334,20 @@ public final class MvpViewModel extends AndroidViewModel {
     }
     public void deleteAccount(String password) {
         if (busy || session == null && !auth.isSignedIn()) return;
-        closeSubscriptions(); reminders.onSessionEnded();
+        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
         itemCache = choreCache = houseCache = true;
         ui.state.store.items.clear();
         run(auth.deleteAccount(password), ignored -> signOut());
     }
     public void signOut() {
         if (busy) return;
-        closeSubscriptions(); reminders.onSessionEnded(); auth.signOut(); clearData();
+        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); auth.signOut(); clearData();
         session = null; pendingReminder = null;
         ui.state.authFields.clear(); ui.state.draft = null; ui.state.passwordVisible = false;
         ui.tab("login"); changed();
     }
     private void changeHouse() {
-        closeSubscriptions(); reminders.onSessionEnded(); clearData(); session = null;
+        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); clearData(); session = null;
         ui.state.draft = null; ui.tab("login");
         // The acknowledged membership transaction invalidates the old operation scope.
         restore();
