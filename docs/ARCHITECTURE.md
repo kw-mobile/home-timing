@@ -58,11 +58,13 @@ Activity / Fragment → ViewModel → Repository → Firebase / 기상청 / 로�
 
 Firestore 경로·필드·회차·revision과 함께 커밋할 문서는 [데이터 모델](DATA_MODEL.md)이 기준입니다. 스키마·enum·이력 구조를 바꾸면 그 문서를 갱신하고, 기존 데이터 영향과 권한 검증을 함께 검토합니다. 새 서버·서비스·계층을 도입하거나 의존 방향을 바꿀 때는 PR에 이유·대안·영향을 남기고 이 문서를 갱신합니다.
 
-## 사진·바코드 등록 연결 계획 (debug 실험)
+<a id="사진바코드-등록-연결-계획-debug-실험"></a>
+
+## 사진 제품명 입력 연결
 
 현재 채택 경로는 사진 OCR이며 바코드 촬영·DB 조회·바코드 이름 기억은 1차 구현에서 제외합니다. 제품 범위·실행 순서·상태 계약은 [MVP 계획](MVP.md#사진바코드-등록-탐색-계획-p1-실험)을 따릅니다. `PhotoNameActivity`가 CameraX Preview/ImageCapture를 화면 수명에 바인딩하고 명시적 셔터로 한 장을 처리합니다. `PhotoNameViewModel`은 8초 제한·취소·후보/선택 상태를 갖고 세대로 늦은 결과를 차단합니다. `ProductTextRecognizer`는 bundled 한글/라틴 모델을 호출하고 `ProductNameCandidates`의 순위 규칙에 전달합니다. ImageProxy는 변환 직후 닫고 Bitmap은 처리 완료 시 정리합니다. 파일/서버 업로드는 없습니다.
 
-`MainActivity`의 Activity Result는 메모리의 요청 ID·원래 Draft 객체·현재 편집 화면·OperationScope를 대조해 이름만 적용합니다. 회전에는 요청과 초안을 유지하고 프로세스 종료·로그아웃·집 변경·다른 초안에는 결과를 버립니다. release에서 진입을 차단하고 debug 실물 검증에만 제공합니다. 아래 책임 분리는 현재 구현에도 적용합니다.
+`MainActivity`의 Activity Result는 메모리의 요청 ID·원래 Draft 객체·현재 편집 화면·OperationScope를 대조해 이름만 적용합니다. 회전에는 요청과 초안을 유지하고 프로세스 종료·로그아웃·집 변경·다른 초안에는 결과를 버립니다. debug/release 모두 용품 편집에서 선택적으로 진입하며 Activity는 외부에 export하지 않습니다. 카메라는 onStart에서 다시 바인딩하고 onStop에서 해제합니다. 권한 요청 여부는 회전에 보존해 거부 뒤 자동으로 다시 묻지 않고, 재촬영은 사용자 동작으로 요청합니다. 아래 책임 분리는 현재 구현에도 적용합니다.
 
 | 위치 | 구현 책임 | 경계 |
 | --- | --- | --- |
@@ -72,7 +74,7 @@ Firestore 경로·필드·회차·revision과 함께 커밋할 문서는 [데이
 | domain | OCR 후보 정리·순위 규칙, 기존 날짜·주기 검증 | Android·Firebase 타입 없음 |
 | 기존 용품 Repository | P0 등록과 서버 성공/실패 | OCR 때문에 권한·날짜·회차 계약 우회 금지 |
 
-CameraX는 화면 수명에 연결하고 종료 시 해제합니다. OCR은 동시에 한 작업만 처리하며 모든 완료·오류·취소 경로에서 `ImageProxy.close()`를 보장합니다. CameraX 회전 정보를 사용하고 작업 ID가 다른 결과는 버립니다. 큰 사진은 ViewModel/SavedStateHandle에 넣지 않고 이름·날짜·주기·선택 결과만 보존합니다. 프로세스 종료 뒤에는 초안으로 돌아가 재촬영을 제안합니다.
+CameraX는 화면 수명에 연결하고 종료 시 해제합니다. OCR은 동시에 한 작업만 처리하며 모든 완료·오류·취소 경로에서 `ImageProxy.close()`를 보장합니다. CameraX 회전 정보를 사용하고 작업 ID가 다른 결과는 버립니다. 큰 사진과 OCR 전문은 ViewModel/SavedStateHandle에 넣지 않습니다. 이름·날짜·주기·선택 결과는 ViewModel에서 회전 동안만 보존하며 OS Bundle에 저장하지 않습니다. 프로세스 종료 시 입력 초안은 소실될 수 있고 이전 OCR 결과는 적용하지 않습니다.
 
 ## 백엔드 비동기·삭제 경계
 

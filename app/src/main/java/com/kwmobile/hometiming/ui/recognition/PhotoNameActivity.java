@@ -19,26 +19,31 @@ import androidx.core.content.ContextCompat;
 import androidx.core.view.*;
 import androidx.lifecycle.*;
 import com.google.android.material.button.MaterialButton;
-import com.kwmobile.hometiming.BuildConfig;
 import com.kwmobile.hometiming.R;
 import com.kwmobile.hometiming.domain.ProductNameCandidates;
 
-/** Explicit shutter only. Prototype is debug-only until the real-package acceptance gate is recorded. */
+/** Optional on-device name input. Only explicit confirmation returns a name to the editor. */
 public final class PhotoNameActivity extends AppCompatActivity {
     public static final String REQUEST = "photo_request", NAME = "photo_name", OLD_NAME = "photo_old_name";
     private PhotoNameViewModel vm;
     private ProcessCameraProvider provider;
     private ImageCapture capture;
     private int cameraGeneration;
+    private boolean permissionRequested;
     private final ActivityResultLauncher<String> permission = registerForActivityResult(
             new ActivityResultContracts.RequestPermission(), granted -> { if (granted) startCamera(); else vm.fail(R.string.ocr_permission_denied); });
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
-        if (!BuildConfig.DEBUG || getIntent().getStringExtra(REQUEST) == null) { finish(); return; }
+        if (getIntent().getStringExtra(REQUEST) == null) { finish(); return; }
         setContentView(R.layout.activity_photo_name);
+        boolean light = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                != android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        WindowCompat.getInsetsController(getWindow(), findViewById(R.id.ocr_root)).setAppearanceLightStatusBars(light);
+        WindowCompat.getInsetsController(getWindow(), findViewById(R.id.ocr_root)).setAppearanceLightNavigationBars(light);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.ocr_root), (view, insets) -> {
-            androidx.core.graphics.Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            view.setPadding(bars.left, bars.top, bars.right, bars.bottom); return insets;
+            androidx.core.graphics.Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
+            view.setPadding(bars.left, bars.top, bars.right, Math.max(bars.bottom, insets.getInsets(WindowInsetsCompat.Type.ime()).bottom));
+            return WindowInsetsCompat.CONSUMED;
         });
         vm = new ViewModelProvider(this).get(PhotoNameViewModel.class);
         ((TextView)findViewById(R.id.ocr_old_name)).setText(getString(R.string.ocr_old_name, getIntent().getStringExtra(OLD_NAME)));
@@ -59,10 +64,20 @@ public final class PhotoNameActivity extends AppCompatActivity {
             finish();
         });
         vm.changes().observe(this, ignored -> render());
-        if (saved == null) startCamera();
+        permissionRequested = saved != null && saved.getBoolean("camera_permission_requested");
+    }
+    @Override protected void onStart() {
+        super.onStart();
+        if (vm != null && !vm.result && (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED || !permissionRequested)) startCamera();
+    }
+    @Override protected void onSaveInstanceState(Bundle out) {
+        out.putBoolean("camera_permission_requested", permissionRequested);
+        super.onSaveInstanceState(out);
     }
     private void startCamera() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            permissionRequested = true;
             permission.launch(Manifest.permission.CAMERA); return;
         }
         int token = ++cameraGeneration;
