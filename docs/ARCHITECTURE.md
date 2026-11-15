@@ -60,9 +60,9 @@ Firestore 경로·필드·회차·revision과 함께 커밋할 문서는 [데이
 
 <a id="사진바코드-등록-연결-계획-debug-실험"></a>
 
-## 사진 제품명 입력 연결
+## 사진 용품 종류 입력 연결
 
-현재 채택 경로는 사진 OCR이며 바코드 촬영·DB 조회·바코드 이름 기억은 1차 구현에서 제외합니다. 제품 범위·실행 순서·상태 계약은 [MVP 계획](MVP.md#사진바코드-등록-탐색-계획-p1-실험)을 따릅니다. `PhotoNameActivity`가 CameraX Preview/ImageCapture를 화면 수명에 바인딩하고 명시적 셔터로 한 장을 처리합니다. `PhotoNameViewModel`은 8초 제한·취소·후보/선택 상태를 갖고 세대로 늦은 결과를 차단합니다. `ProductTextRecognizer`는 bundled 한글/라틴 모델을 호출하고 `ProductNameCandidates`의 순위 규칙에 전달합니다. ImageProxy는 변환 직후 닫고 Bitmap은 처리 완료 시 정리합니다. 파일/서버 업로드는 없습니다.
+현재 채택 경로는 사물 인식 우선·OCR 일반명 보조이며 바코드 촬영·DB 조회·바코드 이름 기억은 1차 구현에서 제외합니다. 제품 범위·실행 순서·상태 계약은 [MVP 계획](MVP.md#사진바코드-등록-탐색-계획-p1-실험)을 따릅니다. `PhotoNameActivity`가 CameraX Preview/ImageCapture를 화면 수명에 바인딩하고 명시적 셔터로 한 장을 처리합니다. `PhotoNameViewModel`은 8초 제한·취소·후보/선택 상태를 갖고 세대로 늦은 결과를 차단합니다. `ProductPhotoRecognizer`가 이미지 소유권과 사물→OCR 순서를 관리합니다. `ProductObjectRecognizer`는 CPU LiteRT에서 번들 EfficientDet-Lite2를 실행하고 `HouseholdNames`가 지원 라벨을 일반 한국어 이름으로 변환·정렬합니다. 사물 결과 뒤에 기존 `ProductTextRecognizer`의 OCR 결과에서 찾은 일반명을 합칩니다. 사람·저신뢰·알 수 없는 라벨은 자동 이름 후보에서 제외합니다. ImageProxy는 변환 직후 닫고 원본 Bitmap은 OCR까지 처리한 뒤 정리합니다. 파일/서버 업로드는 없습니다.
 
 `MainActivity`의 Activity Result는 메모리의 요청 ID·원래 Draft 객체·현재 편집 화면·OperationScope를 대조해 이름만 적용합니다. 회전에는 요청과 초안을 유지하고 프로세스 종료·로그아웃·집 변경·다른 초안에는 결과를 버립니다. debug/release 모두 용품 편집에서 선택적으로 진입하며 Activity는 외부에 export하지 않습니다. 카메라는 onStart에서 다시 바인딩하고 onStop에서 해제합니다. 권한 요청 여부는 회전에 보존해 거부 뒤 자동으로 다시 묻지 않고, 재촬영은 사용자 동작으로 요청합니다. 아래 책임 분리는 현재 구현에도 적용합니다.
 
@@ -70,11 +70,11 @@ Firestore 경로·필드·회차·revision과 함께 커밋할 문서는 [데이
 | --- | --- | --- |
 | 등록/촬영 Fragment·XML | 권한·프리뷰·셔터·후보 선택·렌더링·이동 | 직접 Firestore·외부 API 호출 금지 |
 | 등록 ViewModel | 초안, 처리 상태, 작업 ID, 이름 적용, 저장 요청 | 취소·다른 초안·집 전환 뒤 오래된 결과 차단 |
-| 인식 데이터 계층 | bundled ML Kit 호출·모델 수명·이미지 방향·결과 변환 | Android·ML Kit 타입을 domain에 전달하지 않음 |
-| domain | OCR 후보 정리·순위 규칙, 기존 날짜·주기 검증 | Android·Firebase 타입 없음 |
+| 인식 데이터 계층 | CPU LiteRT·bundled ML Kit 호출·이미지 수명·방향·결과 변환 | Android·ML Kit·LiteRT 타입을 domain에 전달하지 않음 |
+| domain | 사물 라벨/포장 글자의 일반명·후보 순위 규칙, 기존 날짜·주기 검증 | Android·Firebase 타입 없음 |
 | 기존 용품 Repository | P0 등록과 서버 성공/실패 | OCR 때문에 권한·날짜·회차 계약 우회 금지 |
 
-CameraX는 화면 수명에 연결하고 종료 시 해제합니다. OCR은 동시에 한 작업만 처리하며 모든 완료·오류·취소 경로에서 `ImageProxy.close()`를 보장합니다. CameraX 회전 정보를 사용하고 작업 ID가 다른 결과는 버립니다. 큰 사진과 OCR 전문은 ViewModel/SavedStateHandle에 넣지 않습니다. 이름·날짜·주기·선택 결과는 ViewModel에서 회전 동안만 보존하며 OS Bundle에 저장하지 않습니다. 프로세스 종료 시 입력 초안은 소실될 수 있고 이전 OCR 결과는 적용하지 않습니다.
+CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인식은 동시에 한 작업만 처리하며 모든 완료·오류·취소 경로에서 `ImageProxy.close()`를 보장합니다. CameraX 회전 정보를 사용하고 작업 ID가 다른 결과는 버립니다. 큰 사진과 OCR 전문은 ViewModel/SavedStateHandle에 넣지 않습니다. 이름·날짜·주기·선택 결과는 ViewModel에서 회전 동안만 보존하며 OS Bundle에 저장하지 않습니다. 프로세스 종료 시 입력 초안은 소실될 수 있고 이전 OCR 결과는 적용하지 않습니다.
 
 ## 백엔드 비동기·삭제 경계
 

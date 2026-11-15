@@ -5,11 +5,13 @@ import android.os.Looper;
 import androidx.camera.core.ImageProxy;
 import androidx.lifecycle.*;
 import com.kwmobile.hometiming.R;
-import com.kwmobile.hometiming.data.recognition.ProductTextRecognizer;
+import com.kwmobile.hometiming.data.recognition.ProductPhotoRecognizer;
+import android.app.Application;
 import java.util.*;
 
-public final class PhotoNameViewModel extends ViewModel {
-    private final ProductTextRecognizer recognizer = new ProductTextRecognizer();
+public final class PhotoNameViewModel extends AndroidViewModel {
+    private final ProductPhotoRecognizer recognizer;
+    public PhotoNameViewModel(Application app) { super(app); recognizer = new ProductPhotoRecognizer(app); }
     private final Handler main = new Handler(Looper.getMainLooper());
     private final MutableLiveData<Integer> changes = new MutableLiveData<>(0);
     private int generation;

@@ -1,0 +1,10 @@
+EfficientDet-Lite2 object detector, COCO 2017 (80 object classes)
+Source repository: https://github.com/google-coral/test_data
+Pinned revision: 104342d2d3480b3e66203073dac24f4e2dbb4c41
+Model: https://raw.githubusercontent.com/google-coral/test_data/104342d2d3480b3e66203073dac24f4e2dbb4c41/efficientdet_lite2_448_ptq.tflite
+SHA-256: bc30295c5e1436cdd675f63e4f56e4f5110fc0a2057087d9385e06bc95900116
+Labels: coco_labels.txt from the same revision (90 indices including unused slots).
+License: Apache-2.0, see efficientdet-Apache-2.0.txt; source LICENSE from the same repository.
+Architecture/source: https://github.com/google/automl/tree/master/efficientdet
+Runtime: com.google.ai.edge.litert:litert:1.4.0 (Apache-2.0), CPU, bundled, no hosted inference.
+Label support is not an accuracy guarantee. Human confirmation and manual input remain required.

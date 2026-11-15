@@ -142,7 +142,7 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 개인 계정이 없는 전용 AVD에 두 APK를 설치하고 READ_CALENDAR/WRITE_CALENDAR를 허용한 뒤 `adb -s 전용AVD shell am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.data.calendar.CalendarProviderInstrumentation`을 실행합니다. 고유 테스트 로컬 캘린더만 생성·정리하며 실제 Provider의 생성/날짜 변경/중복/완료/삭제/개인 일정 보존/UTC 종일/알림 없음 검사를 수행합니다.
 
 `-e service configured -e projectId kw-mobile-home-timing`를 추가하면 실제 설정 프로젝트에 고유 검증 계정·집·항목을 생성해 등록→주기 수정→완료→삭제→연동 해제까지 확인하고 자기 데이터만 탈퇴 정리합니다. 기존 로그인 계정이 있거나 프로젝트가 다르면 거부합니다. 기본 Provider 검사와 실제 Firebase 검사는 구분해 기록합니다. 실기기에서는 설정의 권한 거부/재허용·대상 계정/캘린더 삭제·연동 끄기·로그아웃/집 이동·백그라운드 지연을 추가 확인합니다.
-## 사진 OCR 정식 입력 보조 검증
+## 사진 입력 OCR 하위 경로 회귀 검증
 
 ```sh
 ./gradlew -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.OcrPipelineInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug
@@ -150,10 +150,20 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 
 전용 AVD에 두 APK를 설치하고 카메라 권한을 허용합니다. Wi-Fi/모바일 데이터를 끈 뒤 `adb -s 전용AVD shell am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.OcrPipelineInstrumentation`을 실행합니다. 합성 포장 이미지로 bundled 한글/라틴 모델 → 후보 추출을 검사하고, 이 실제 모델 결과를 후보 화면에 전달하여 명시적 적용·시작일/주기 유지·취소/늦은 요청/다른 초안 거부를 검사합니다. 이는 카메라 실물 인식률 검사가 아닙니다. AVD 카메라의 글자 없는 장면은 실패/수동 복귀만 확인할 수 있습니다. 권한 거부 후 직접 입력 복귀도 별도 확인합니다. 종료 후 전용 AVD의 네트워크를 원복합니다.
 
-사용자 실물 검증: OCR 변경이 포함된 정식 APK 설치 → 가입/로그인 → 용품 등록 → ‘사진에서 이름 읽기’ → 포장 앞면 촬영 → 후보 선택/수정 → ‘이 이름 사용’ → 날짜·주기 유지 확인 → 등록 → 재실행 후 서버 저장 확인. 카메라 권한 거부·취소·8초 제한·회전·백그라운드 복귀도 확인합니다. 개발용10개로 규칙을 조정한 뒤 다른20개 표본에서 MVP의 Gate(첫 사진 상위3 후보16개 이상·3초19개 이상)를 평가합니다. 기종/OS·앱 SHA·제품 표본·첫 시도/재촬영·시간·결과를 이슈 #79에 남깁니다. 실물 정확도·속도 목표는 아직 미검증이며, 사용자 요청으로 정식 진입을 허용한 결정과 구분합니다. v0.2.0에는 OCR 진입이 없습니다. 로컬 검증용 release APK는 공식 키가 아닌 테스트 키로 서명하므로 공식 설치본에 업데이트할 수 없습니다. 공식 배포는 기존 서명 키를 유지합니다.
+이 절의 합성 이미지는 OCR 하위 경로를 확인하며, 범용 사물 추론은 아래 #83 검증을 따릅니다.
+
+사용자 실물 검증: 변경이 포함된 APK 설치 → 가입/로그인 → 용품 등록 → ‘사진으로 용품 찾기’ → 포장 앞면 촬영 → 후보 선택/수정 → ‘이 이름 사용’ → 날짜·주기 유지 확인 → 등록 → 재실행 후 서버 저장 확인. 카메라 권한 거부·취소·8초 제한·회전·백그라운드 복귀도 확인합니다. 개발용10개로 규칙을 조정한 뒤 다른20개 표본에서 MVP의 Gate(첫 사진 상위3 후보16개 이상·3초19개 이상)를 평가합니다. 기종/OS·앱 SHA·제품 표본·첫 시도/재촬영·시간·결과를 이슈 #79에 남깁니다. 실물 정확도·속도 목표는 아직 미검증이며, 사용자 요청으로 정식 진입을 허용한 결정과 구분합니다. v0.2.0에는 OCR 진입이 없습니다. 로컬 검증용 release APK는 공식 키가 아닌 테스트 키로 서명하므로 공식 설치본에 업데이트할 수 없습니다. 공식 배포는 기존 서명 키를 유지합니다.
 
 정식 빌드 경로는 debug keystore를 로컬 release 테스트 서명 환경 변수에 지정하고 `-PrequireFirebase=true :app:assembleRelease :app:assembleDebugAndroidTest`를 빌드하여 전용 AVD에 release 앱과 debug 테스트 패키지를 설치합니다. 테스트 패키지와 대상 앱의 서명·패키지가 일치해야 하며, 대상 앱은 debuggable=false인지 확인합니다. 별도 release 테스트 의존성·잠금 변경은 하지 않습니다. `MvpFlowInstrumentation`의 `-e role ocr`가 실제 계정 가입→용품 편집의 OCR 진입→후보 확인·적용→원격 저장→자신의 계정·집 정리를 검사합니다. release는 평문 emulator 예외를 추가하지 않으므로 앞 절의 `service configured`, 프로젝트 ID, `mvp-production-` runId 보호를 반드시 사용합니다. 테스트 키는 공식 배포 키로 취급하지 않습니다.
 
 이 시나리오는 합성 이미지의 실제 bundled 한글·라틴 인식 결과를 후보 화면에 주입하며 실물 포장·카메라 촬영 정확도를 증명하지 않습니다. 카메라 준비/재생성 후 재연결·AVD 장면의 실제 셔터/이미지 변환·인식 완료, 결과 선택의 회전 보존, 8초 제한, 명시적 적용 전 폼 유지, 날짜/주기 보존, 취소와 다른 초안의 늦은 결과 거부, 집안일 미노출을 확인합니다. `-e cameraDenied true`에서는 OS 카메라 권한을 거부한 뒤 직접 입력 복귀·초안 보존을 확인합니다. 계정 정리 전 실패했다면 테스트 run의 본인 계정만 확인해 정리하며 공용 데이터를 일괄 삭제하지 않습니다.
 
 오프라인 모델만 검사할 때는 테스트 패키지의 runner를 `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.OcrPipelineInstrumentation`으로 빌드하고, 전용 AVD에서 네트워크를 끈 뒤 `-e modelOnly true`로 실행합니다. 새 설치 데이터에서 실행하며 끝나면 네트워크를 원복합니다. 이 검사는 release 앱에 debug 테스트 패키지를 붙여도 가능하며 실제 포장 정확도를 뜻하지 않습니다. 중단된 OCR 계정은 동일한 configured-project/run 보호를 적용한 `-e role ocr-cleanup`으로만 정리할 수 있습니다. 테스트가 만든 정확한 이메일과 로그인 계정이 일치해야 하며 서버 계정이 이미 삭제된 경우에만 남은 로컬 세션을 정리합니다.
+
+## 범용 사물 사진 입력 검증 (#83)
+
+LiteRT 실행 의존성과 모델만 추가했으므로 debug/release 빌드·단위·Lint를 수행하고 기존 잠금 버전이 유지되는지 비교합니다. 모델 파일 SHA와 출처·Apache-2.0 고지는 assets/licenses에 보존합니다.
+
+`-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation :app:assembleDebugAndroidTest`로 테스트 패키지를 빌드합니다. 같은 로컬 테스트 키로 서명한 release 앱에 설치할 수 있습니다. 검증 사진은 저장소에 넣지 않으며 COCO 공식 val2017의 `000000365385.jpg`(칫솔), `000000311303.jpg`(컵), `000000167353.jpg`(시계)를 별도로 받아 test 패키지의 private files에 전달합니다. 이 사진은 COCO 데이터에 속하는 알려진 예시이고 실제 이용자 정확도 평가용 독립 표본이 아닙니다. 원본 Flickr 출처·CC BY/CC BY-SA 라이선스·사진 ID는 검증 영수증에 남깁니다.
+
+Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation`을 실행합니다. 실제 이미지→CPU 모델→한국어 일반명을 검사하고 빈 사진, 전체 사물+OCR 칫솔 경로와 OCR 일반명 보조를 확인합니다. `MvpFlowInstrumentation role=ocr`는 기존과 같이 후보의 명시적 적용·취소/다른 초안·날짜/주기 보호·실제 저장을 확인합니다. 코드·모델이 바뀐 뒤 오래된 인식 결과를 현재 성공으로 재사용하지 않습니다. 카메라·물리 기기·새 품목 성능은 해당 기기/독립 표본에서 따로 확인합니다.
