@@ -144,7 +144,7 @@ public final class MainActivity extends AppCompatActivity {
             });
 
     private void startPhotoName() {
-        if (!BuildConfig.DEBUG || s().draft == null || s().draft.chore) return;
+        if (s().draft == null || s().draft.chore) return;
         capture(); hideKeyboard();
         vm.photoDraft = s().draft; vm.photoRequest = java.util.UUID.randomUUID().toString();
         vm.photoScope = mvp == null ? null : com.kwmobile.hometiming.data.auth.OperationScope.getInstance()

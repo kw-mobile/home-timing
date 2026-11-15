@@ -18,7 +18,8 @@ import java.util.function.Supplier;
 
 /** Synthetic packaging proves the offline pipeline, not real-product accuracy or camera quality. */
 public final class OcrPipelineInstrumentation extends Instrumentation {
- @Override public void onCreate(Bundle args){super.onCreate(args);start();}
+ private boolean modelOnly;
+ @Override public void onCreate(Bundle args){modelOnly=args != null && "true".equals(args.getString("modelOnly"));super.onCreate(args);start();}
  @Override public void onStart(){Bundle out=new Bundle();boolean passed=false;MainActivity main=null;
   try {
    Bitmap bitmap=Bitmap.createBitmap(1200,900,Bitmap.Config.ARGB_8888);
@@ -29,6 +30,7 @@ public final class OcrPipelineInstrumentation extends Instrumentation {
    try(ProductTextRecognizer recognizer=new ProductTextRecognizer()) { candidates=Tasks.await(recognizer.recognize(bitmap,0),30,TimeUnit.SECONDS); }
    check(candidates.stream().anyMatch(x->x.contains("필터")),"bundled Korean pipeline");
    check(candidates.stream().anyMatch(x->x.toUpperCase(Locale.ROOT).contains("FILTER")),"bundled Latin pipeline");
+   if(modelOnly){out.putString("stream","OCR MODEL PASS: bundled Korean+Latin synthetic bitmap; no UI/camera/real-package accuracy claim.\n");finish(Activity.RESULT_OK,out);return;}
    main=(MainActivity)startActivitySync(new Intent(getTargetContext(),MainActivity.class).putExtra("preview_screen","editor").addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
    MainActivity activity=main;
    DesignPreviewViewModel state=onMain(()->new ViewModelProvider(activity).get(DesignPreviewViewModel.class));

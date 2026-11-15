@@ -1,8 +1,8 @@
 <resources>
- <string name="ocr_title">사진에서 이름 읽기 · 실험</string>
+ <string name="ocr_title">사진에서 이름 읽기</string>
  <string name="ocr_guide">포장 앞면의 제품명이 가이드 안에 보이게 찍어 주세요. 작은 글자·반사·흔들림이 있으면 가까이에서 다시 촬영해 주세요.</string>
  <string name="ocr_processing">사진에서 이름을 읽고 있어요…</string>
- <string name="ocr_choose">이름 후보를 선택하고 확인해 주세요.</string>
+ <string name="ocr_choose">인식한 이름이 실제 제품명과 맞는지 확인하고, 다르면 수정해 주세요.</string>
  <string name="ocr_empty">이름을 읽지 못했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
  <string name="ocr_failed">사진을 읽지 못했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
  <string name="ocr_timeout">사진을 읽는 데 시간이 오래 걸려 중단했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
