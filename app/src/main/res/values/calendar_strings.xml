@@ -18,4 +18,5 @@
     <string name="calendar_local">기기에만 저장</string>
     <string name="calendar_due_title">[때맞춤] %1$s</string>
     <string name="calendar_done_title">[때맞춤·완료] %1$s</string>
+    <string name="calendar_event_help">때맞춤에서 연동한 일정이에요. 날짜 변경과 완료는 때맞춤 앱에서 처리해 주세요.</string>
 </resources>

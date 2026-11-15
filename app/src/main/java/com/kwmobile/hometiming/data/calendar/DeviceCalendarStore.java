@@ -46,40 +46,41 @@ public final class DeviceCalendarStore {
     }
     public void reconcile(long calendarId, String marker, List<CalendarEntry> entries) {
         Map<String, List<Long>> existing = new HashMap<>();
-        try (Cursor c = resolver.query(CalendarContract.Events.CONTENT_URI, new String[]{"_id", "description"},
-                "calendar_id = ? AND description LIKE ? AND deleted = 0", new String[]{Long.toString(calendarId), marker + "%"}, null)) {
+        try (Cursor c = resolver.query(CalendarContract.Events.CONTENT_URI, new String[]{"_id", CalendarContract.Events.CUSTOM_APP_URI},
+                "calendar_id = ? AND customAppUri LIKE ? AND deleted = 0", new String[]{Long.toString(calendarId), marker + "%"}, null)) {
             if (c == null) throw new IllegalStateException("Calendar provider unavailable");
             while (c.moveToNext()) existing.computeIfAbsent(c.getString(1), ignored -> new ArrayList<>()).add(c.getLong(0));
         }
         Set<String> desired = new HashSet<>();
         for (CalendarEntry entry : entries) {
-            String description = marker + entry.key;
-            desired.add(description);
+            String eventKey = marker + entry.key;
+            desired.add(eventKey);
             ContentValues values = new ContentValues();
             values.put(CalendarContract.Events.CALENDAR_ID, calendarId);
             values.put(CalendarContract.Events.TITLE, context.getString(entry.completed ? R.string.calendar_done_title : R.string.calendar_due_title, entry.title));
-            values.put(CalendarContract.Events.DESCRIPTION, description);
+            values.put(CalendarContract.Events.CUSTOM_APP_URI, eventKey);
+            values.put(CalendarContract.Events.DESCRIPTION, context.getString(R.string.calendar_event_help));
             values.put(CalendarContract.Events.DTSTART, entry.startMillis());
             values.put(CalendarContract.Events.DTEND, entry.endMillis());
             values.put(CalendarContract.Events.EVENT_TIMEZONE, "UTC");
             values.put(CalendarContract.Events.ALL_DAY, 1);
             values.put(CalendarContract.Events.HAS_ALARM, 0);
-            List<Long> matches = existing.get(description);
+            List<Long> matches = existing.get(eventKey);
             if (matches == null || matches.isEmpty()) {
                 if (resolver.insert(CalendarContract.Events.CONTENT_URI, values) == null) throw new IllegalStateException("Calendar insert failed");
             } else {
                 resolver.update(CalendarContract.Events.CONTENT_URI, values,
-                        "_id = ? AND calendar_id = ? AND description = ?", new String[]{Long.toString(matches.get(0)), Long.toString(calendarId), description});
+                        "_id = ? AND calendar_id = ? AND customAppUri = ?", new String[]{Long.toString(matches.get(0)), Long.toString(calendarId), eventKey});
                 // Calendar edits never feed back into Firebase. Remove reminders only on our exported event.
                 resolver.delete(CalendarContract.Reminders.CONTENT_URI, "event_id = ?", new String[]{Long.toString(matches.get(0))});
-                for (int i = 1; i < matches.size(); i++) delete(calendarId, matches.get(i), description);
+                for (int i = 1; i < matches.size(); i++) delete(calendarId, matches.get(i), eventKey);
             }
         }
         for (Map.Entry<String, List<Long>> row : existing.entrySet()) if (!desired.contains(row.getKey()))
             for (long id : row.getValue()) delete(calendarId, id, row.getKey());
     }
-    private void delete(long calendarId, long id, String description) {
-        resolver.delete(CalendarContract.Events.CONTENT_URI, "_id = ? AND calendar_id = ? AND description = ?",
-                new String[]{Long.toString(id), Long.toString(calendarId), description});
+    private void delete(long calendarId, long id, String eventKey) {
+        resolver.delete(CalendarContract.Events.CONTENT_URI, "_id = ? AND calendar_id = ? AND customAppUri = ?",
+                new String[]{Long.toString(id), Long.toString(calendarId), eventKey});
     }
 }

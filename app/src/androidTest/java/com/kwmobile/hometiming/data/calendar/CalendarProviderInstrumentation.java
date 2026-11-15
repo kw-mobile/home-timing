@@ -27,14 +27,14 @@ public final class CalendarProviderInstrumentation extends Instrumentation {
    check(store.permitted(),"permissions");check(store.choices().stream().anyMatch(x->x.id==id),"writable choice");
    ContentValues foreign=new ContentValues();foreign.put("calendar_id",id);foreign.put("title","Personal untouched");foreign.put("dtstart",100000L);foreign.put("dtend",200000L);foreign.put("eventTimezone","UTC");
    Uri foreignUri=cr.insert(CalendarContract.Events.CONTENT_URI,foreign);
-   String marker="HomeTiming/"+UUID.randomUUID()+"/";
+   String marker="hometiming://export/"+UUID.randomUUID()+"/";
    LocalDate today=LocalDate.of(2026,11,15);
    CalendarEntry row=new CalendarEntry("item:i:next","Brush",today,false);
    store.reconcile(id,marker,List.of(row));store.reconcile(id,marker,List.of(row));
    check(count(cr,id)==2,"idempotence and personal event retained");
    store.reconcile(id,marker,List.of(new CalendarEntry(row.key,"Brush",today.plusDays(3),false),new CalendarEntry("item:i:done","Brush",today,true)));
    check(count(cr,id)==3,"completion and next occurrence");
-   try(Cursor rows=cr.query(CalendarContract.Events.CONTENT_URI,new String[]{"dtstart","dtend","allDay","eventTimezone","hasAlarm"},"calendar_id=? AND description=?",new String[]{""+id,marker+row.key},null)){
+   try(Cursor rows=cr.query(CalendarContract.Events.CONTENT_URI,new String[]{"dtstart","dtend","allDay","eventTimezone","hasAlarm"},"calendar_id=? AND customAppUri=?",new String[]{""+id,marker+row.key},null)){
     check(rows.moveToFirst(),"projected event");check(rows.getLong(0)==today.plusDays(3).atStartOfDay(java.time.ZoneOffset.UTC).toInstant().toEpochMilli(),"moved date");
     check(rows.getLong(1)-rows.getLong(0)==86400000L,"exclusive all-day end");check(rows.getInt(2)==1&&rows.getString(3).equals("UTC")&&rows.getInt(4)==0,"all day without alarm");
    }

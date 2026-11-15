@@ -104,7 +104,7 @@ public final class DeviceCalendarManager {
             prefs.edit().putStringSet("owned", pending).apply();
         }
     }
-    private static String marker(String token) { return "HomeTiming/" + token + "/"; }
+    private static String marker(String token) { return "hometiming://export/" + token + "/"; }
     public Task<Void> sync() {
         final String uid, house, token; final long calendar; final int version;
         synchronized (lock) {
