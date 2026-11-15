@@ -130,3 +130,15 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 - 이 워크플로를 추후 필수 검사로 지정한다면 경로 필터로 건너뛴 PR도 병합 가능한지 함께 검토합니다. 저장소 보호 설정은 이 문서로 변경되지 않습니다.
 
 실제 Firebase·기상청·알림·두 기기 검증은 관련 기능이 구현된 뒤 별도 기록합니다. 기능별 필수 시나리오는 [MVP 완료 기준](MVP.md#구현-순서와-완료-기준)을 따릅니다.
+
+## 휴대폰 캘린더 검증
+
+기본 빌드·단위·Lint 외에 전용 테스트 APK를 빌드합니다.
+
+```sh
+./gradlew -PdeviceTestRunner=com.kwmobile.hometiming.data.calendar.CalendarProviderInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest
+```
+
+개인 계정이 없는 전용 AVD에 두 APK를 설치하고 READ_CALENDAR/WRITE_CALENDAR를 허용한 뒤 `adb -s 전용AVD shell am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.data.calendar.CalendarProviderInstrumentation`을 실행합니다. 고유 테스트 로컬 캘린더만 생성·정리하며 실제 Provider의 생성/날짜 변경/중복/완료/삭제/개인 일정 보존/UTC 종일/알림 없음 검사를 수행합니다.
+
+`-e service configured -e projectId kw-mobile-home-timing`를 추가하면 실제 설정 프로젝트에 고유 검증 계정·집·항목을 생성해 등록→주기 수정→완료→삭제→연동 해제까지 확인하고 자기 데이터만 탈퇴 정리합니다. 기존 로그인 계정이 있거나 프로젝트가 다르면 거부합니다. 기본 Provider 검사와 실제 Firebase 검사는 구분해 기록합니다. 실기기에서는 설정의 권한 거부/재허용·대상 계정/캘린더 삭제·연동 끄기·로그아웃/집 이동·백그라운드 지연을 추가 확인합니다.

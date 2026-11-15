@@ -1,0 +1,21 @@
+<resources>
+    <string name="calendar_title">휴대폰 캘린더 연동</string>
+    <string name="calendar_help">허용한 뒤 캘린더를 선택하면 현재 예정일과 항목별 최근 완료일을 종일 일정으로 넣어요. 앱에서 날짜를 바꾸거나 완료·삭제하면 캘린더에도 반영해요. 캘린더에서 한 수정은 앱으로 가져오지 않아요.
+
+가족은 각자 연동을 켤 수 있어요. Google 등 계정 캘린더를 고르면 다른 기기에도 동기화될 수 있어요. 별도 캘린더 알림은 넣지 않아요. 앱 실행 중 변경을 반영하고, 백그라운드에서는 주기적으로 확인하므로 지연될 수 있어요. 앱을 삭제하기 전에 연동을 꺼서 앱 일정을 정리해 주세요.</string>
+    <string name="calendar_choose">권한 허용·저장할 캘린더 선택</string>
+    <string name="calendar_sync">다시 동기화·남은 일정 정리</string>
+    <string name="calendar_disable">연동 끄기·앱 일정 삭제</string>
+    <string name="calendar_disable_help">때맞춤이 이 기기에서 만든 일정만 삭제해요. 기존 캘린더 일정은 유지해요.</string>
+    <string name="calendar_permission">캘린더 읽기·쓰기 권한이 필요해요. 거부해도 앱의 일정 관리는 사용할 수 있어요. 다시 요청되지 않으면 휴대폰 설정에서 허용해 주세요.</string>
+    <string name="calendar_enabled">자동 연동 중</string>
+    <string name="calendar_off">자동 연동 꺼짐</string>
+    <string name="calendar_empty">저장 가능한 캘린더가 없어요. 휴대폰 캘린더 앱에서 캘린더나 계정을 준비한 뒤 다시 열어 주세요.</string>
+    <string name="calendar_cleanup_pending">이전에 만든 일정이 남아 있을 수 있어요. 권한을 허용하고 남은 일정 정리를 눌러 주세요.</string>
+    <string name="calendar_failure">반영하지 못했어요. 로그인·인터넷·캘린더 권한을 확인한 뒤 다시 시도해 주세요.</string>
+    <string name="calendar_synced">캘린더 반영을 마쳤어요.</string>
+    <string name="calendar_busy">캘린더를 확인하고 있어요…</string>
+    <string name="calendar_local">기기에만 저장</string>
+    <string name="calendar_due_title">[때맞춤] %1$s</string>
+    <string name="calendar_done_title">[때맞춤·완료] %1$s</string>
+</resources>
