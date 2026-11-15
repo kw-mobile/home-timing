@@ -130,3 +130,13 @@ PR 본문의 검증 표를 최종 결과로 유지합니다. 검증 후 코드�
 - 이 워크플로를 추후 필수 검사로 지정한다면 경로 필터로 건너뛴 PR도 병합 가능한지 함께 검토합니다. 저장소 보호 설정은 이 문서로 변경되지 않습니다.
 
 실제 Firebase·기상청·알림·두 기기 검증은 관련 기능이 구현된 뒤 별도 기록합니다. 기능별 필수 시나리오는 [MVP 완료 기준](MVP.md#구현-순서와-완료-기준)을 따릅니다.
+
+## 사진 OCR debug 실험
+
+```sh
+./gradlew -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.OcrPipelineInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest :app:testDebugUnitTest :app:lintDebug
+```
+
+전용 AVD에 두 APK를 설치하고 카메라 권한을 허용합니다. Wi-Fi/모바일 데이터를 끈 뒤 `adb -s 전용AVD shell am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.OcrPipelineInstrumentation`을 실행합니다. 합성 포장 이미지로 bundled 한글/라틴 모델 → 후보 추출을 검사하고, 이 실제 모델 결과를 후보 화면에 전달하여 명시적 적용·시작일/주기 유지·취소/늦은 요청/다른 초안 거부를 검사합니다. 이는 카메라 실물 인식률 검사가 아닙니다. AVD 카메라의 글자 없는 장면은 실패/수동 복귀만 확인할 수 있습니다. 권한 거부 후 직접 입력 복귀도 별도 확인합니다. 종료 후 전용 AVD의 네트워크를 원복합니다.
+
+사용자 실물 검증: debug APK 설치 → 가입/로그인 → 용품 등록 → ‘사진에서 이름 읽기 · 실험’ → 포장 앞면 촬영 → 후보 선택/수정 → ‘이 이름 사용’ → 날짜·주기 유지 확인 → 등록 → 재실행 후 서버 저장 확인. 카메라 권한 거부·취소·8초 제한·회전·백그라운드 복귀도 확인합니다. 개발용10개로 규칙을 조정한 뒤 다른20개 표본에서 MVP의 Gate(첫 사진 상위3 후보16개 이상·3초19개 이상)를 평가합니다. 기종/OS·앱 SHA·제품 표본·첫 시도/재촬영·시간·결과를 이슈 #79에 남깁니다. 아직 실물 Gate는 미검증이며 release 진입은 차단합니다. debug APK와 공식 release는 서명이 달라 업데이트 설치할 수 없으므로 별도 테스트 기기를 권장합니다.

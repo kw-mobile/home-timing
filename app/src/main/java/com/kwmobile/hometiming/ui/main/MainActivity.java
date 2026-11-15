@@ -65,6 +65,8 @@ public final class MainActivity extends AppCompatActivity {
                     if (android.os.Build.VERSION.SDK_INT >= 33) notificationRequest.launch(android.Manifest.permission.POST_NOTIFICATIONS);
                     else notificationSettings();
                 }
+                public void photoName() { startPhotoName(); }
+
                 public void notificationSettings() {
                     startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
                             .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName()));
@@ -122,6 +124,36 @@ public final class MainActivity extends AppCompatActivity {
     private final androidx.activity.result.ActivityResultLauncher<String> notificationRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
                     granted -> { if (screen != null) { capture(); render(); } });
+
+    private final androidx.activity.result.ActivityResultLauncher<Intent> photoRequest =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
+                if (vm == null) return;
+                Intent data = result.getData();
+                boolean same = vm.photoDraft != null && vm.photoDraft == s().draft && !s().draft.chore
+                        && s().route.screen.equals("editor") && data != null
+                        && java.util.Objects.equals(vm.photoRequest, data.getStringExtra(com.kwmobile.hometiming.ui.recognition.PhotoNameActivity.REQUEST));
+                if (mvp != null) same &= com.kwmobile.hometiming.data.auth.OperationScope.getInstance()
+                        .isCurrent(vm.photoScope, com.kwmobile.hometiming.data.firestore.ReminderRepository.getInstance().currentUid());
+                vm.photoDraft = null; vm.photoRequest = null; vm.photoScope = null;
+                if (result.getResultCode() != RESULT_OK) return;
+                if (!same) { notice(getString(R.string.ocr_outdated)); return; }
+                String name = com.kwmobile.hometiming.domain.ProductNameCandidates.normalize(
+                        data.getStringExtra(com.kwmobile.hometiming.ui.recognition.PhotoNameActivity.NAME));
+                if (name.isEmpty() || name.length() > 60) return;
+                s().draft.name = name; s().draft.dirty = true; render();
+            });
+
+    private void startPhotoName() {
+        if (!BuildConfig.DEBUG || s().draft == null || s().draft.chore) return;
+        capture(); hideKeyboard();
+        vm.photoDraft = s().draft; vm.photoRequest = java.util.UUID.randomUUID().toString();
+        vm.photoScope = mvp == null ? null : com.kwmobile.hometiming.data.auth.OperationScope.getInstance()
+                .capture(com.kwmobile.hometiming.data.firestore.ReminderRepository.getInstance().currentUid());
+        if (mvp != null && vm.photoScope == null) { vm.photoDraft = null; return; }
+        photoRequest.launch(new Intent(this, com.kwmobile.hometiming.ui.recognition.PhotoNameActivity.class)
+                .putExtra(com.kwmobile.hometiming.ui.recognition.PhotoNameActivity.REQUEST, vm.photoRequest)
+                .putExtra(com.kwmobile.hometiming.ui.recognition.PhotoNameActivity.OLD_NAME, s().draft.name));
+    }
 
     private DesignPreviewViewModel.State s() {
         return vm.state;

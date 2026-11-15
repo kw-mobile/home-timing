@@ -46,6 +46,9 @@ final class ItemScreens {
         bindEditorKind(d);
         bindEditorFields(d);
         bindEditorItemPresets(d);
+        View photo = screen.findViewById(R.id.editor_photo_name);
+        photo.setVisibility(com.kwmobile.hometiming.BuildConfig.DEBUG && !d.chore ? View.VISIBLE : View.GONE);
+        photo.setOnClickListener(v -> host.photoName());
         bindEditorCategory(d);
         bindEditorDate(d);
         bindEditorCycle(d);

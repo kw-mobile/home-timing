@@ -1,0 +1,21 @@
+<resources>
+ <string name="ocr_title">사진에서 이름 읽기 · 실험</string>
+ <string name="ocr_guide">포장 앞면의 제품명이 가이드 안에 보이게 찍어 주세요. 작은 글자·반사·흔들림이 있으면 가까이에서 다시 촬영해 주세요.</string>
+ <string name="ocr_processing">사진에서 이름을 읽고 있어요…</string>
+ <string name="ocr_choose">이름 후보를 선택하고 확인해 주세요.</string>
+ <string name="ocr_empty">이름을 읽지 못했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
+ <string name="ocr_failed">사진을 읽지 못했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
+ <string name="ocr_timeout">사진을 읽는 데 시간이 오래 걸려 중단했어요. 다시 촬영하거나 직접 입력해 주세요.</string>
+ <string name="ocr_interrupted">촬영을 중단했어요. 다시 촬영을 눌러 시작할 수 있어요.</string>
+ <string name="ocr_permission_denied">카메라 권한이 없어 촬영할 수 없어요. 직접 입력하거나 휴대폰 설정에서 카메라 권한을 허용해 주세요.</string>
+ <string name="ocr_camera_unavailable">카메라를 사용할 수 없어요. 다시 촬영하거나 직접 입력해 주세요.</string>
+ <string name="ocr_old_name">기존 이름: %1$s</string>
+ <string name="ocr_name_label">적용할 제품명</string>
+ <string name="ocr_name_error">이름을 1~60자로 입력해 주세요.</string>
+ <string name="ocr_confirm_help">이름만 등록 폼에 적용해요. 시작일·교체 주기는 바꾸지 않아요. 사진은 저장하거나 서버로 보내지 않아요.</string>
+ <string name="ocr_shutter">촬영</string>
+ <string name="ocr_retry">촬영 시작·다시 촬영</string>
+ <string name="ocr_apply">이 이름 사용</string>
+ <string name="ocr_manual">취소·직접 입력</string>
+ <string name="ocr_outdated">등록 대상이 바뀌어 사진 결과를 적용하지 않았어요.</string>
+</resources>
