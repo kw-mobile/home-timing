@@ -10,6 +10,8 @@ import java.time.LocalDate;
 interface PreviewHost {
     MvpViewModel mvp();
 
+    void photoName();
+
     void notificationPermission();
 
     void notificationSettings();

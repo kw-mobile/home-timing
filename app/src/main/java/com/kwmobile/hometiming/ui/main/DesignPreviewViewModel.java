@@ -18,6 +18,11 @@ import java.util.Map;
 
 /** Navigation, form drafts and fixture state. Contains no View or Activity references. */
 public final class DesignPreviewViewModel extends ViewModel {
+    // In-memory request binding intentionally does not survive process death or account/house changes.
+    Draft photoDraft;
+    String photoRequest;
+    com.kwmobile.hometiming.data.auth.OperationScope.Token photoScope;
+
     public static final class Route implements Serializable {
         private static final long serialVersionUID = 1L;
         public final String screen, id;
