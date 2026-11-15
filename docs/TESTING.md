@@ -28,11 +28,40 @@ JDK·SDK 준비는 [SETUP](SETUP.md)을 따릅니다. Windows에서는 `./gradle
 
 JUnit 클래스만 빠르게 확인할 때는 `./gradlew :app:testDebugUnitTest --tests '전체.패키지.TestClass'`로 범위를 좁힙니다. 관련 테스트 성공과 전체 기본 검증은 구분해 기록합니다.
 
+## 실제 MVP 화면·두 계정 통합 검증
+
+`MvpFlowInstrumentation`은 추가 테스트 SDK 없이 실행하는 Android instrumentation입니다. `connectedAndroidTest`의 JUnit 개수와 혼동하지 않고 역할별 최종 `MVP owner/member PASS`를 확인합니다. UI의 가입·등록·수정·완료 버튼과 ViewModel/Repository를 함께 사용합니다. 화면 이동 일부는 테스트가 ViewModel 경로를 정하고 Activity를 재생성합니다. 모든 화면을 사람이 터치한 검증이나 실기기 검증을 뜻하지 않습니다.
+
+1. 전용 Android 에뮬레이터 두 대를 준비합니다. 다른 작업의 AVD·데이터·서비스를 초기화하지 않습니다.
+2. 저장소 밖 임시 Firebase config에 `firestore.rules`의 현재 절대 경로와 Auth·Firestore의 비어 있는 loopback 포트를 설정하고 `firebase emulators:start --only auth,firestore --project demo-home-timing --config <임시-config>`로 실행합니다. 기존 서비스가 포트를 쓰면 다른 포트를 고르고 runner 인자에 같은 값을 넘깁니다. 규칙 테스트는 같은 DB를 비우므로 아래 통합 검증과 동시에 실행하지 않습니다.
+3. 실제 팀 설정 파일이 있는 환경에서 `./gradlew -PrequireFirebase=true :app:assembleDebug :app:assembleDebugAndroidTest`를 실행하고 두 전용 기기에 app/debug APK와 androidTest/debug APK를 설치합니다. 테스트 runner는 시작할 때 Firebase 기본 앱을 `demo-home-timing`과 `10.0.2.2`의 명시한 포트로 교체합니다. 일반 APK에는 emulator 전환 진입점을 넣지 않습니다. debug network 설정의 평문 예외도 loopback/Android emulator host에 한정하며 release에는 포함하지 않습니다.
+4. 첫 터미널에서 owner를 실행합니다. 예시 serial/포트는 자신의 전용 기기로 바꿉니다. `runId`는 매 실행 새 값으로 두 터미널에 동일하게 전달합니다.
+
+```sh
+adb -s emulator-5570 shell am instrument -w -e role owner -e runId mvp-unique-run \
+  -e authPort 19099 -e firestorePort 18080 \
+  com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.MvpFlowInstrumentation
+```
+
+5. owner가 `INSTRUMENTATION_STATUS: invite=......`를 출력하면 두 번째 터미널에서 member를 시작합니다. 초대 코드는 이 로컬 테스트 실행에서 출력된 값만 사용합니다.
+
+```sh
+adb -s emulator-5572 shell am instrument -w -e role member -e runId mvp-unique-run \
+  -e invite <owner의-6자리-코드> -e authPort 19099 -e firestorePort 18080 \
+  com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.MvpFlowInstrumentation
+```
+
+두 역할은 새 테스트 계정의 빈 집에서 시작해 용품 등록/완료/이력·공유 수정·오래된 revision 거부·집안일 등록/이번 회차 변경/다음 주 회차·개인 알림 설정·공용 지역·집 이동·재로그인·자신의 계정 정리를 확인합니다. 실패하면 마지막 step과 앱 로그를 확인하고, adb 프로세스 종료 코드 0만으로 통과 처리하지 않습니다. 테스트 계정은 성공 시 정리되지만 실패 시 남을 수 있습니다. 공용 프로젝트나 다른 작업의 데이터를 일괄 초기화하지 않습니다.
+
+공용 Firebase를 확인할 때만 `-e service configured -e projectId <의도한-공용-project-id>`와 `mvp-production-`로 시작하는 새 runId를 명시합니다. 이 모드는 Firebase 기본 앱을 교체하지 않습니다. 프로젝트 ID가 다르거나 기존 로그인 계정이 있으면 작업 전에 거부하므로 **본인 개인 설치 대신 새 전용 테스트 설치에서만** 실행합니다. 테스트는 자신이 만든 두 계정·초대·집만 사용합니다. 모의 Firebase 성공과 공용 Firebase 성공을 따로 기록합니다.
+
+물리 기기의 알림 도착·재부팅·동시 완료 경쟁·release 업데이트 설치, 비밀번호 재설정 메일 수신, 글자 크기/다크/가로 화면은 해당 기기에서 별도 확인하고 미실행 상태를 유지합니다.
+
 ## 날씨 화면 연결 검증
 
 - 키 없는 빌드에서 홈·날씨에 설정 안내·기온 ‘—’가 보이고 18° 같은 예시 값이 나오지 않는지 확인합니다.
-- 설정 → 날씨 설정에서 테스트 모드를 켜면 테스트임이 표시되고 기온·3일 예보·세탁 판정이 연결되는지, 다시 끄면 실제 모드로 돌아가는지 확인합니다. 이는 실제 API 성공이 아닙니다.
-- 지역을 바꾸고 화면 이동·재생성·앱 재시작 후 기기 지역이 유지되는지, 이전 지역의 늦은 결과가 새 지역에 표시되지 않는지 확인합니다.
+- 설정 → 날씨 설정에서 테스트 모드를 켜면(일반 release에도 명시적 테스트 모드 제공) 테스트임이 표시되고 기온·3일 예보·세탁 판정이 연결되는지, 다시 끄면 실제 모드로 돌아가는지 확인합니다. 이는 실제 API 성공이 아닙니다.
+- 집 지역을 바꾸고 화면 이동·재생성·앱 재시작과 다른 구성원의 기기에서 공용 지역이 유지되는지, 이전 지역의 늦은 결과가 새 지역에 표시되지 않는지 확인합니다.
 - 실제 API허브 키와 활용신청 완료 후 재빌드하여 지역·예보 대상 시각·조회 시각·출처를 확인합니다. 실패·6시간 이내 이전 캐시·누락 기온·예보 시간 경계·테스트 모드는 별도로 기록합니다. 키·요청 URL은 근거에 넣지 않습니다.
 - `WeatherDisplayTest`와 날씨 파서·로더 테스트는 과거/다음 날 기온 오표시 방지, 공식 최저/최고 누락, 음수·소수 기온, SKY/PTY 우선순위, 캐시 직렬화와 오류를 검증합니다. 네트워크 성공·실기기 검증은 별도입니다.
 

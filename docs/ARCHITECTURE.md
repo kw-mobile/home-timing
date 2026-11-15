@@ -4,9 +4,13 @@
 
 앱 진입점은 [MainActivity](../app/src/main/java/com/kwmobile/hometiming/ui/main/MainActivity.java)입니다. 아래 계층은 기능을 배치할 기준이며 실제 파일 목록이나 구현 완료 목록이 아닙니다. 실제 구현은 `app/src/`에서 확인합니다.
 
-인증·용품·가족·탈퇴 Repository와 Firestore 보안 규칙은 main에 구현되어 있지만 현재 미리보기 UI와는 연결되지 않았습니다. 현재 디자인 미리보기는 단일 Activity에서 XML 화면을 전환합니다. `DesignPreviewViewModel`이 화면 이동·스크롤·선택 날짜·폼 초안·예시 설정을 유지하고, `data/preview/PreviewStore`가 메모리 내 항목·이력을 공급합니다. UI는 문서 ID로 같은 예시 항목을 찾아 표시하며 Firebase·HTTP를 직접 호출하지 않습니다. 회전·시스템 테마 변경에는 상태를 복원합니다. 시스템이 저장 상태를 복원하면 예시 데이터도 복원될 수 있으며 서버 영속 저장을 뜻하지 않습니다. 화면 모음의 초기화로 기본 예시를 되돌립니다. debug의 화면 모음 메뉴와 Intent 미리보기 인자는 실제 인증·권한을 대신하지 않습니다.
+일반 실행의 `MvpViewModel`이 Auth/Item/Chore/House Repository와 ReminderManager를 연결합니다. 계정·집 세대가 바뀌면 이전 구독과 알림을 정리하고, 새 집은 `AuthRepository.restoreSession()`으로 확정합니다. 자신의 참여/나가기/탈퇴로 이전 권한이 사라지기 전에 구독을 끊어 완료 콜백과의 경쟁을 막습니다. 다른 기기의 내보내기는 권한 오류 후 서버 소속을 재확인합니다.
 
-미리보기의 `MainActivity`는 생명주기·화면 교체·탭·스크롤·전환 효과를 담당합니다. 화면 바인딩은 `OverviewScreens`(홈·목록·캘린더·날씨), `ItemScreens`(등록·상세), `AccountScreens`(인증 예시), `HouseholdScreens`(설정·가족), `CatalogScreens`(개발용 화면 모음)에 둡니다. 공유 표시 도구는 `PreviewWidgets`·`PreviewItemRows`·`PreviewWeather`이며, 화면은 `PreviewHost`의 화면 이동·다시 그리기 등 필요한 동작만 요청합니다. 화면 객체는 현재 root에만 연결하고 저장 가능한 상태는 기존 ViewModel에 유지합니다.
+`DesignPreviewViewModel`은 화면 이동·초안·스크롤을 유지하고 `PreviewStore.Item`은 기존 화면의 표시 모델로도 사용합니다. `MvpRecords`는 실제 immutable domain 모델을 표시 모델로 바꾸며 종류별 ID(`item:<문서ID>`, `chore:<문서ID>`)와 화면이 본 회차/revision 스냅샷을 보존합니다. 편집·완료는 이 스냅샷으로 Repository 트랜잭션을 호출하고 성공 응답 후에만 초안을 비우거나 성공 안내를 합니다. 이력은 상세 화면의 별도 구독으로 읽고, 집안일의 일정 변경 기록을 완료로 세지 않습니다. Activity/화면 바인더는 Firebase·HTTP를 직접 호출하지 않습니다.
+
+실제 데이터·로그인 비밀번호는 saved-state Bundle에 넣지 않습니다. 회전은 ViewModel의 메모리 상태를 유지하고, 프로세스 재시작은 저장된 Firebase 계정을 서버/캐시에서 다시 확인합니다. 캐시 소속 또는 목록/집의 서버 확인 전에는 변경을 막습니다. debug에서 명시적인 `preview_screen` Intent로 실행한 경우만 기존 fixture를 사용하며 로그인·권한 증거가 아닙니다.
+
+미리보기의 `MainActivity`는 생명주기·화면 교체·탭·스크롤·전환 효과를 담당합니다. 화면 바인딩은 `OverviewScreens`(홈·목록·캘린더·날씨), `ItemScreens`(등록·상세), `AccountScreens`(인증), `MvpHouseholdScreens`(실제 설정·가족), `HouseholdScreens`(갤러리 예시), `CatalogScreens`(개발용 화면 모음)에 둡니다. 공유 표시 도구는 `PreviewWidgets`·`PreviewItemRows`·`PreviewWeather`이며, 화면은 `PreviewHost`의 화면 이동·다시 그리기 등 필요한 동작만 요청합니다. 화면 객체는 현재 root에만 연결하고 저장 가능한 상태는 기존 ViewModel에 유지합니다.
 
 기본 패키지는 `com.kwmobile.hometiming`, UI는 Java + XML입니다. 앱 식별자는 [app/build.gradle](../app/build.gradle), 버전은 [환경 설정](SETUP.md)의 기준 파일에서 확인합니다.
 

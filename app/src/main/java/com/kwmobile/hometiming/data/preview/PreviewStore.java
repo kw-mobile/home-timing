@@ -16,10 +16,14 @@ public final class PreviewStore implements Serializable {
         private static final long serialVersionUID = 1L;
         public final LocalDate date;
         public final String person;
+        public final boolean completion;
 
-        public History(LocalDate date, String person) {
+        public History(LocalDate date, String person) { this(date, person, true); }
+
+        public History(LocalDate date, String person, boolean completion) {
             this.date = date;
             this.person = person;
+            this.completion = completion;
         }
     }
 
@@ -28,6 +32,9 @@ public final class PreviewStore implements Serializable {
         public final String id;
         public String name, category, location;
         public String productName = "", memo = "";
+        // Present only for live UI rows; never serialize credentials or server state into Bundles.
+        public transient com.kwmobile.hometiming.domain.Item serverItem;
+        public transient com.kwmobile.hometiming.domain.Chore serverChore;
         public LocalDate completedOn;
         public int revision;
         public String createdBy = "나";
@@ -204,6 +211,7 @@ public final class PreviewStore implements Serializable {
     }
 
     public boolean completedToday(Item item) {
+        if (item.serverItem != null || item.serverChore != null) return today().equals(item.completedOn);
         return today().equals(item.completedOn)
                 || (item.completedOn == null
                         && !item.history.isEmpty()
@@ -212,7 +220,7 @@ public final class PreviewStore implements Serializable {
 
     public LocalDate earliestCompletion(Item item) {
         LocalDate minimum = item.start;
-        for (History event : item.history) if (event.date.isAfter(minimum)) minimum = event.date;
+        for (History event : item.history) if (event.completion && event.date.isAfter(minimum)) minimum = event.date;
         return minimum;
     }
 

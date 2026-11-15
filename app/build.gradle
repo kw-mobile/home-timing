@@ -43,6 +43,7 @@ android {
 
     defaultConfig {
         applicationId 'com.kwmobile.hometiming'
+        testInstrumentationRunner 'com.kwmobile.hometiming.ui.main.MvpFlowInstrumentation'
         minSdk libs.versions.minSdk.get().toInteger()
         targetSdk libs.versions.targetSdk.get().toInteger()
         versionCode releaseVersionCode.toInteger()

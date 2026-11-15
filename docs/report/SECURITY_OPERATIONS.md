@@ -2,7 +2,19 @@
 
 이슈 [#59](https://github.com/kw-mobile/home-timing/issues/59)의 읽기 전용 확인 결과입니다. 코드·규칙 흐름 검증과 운영 서비스 설정의 확인 범위를 구분합니다. 기준 소스는 `da35612`, 의존성 기준은 그 시점의 `app/gradle.lockfile`입니다. 후속 변경은 해당 PR의 최종 검증 결과를 따릅니다.
 
-## 실제 Firebase 설정 조회
+## 2026-11-14 규칙 게시와 실제 MVP 확인
+
+[통합 이슈 #72](https://github.com/kw-mobile/home-timing/issues/72) / [PR #77](https://github.com/kw-mobile/home-timing/pull/77)의 실행 결과입니다. 처음의 인증으로 규칙 조회·권한 검사가 거부됐으나 사용자가 Firebase CLI 재로그인을 마친 뒤 명령별 계정 선택으로 조회·게시했습니다. IAM·결제·App Check·API 키 제한은 변경하지 않았습니다.
+
+- 배포 전 원문 SHA-256: `06cb4c77b8a1a806ba8b587cf8310c08c4b92fa2dff3545c8ffc127e81b2e16a`. `accountDeletions` 경로 규칙이 없었고, 실제 가입은 Auth 생성 뒤 해당 경로 get 403으로 집 준비가 실패했습니다. 실패 확인에서 생성한 Auth 테스트 계정만 본인 토큰으로 정리했습니다.
+- 배포 기준: 최신 `origin/main` `d4792b205906387d30f4f767a86f6b527acd3856`의 `firestore.rules`와 현재 파일이 byte 단위로 같음을 확인했습니다. 공용 규칙만 `firebase deploy --only firestore:rules --project kw-mobile-home-timing --account <재인증한-기존-계정> --non-interactive`로 게시했습니다.
+- 게시 시각: `2026-11-14T06:21:57.375757Z`. 서버에서 릴리스/원문을 다시 읽은 SHA-256은 `9935dbc16d15a6bb233428ddb8fd8bdb2dc28bd4e8d108530b5eeca8c5ea75cf`이며 main과 일치합니다. 이전 원문과 게시 receipt는 실행 Mac의 저장소 밖 검증 경로에 보존했습니다.
+- 이후 전용 Android AVD 두 대의 **공용 Firebase** owner/member 흐름이 모두 PASS였습니다. 가입·용품 등록/수정/완료/이력·공유 반영·오프라인 차단/복구·집안일 회차 이동/완료·개인 설정·공용 지역·초대/나가기/재참여/내보내기/복구·재로그인·탈퇴 정리를 확인했습니다. UI 경로 지정과 날짜 제안 입력 일부는 instrumentation이 주입하며 실제 기상청 응답·물리 기기 시연은 아닙니다.
+- 테스트 정리 뒤 관리자 도구를 **읽기 전용**으로 실행한 결과 `houses=0, parents=0, records=0, blocked_houses=0`이었습니다. 기존 집/항목의 무결성 백필 대상이 없어 `--apply`는 실행하지 않았습니다. 다른 팀 데이터 일괄 삭제·초기화는 하지 않았습니다. 탈퇴 receipt는 기존 정책대로 남습니다.
+
+앱 검증 소스는 `3f2e761`이고 실제 호출의 actor는 새 전용 테스트 계정 두 개입니다. 비밀값·개인 이메일·인증 토큰은 공용 기록에 남기지 않습니다. 기상청의 기존 로컬 키는 여전히 401/KEY_REJECTED이므로 실제 예보 확인과 공식 서명 APK 게시는 후속입니다. 물리 기기 알림 도착·재부팅·업데이트 설치는 이 결과가 증명하지 않습니다.
+
+## 2026-11-12 실제 Firebase 설정 조회 (과거 기록)
 
 최신 확인은 **2026-11-12 11:59–12:03 UTC**, 사용자가 지정해 인증한 기존 Firebase CLI 계정으로 수행했습니다. 명령별 계정만 선택했으며 기본 계정·배포·데이터·IAM·API 키·App Check 설정을 변경하지 않았습니다. 토큰·개인 계정·API 키 문자열은 출력하지 않았습니다.
 
@@ -21,7 +33,7 @@
 
 App Check의 미설정 기본값은 [공식 EnforcementMode 문서](https://firebase.google.com/docs/reference/appcheck/rest/v1/EnforcementMode)를 따릅니다. `ENFORCED`는 유효한 토큰이 없는 요청을 거부하므로 정상 클라이언트 준비 전에 켜면 안 됩니다.
 
-게시된 규칙 원문 SHA-256은 `06cb4c77b8a1a806ba8b587cf8310c08c4b92fa2dff3545c8ffc127e81b2e16a`, 공백 제거 후 SHA-256은 `bb590ddb471b3b6ffefafcaaca06886e761e4eac8542a5842306765f6512eb70`입니다. 원문 해시만 비교하면 줄바꿈·서식 차이를 코드 불일치로 오인할 수 있어 Git 이력의 규칙도 공백 정규화해 비교했습니다. 현재 main과는 일치하지만 `integrityVersion`·`recordCount`와 계정/집 수명 보강이 들어간 PR #58·후속 브랜치는 아직 배포되지 않은 상태입니다. 코드 병합·배포·관리자 데이터 전환은 각각 구분합니다.
+게시된 규칙 원문 SHA-256은 `06cb4c77b8a1a806ba8b587cf8310c08c4b92fa2dff3545c8ffc127e81b2e16a`, 공백 제거 후 SHA-256은 `bb590ddb471b3b6ffefafcaaca06886e761e4eac8542a5842306765f6512eb70`입니다. 원문 해시만 비교하면 줄바꿈·서식 차이를 코드 불일치로 오인할 수 있어 Git 이력의 규칙도 공백 정규화해 비교했습니다. 당시 main과는 일치하지만 `integrityVersion`·`recordCount`와 계정/집 수명 보강이 들어간 PR #58·후속 브랜치는 당시 아직 배포되지 않은 상태였습니다. 최신 게시 상태는 위 2026-11-14 결과를 따릅니다. 코드 병합·배포·관리자 데이터 전환은 각각 구분합니다.
 
 프로젝트 IAM의 직접 할당은 개인 Owner 1명, 전용 팀 역할 사용자 2명, Viewer 사용자 2명과 서비스 계정 역할들입니다. `roles/iam.serviceAccountTokenCreator` 할당은 서비스 계정 1개이며 사람의 직접 할당은 아니었습니다. 개인 이메일·서비스 계정 이름은 공용 문서에 남기지 않습니다. IAM 역할이 있다는 사실만으로 앱 Security Rules를 통과한다고 판단하지 않습니다.
 

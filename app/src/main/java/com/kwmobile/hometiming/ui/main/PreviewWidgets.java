@@ -348,7 +348,7 @@ final class PreviewWidgets {
         String state = preview.scenario;
         if (state.equals("normal")) return false;
         if (state.equals("offline")) {
-            parent.addView(caption(context.getString(R.string.preview_copy_026)));
+            parent.addView(caption(context.getString(R.string.mvp_offline)));
             gap(parent, 16);
             return false;
         }

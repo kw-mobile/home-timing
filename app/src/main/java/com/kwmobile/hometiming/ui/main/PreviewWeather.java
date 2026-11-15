@@ -198,7 +198,7 @@ final class PreviewWeather {
         }
         ui.gap(content,24);ui.section(content,context.getString(R.string.weather_ui_laundry),context.getString(R.string.weather_ui_laundry_help));
         content.addView(ui.label(weatherSummary()));
-        ui.gap(content,24);ui.section(content,context.getString(R.string.preview_copy_157),context.getString(R.string.weather_ui_fixture_suggestions));
+        ui.gap(content,24);ui.section(content,context.getString(R.string.preview_copy_157),context.getString(host.mvp() == null ? R.string.weather_ui_fixture_suggestions : R.string.mvp_weather_suggestions));
         for(Item item:preview.store.sorted())if(item.chore&&item.weatherSensitive) {
             ui.settingsRow(content,item.name,context.getString(R.string.preview_copy_159,ui.date(item.due)),ui.icon(item),() -> host.go("detail",item.id));
             bindProposal(content,item,false);ui.gap(content,16);
@@ -228,14 +228,14 @@ final class PreviewWeather {
             state=WeatherProposalView.State.UNCHANGED;reason=context.getString(R.string.intent_proposal_keep_schedule);
         } else {
             state=WeatherProposalView.State.SUGGESTED;
-            reason=context.getString(R.string.weather_ui_fixture_proposal,ui.date(item.due),ui.date(target));
+            reason=context.getString(host.mvp() == null ? R.string.weather_ui_fixture_proposal : R.string.mvp_weather_proposal,ui.date(item.due),ui.date(target));
         }
         WeatherProposalView proposal=new WeatherProposalView(context);
-        proposal.bind(state,context.getString(R.string.component_proposal_title,item.name),reason,context.getString(R.string.preview_copy_160),false,
+        proposal.bind(state,context.getString(R.string.component_proposal_title,item.name),reason,context.getString(R.string.preview_copy_160),host.mvp() != null && (host.mvp().readOnly() || host.mvp().busy()),
                 target==null?null:() -> ui.confirm(context.getString(R.string.preview_copy_161),
-                        context.getString(R.string.weather_ui_fixture_confirm,item.name,ui.date(target)),context.getString(R.string.preview_copy_164),
-                        () -> {preview.store.moveWeatherSuggestion(item.id,target);host.render();host.notice(context.getString(R.string.preview_copy_165));}),
-                () -> {preview.store.dismissWeatherSuggestion(item.id);host.render();},details?() -> host.go("weather"):null);
+                        context.getString(host.mvp() == null ? R.string.weather_ui_fixture_confirm : R.string.mvp_weather_confirm,item.name,ui.date(target)),context.getString(R.string.preview_copy_164),
+                        () -> {if (host.mvp() != null) { host.mvp().proposal(item,target); return; } preview.store.moveWeatherSuggestion(item.id,target);host.render();host.notice(context.getString(R.string.preview_copy_165));}),
+                () -> {if (host.mvp() != null) { host.mvp().proposal(item,null); return; } preview.store.dismissWeatherSuggestion(item.id);host.render();},details?() -> host.go("weather"):null);
         parent.addView(proposal);
     }
 }

@@ -6,6 +6,8 @@ public final class Region {
     public final int nx;
     public final int ny;
 
+    public static Region of(String name, int nx, int ny) { return new Region(name, nx, ny); }
+
     Region(String name, int nx, int ny) {
         this.name = name;
         this.nx = nx;

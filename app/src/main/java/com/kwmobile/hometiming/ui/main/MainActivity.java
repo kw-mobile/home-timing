@@ -43,6 +43,8 @@ public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
     private WeatherViewModel weatherVm;
+    private MvpViewModel mvp;
+    private boolean fixtures;
     private WeatherViewModel.State shownWeatherState;
     private View screen;
     private boolean syncingNavigation;
@@ -58,6 +60,19 @@ public final class MainActivity extends AppCompatActivity {
     private OverviewScreens overview;
     private final PreviewHost host =
             new PreviewHost() {
+                public MvpViewModel mvp() { return fixtures ? null : mvp; }
+                public void notificationPermission() {
+                    if (android.os.Build.VERSION.SDK_INT >= 33) notificationRequest.launch(android.Manifest.permission.POST_NOTIFICATIONS);
+                    else notificationSettings();
+                }
+                public void notificationSettings() {
+                    startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                            .putExtra(android.provider.Settings.EXTRA_APP_PACKAGE, getPackageName()));
+                }
+                public void exactAlarmSettings() {
+                    Intent intent = com.kwmobile.hometiming.notify.ReminderManager.getInstance(MainActivity.this).exactAlarmSettingsIntent();
+                    if (intent != null) startActivity(intent);
+                }
                 public WeatherViewModel weatherViewModel() { return weatherVm; }
 
                 public android.widget.ImageView homeWeatherBackdrop() { return binding.homeWeatherBackdrop; }
@@ -103,6 +118,10 @@ public final class MainActivity extends AppCompatActivity {
                     binding.glassBackdrop.refresh();
                 }
             };
+
+    private final androidx.activity.result.ActivityResultLauncher<String> notificationRequest =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                    granted -> { if (screen != null) { capture(); render(); } });
 
     private DesignPreviewViewModel.State s() {
         return vm.state;
@@ -171,7 +190,7 @@ public final class MainActivity extends AppCompatActivity {
                     return true;
                 });
         binding.backButton.setOnClickListener(v -> back());
-        binding.galleryButton.setVisibility(BuildConfig.DEBUG ? View.VISIBLE : View.GONE);
+        binding.galleryButton.setVisibility(BuildConfig.DEBUG && getIntent().hasExtra("preview_screen") ? View.VISIBLE : View.GONE);
         binding.galleryButton.setOnClickListener(v -> go("gallery"));
         getOnBackPressedDispatcher()
                 .addCallback(
@@ -182,8 +201,30 @@ public final class MainActivity extends AppCompatActivity {
                                 back();
                             }
                         });
-        if (saved == null) readPreviewIntent(getIntent());
+        fixtures = BuildConfig.DEBUG && getIntent().hasExtra("preview_screen");
+        if (fixtures) {
+            s().live = false;
+            if (saved == null) readPreviewIntent(getIntent());
+        } else {
+            mvp = new ViewModelProvider(this).get(MvpViewModel.class);
+            mvp.attach(vm);
+            if (saved == null) openReminder(getIntent());
+            weatherVm.useSharedRegion(null);
+        }
         render();
+        if (!fixtures) mvp.changes().observe(this, ignored -> {
+            if (screen == null) return;
+            capture();
+            weatherVm.useSharedRegion(mvp.house);
+            if (s().route.screen.equals("editor") && screen.findViewById(R.id.edit_submit) != null) {
+                MaterialButton submit = screen.findViewById(R.id.edit_submit);
+                submit.setEnabled(!mvp.busy() && !mvp.readOnly());
+                submit.setText(mvp.busy() ? R.string.mvp_saving :
+                        s().draft != null && s().draft.id.isEmpty() ? R.string.preview_copy_097 : R.string.preview_copy_098);
+            } else render();
+            String message = mvp.takeMessage();
+            if (message != null) notice(message);
+        });
         shownWeatherState=weatherVm.current();
         weatherVm.state().observe(this,state -> {
             if(state==shownWeatherState)return;
@@ -203,7 +244,8 @@ public final class MainActivity extends AppCompatActivity {
         super.onNewIntent(intent);
         setIntent(intent);
         capture();
-        readPreviewIntent(intent);
+        if (fixtures) readPreviewIntent(intent);
+        else openReminder(intent);
         render();
     }
 
@@ -253,6 +295,17 @@ public final class MainActivity extends AppCompatActivity {
         if (condition != null
                 && java.util.Arrays.asList("clear", "clouds", "rain").contains(condition))
             s().condition = condition;
+    }
+
+    private void openReminder(Intent intent) {
+        if (mvp == null) return;
+        mvp.openReminder(intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_KIND),
+                intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID));
+    }
+
+    @Override protected void onResume() {
+        super.onResume();
+        if (mvp != null && screen != null) { capture(); render(); }
     }
 
     private void configureInsets() {
@@ -321,11 +374,15 @@ public final class MainActivity extends AppCompatActivity {
 
     private void edit(String id) {
         capture();
+        if (mvp != null && !fixtures) mvp.beginEdit(id);
         vm.edit(id);
         render();
     }
 
     private void back() {
+        if (!fixtures && mvp != null && mvp.session == null && s().route.screen.equals("login")) {
+            finish(); return;
+        }
         if (s().route.screen.equals("editor") && s().draft != null && s().draft.dirty) {
             new PreviewWidgets(screen)
                     .confirm(
@@ -364,12 +421,15 @@ public final class MainActivity extends AppCompatActivity {
 
     private void render() {
         // These are simulated auth results. Never offer to save demo credentials to the OS.
-        if (screen != null && screen.findViewById(R.id.auth_email) != null) {
+        if (fixtures && screen != null && screen.findViewById(R.id.auth_email) != null) {
             android.view.autofill.AutofillManager autofill =
                     getSystemService(android.view.autofill.AutofillManager.class);
             if (autofill != null) autofill.cancel();
         }
+        if (!fixtures && mvp != null && mvp.session == null
+                && !java.util.Arrays.asList("login", "signup", "reset").contains(s().route.screen)) vm.tab("login");
         String name = s().route.screen;
+        if (!fixtures && mvp != null) mvp.watchHistory(name.equals("detail") ? s().route.id : "");
         int pageColor = color(R.color.ht_background);
         boolean home = name.equals("home");
         binding.mainContent.setBackgroundColor(home ? android.graphics.Color.TRANSPARENT : pageColor);
@@ -498,13 +558,16 @@ public final class MainActivity extends AppCompatActivity {
                 new ItemScreens(screen, vm, host, ui).bindDetail();
                 break;
             case "settings":
-                new HouseholdScreens(screen, vm, host, ui).bindSettings();
+                if (fixtures) new HouseholdScreens(screen, vm, host, ui).bindSettings();
+                else new MvpHouseholdScreens(screen, host, ui).settings();
                 break;
             case "family":
-                new HouseholdScreens(screen, vm, host, ui).bindFamily();
+                if (fixtures) new HouseholdScreens(screen, vm, host, ui).bindFamily();
+                else new MvpHouseholdScreens(screen, host, ui).family();
                 break;
             case "preferences":
-                new HouseholdScreens(screen, vm, host, ui).bindPreferences();
+                if (fixtures) new HouseholdScreens(screen, vm, host, ui).bindPreferences();
+                else new MvpHouseholdScreens(screen, host, ui).preferences(s().route.id);
                 break;
             case "components":
                 new CatalogScreens(screen, vm, host, ui).bindComponents();
@@ -574,6 +637,7 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void recordCompletion(Item item, LocalDate actualDate) {
+        if (!fixtures) { mvp.complete(item, actualDate); return; }
         if (s().scenario.equals("offline")) {
             notice(getString(R.string.preview_copy_130));
             return;
