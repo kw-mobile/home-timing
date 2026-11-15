@@ -137,5 +137,6 @@ dependencies {
     implementation libs.androidx.camera.view
     implementation libs.mlkit.text.korean
     implementation libs.mlkit.text.latin
+    implementation libs.litert
     testImplementation libs.junit
 }

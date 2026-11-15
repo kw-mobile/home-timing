@@ -255,11 +255,11 @@ public final class MvpFlowInstrumentation extends Instrumentation {
         paint.setTextSize(100); canvas.drawText("샤워 필터", 280, 300, paint);
         paint.setTextSize(75); canvas.drawText("SHOWER FILTER", 260, 450, paint);
         java.util.List<String> candidates;
-        try (com.kwmobile.hometiming.data.recognition.ProductTextRecognizer recognizer = new com.kwmobile.hometiming.data.recognition.ProductTextRecognizer()) {
+        try (com.kwmobile.hometiming.data.recognition.ProductPhotoRecognizer recognizer = new com.kwmobile.hometiming.data.recognition.ProductPhotoRecognizer(getTargetContext())) {
             candidates = com.google.android.gms.tasks.Tasks.await(recognizer.recognize(bitmap, 0), 30, java.util.concurrent.TimeUnit.SECONDS);
         }
-        check(candidates.stream().anyMatch(x -> x.contains("필터")), "bundled Korean result");
-        check(candidates.stream().anyMatch(x -> x.toUpperCase(java.util.Locale.ROOT).contains("FILTER")), "bundled Latin result");
+        check(candidates.contains("샤워필터"), "generic kind from combined photo pipeline");
+        check(candidates.stream().noneMatch(x -> x.contains("SHOWER FILTER")), "raw product text is not a kind candidate");
         com.kwmobile.hometiming.ui.recognition.PhotoNameActivity photo = openPhoto();
         if ("true".equals(args.getString("cameraDenied"))) {
             await(() -> photo.findViewById(R.id.ocr_status) instanceof android.widget.TextView
@@ -282,25 +282,25 @@ public final class MvpFlowInstrumentation extends Instrumentation {
                 check(!model.current(old) && model.current(current), "late OCR result rejected"); });
             await(() -> !model.busy && model.message == R.string.ocr_timeout, "eight-second timeout recovery");
             mainAction(() -> { model.result = true; model.candidates = candidates; model.message = R.string.ocr_choose;
-                model.select(candidates.get(0)); });
+                model.select("샤워필터"); });
             check(main(() -> ui.state.draft.name.equals("Original name")), "candidate selection does not apply automatically");
             com.kwmobile.hometiming.ui.recognition.PhotoNameActivity confirmed = recreatePhoto(rotated);
-            check(main(() -> ((EditText) confirmed.findViewById(R.id.ocr_name)).getText().toString().equals(candidates.get(0))),
+            check(main(() -> ((EditText) confirmed.findViewById(R.id.ocr_name)).getText().toString().equals("샤워필터")),
                     "candidate survives recreation");
             mainAction(() -> confirmed.findViewById(R.id.ocr_apply).performClick()); waitForIdleSync();
-            await(() -> ui.state.draft != null && ui.state.draft.name.equals(candidates.get(0)), "OCR result delivered to editor");
+            await(() -> ui.state.draft != null && ui.state.draft.name.equals("샤워필터"), "OCR result delivered to editor");
             check(main(() -> ui.state.draft.date.equals(date) && ui.state.draft.cycle.equals(cycle)), "explicit name apply preserves date and cycle");
             com.kwmobile.hometiming.ui.recognition.PhotoNameActivity canceled = openPhoto();
             mainAction(() -> canceled.findViewById(R.id.ocr_cancel).performClick()); waitForIdleSync();
-            check(main(() -> ui.state.draft.name.equals(candidates.get(0))), "cancel preserves existing name");
+            check(main(() -> ui.state.draft.name.equals("샤워필터")), "cancel preserves existing name");
             click(R.id.edit_submit);
             await(() -> !live.busy() && ui.state.draft == null && ui.state.store.items.size() == 1, "OCR item saved to Firebase");
-            await(() -> ui.state.store.items.get(0).name.equals(candidates.get(0)), "saved OCR name");
+            await(() -> ui.state.store.items.get(0).name.equals("샤워필터"), "saved OCR name");
             mainAction(() -> { live.beginEdit(""); ui.edit(""); }); recreate();
             com.kwmobile.hometiming.ui.recognition.PhotoNameActivity stale = openPhoto();
             mainAction(() -> { ui.state.draft = new DesignPreviewViewModel.Draft(); ui.state.draft.name = "New draft";
                 var staleModel = new ViewModelProvider(stale).get(com.kwmobile.hometiming.ui.recognition.PhotoNameViewModel.class);
-                staleModel.result = true; staleModel.candidates = candidates; staleModel.select(candidates.get(0));
+                staleModel.result = true; staleModel.candidates = candidates; staleModel.select("샤워필터");
                 stale.findViewById(R.id.ocr_apply).performClick(); }); waitForIdleSync();
             check(main(() -> ui.state.draft.name.equals("New draft")), "stale OCR cannot overwrite a new draft");
         }
