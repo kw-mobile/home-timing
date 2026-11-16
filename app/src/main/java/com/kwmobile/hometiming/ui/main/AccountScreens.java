@@ -2,7 +2,6 @@ package com.kwmobile.hometiming.ui.main;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.text.InputType;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -40,36 +39,17 @@ final class AccountScreens {
             field.addTextChangedListener(ui.watcher(value -> preview.authFields.put(key, value)));
         }
         EditText password = screen.findViewById(R.id.auth_password);
-        if (password != null) {
-            password.setInputType(
-                    InputType.TYPE_CLASS_TEXT
-                            | (preview.passwordVisible
-                                    ? InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                                    : InputType.TYPE_TEXT_VARIATION_PASSWORD));
-            LinearLayout options = ui.box(R.id.auth_options);
+        if (password != null && mode.equals("login")) {
             LinearLayout row = ui.horizontal();
-            MaterialButton show =
+            row.setGravity(android.view.Gravity.END);
+            MaterialButton reset =
                     ui.smallAction(
-                            preview.passwordVisible
-                                    ? context.getString(R.string.preview_copy_070)
-                                    : context.getString(R.string.preview_copy_071),
-                            () -> {
-                                preview.passwordVisible = !preview.passwordVisible;
-                                host.capture();
-                                host.render();
-                            });
-            show.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-            row.addView(show, new LinearLayout.LayoutParams(0, -2, 1));
-            if (mode.equals("login")) {
-                MaterialButton reset =
-                        ui.smallAction(
-                                context.getString(R.string.preview_copy_072),
-                                () -> host.go("reset"));
-                reset.setBackgroundTintList(
-                        ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                row.addView(reset, new LinearLayout.LayoutParams(0, -2, 1));
-            }
-            options.addView(row);
+                            context.getString(R.string.preview_copy_072),
+                            () -> host.go("reset"));
+            reset.setBackgroundTintList(
+                    ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            row.addView(reset, new LinearLayout.LayoutParams(-2, -2));
+            ui.box(R.id.auth_options).addView(row);
         }
         MaterialButton submit = screen.findViewById(R.id.auth_submit);
         View change = screen.findViewById(R.id.auth_switch);
