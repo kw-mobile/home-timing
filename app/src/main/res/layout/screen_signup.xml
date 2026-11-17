@@ -10,10 +10,30 @@
         <androidx.appcompat.widget.AppCompatEditText android:id="@+id/auth_email" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_036" android:inputType="textEmailAddress" android:imeOptions="actionNext"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/auth_email_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_037" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" android:labelFor="@id/auth_password"/>
-        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/auth_password" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_049" android:inputType="textPassword" android:imeOptions="actionNext"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/auth_password_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxBackgroundMode="none"
+            app:hintEnabled="false"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/ht_text_secondary"
+            app:endIconContentDescription="@string/preview_copy_071">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/auth_password" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_049" android:inputType="textPassword" android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/auth_password_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_050" android:textAppearance="@style/TextAppearance.HomeTiming.Label" android:layout_marginTop="20dp" android:labelFor="@id/auth_confirm"/>
-        <androidx.appcompat.widget.AppCompatEditText android:id="@+id/auth_confirm" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_051" android:inputType="textPassword" android:imeOptions="actionNext"/>
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/auth_confirm_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:boxBackgroundMode="none"
+            app:hintEnabled="false"
+            app:endIconMode="password_toggle"
+            app:endIconTint="@color/ht_text_secondary"
+            app:endIconContentDescription="@string/preview_copy_071">
+            <com.google.android.material.textfield.TextInputEditText android:id="@+id/auth_confirm" style="@style/Widget.HomeTiming.Field" android:hint="@string/design_051" android:inputType="textPassword" android:imeOptions="actionNext"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <com.google.android.material.textview.MaterialTextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_017" android:textAppearance="@style/TextAppearance.HomeTiming.Caption" android:id="@+id/auth_confirm_error" android:visibility="gone" android:textColor="@color/ht_error" android:layout_marginTop="6dp"/>
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:id="@+id/auth_options"/>
         <com.google.android.material.button.MaterialButton android:id="@+id/auth_submit" style="@style/Widget.HomeTiming.Button" android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/design_052" android:layout_marginTop="@dimen/ht_space_12"/>
