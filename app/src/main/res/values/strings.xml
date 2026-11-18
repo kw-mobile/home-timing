@@ -67,4 +67,15 @@
     <string name="weather_error_server">기상청 서비스에 문제가 있어요. 잠시 후 다시 시도해 주세요.</string>
     <string name="auth_error_account_deleting">탈퇴 정리 중인 계정입니다. 탈퇴를 다시 실행해 마무리해 주세요.</string>
     <string name="house_error_rate_limited">초대 확인 요청이 많습니다. 잠시 후 다시 시도해 주세요.</string>
+    <string name="house_location_current">현재 위치로 설정</string>
+    <string name="house_location_rationale">주변 지역 후보를 찾기 위해 현재 위치를 한 번 사용해요.</string>
+    <string name="house_location_allow">위치 권한 요청</string>
+    <string name="house_location_denied">위치 권한이 필요해요. 앱 설정에서 허용하거나 지역 목록에서 직접 선택해 주세요.</string>
+    <string name="house_location_settings">앱 설정</string>
+    <string name="house_location_disabled">휴대폰 위치를 켜거나 지역 목록에서 직접 선택해 주세요.</string>
+    <string name="house_location_loading">현재 위치를 확인하고 있어요.</string>
+    <string name="house_location_unavailable">현재 위치로 지역을 찾지 못했어요. 지역 목록에서 직접 선택해 주세요.</string>
+    <string name="house_location_candidates">현재 위치 주변 지역</string>
+    <string name="house_location_confirm">‘%1$s’을(를) 가족의 집 지역으로 저장할까요?</string>
+    <string name="house_location_save">저장</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.kwmobile.hometiming.ui.main;
 
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -8,7 +9,13 @@ import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 import android.widget.FrameLayout;
 import android.graphics.Outline;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.CancellationSignal;
+import android.os.Handler;
+import android.os.Looper;
+import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
@@ -19,6 +26,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+import androidx.core.location.LocationManagerCompat;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,6 +36,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.kwmobile.hometiming.BuildConfig;
 import com.kwmobile.hometiming.R;
@@ -36,7 +45,11 @@ import com.kwmobile.hometiming.data.preview.PreviewStore.Item;
 import com.kwmobile.hometiming.databinding.ActivityMainBinding;
 import com.kwmobile.hometiming.ui.component.FluidMotion;
 
+import com.kwmobile.hometiming.data.auth.Session;
+import com.kwmobile.hometiming.data.weather.Region;
+
 import java.time.LocalDate;
+import java.util.List;
 
 /** Complete native design walkthrough. All mutations are restricted to local fixtures. */
 public final class MainActivity extends AppCompatActivity {
@@ -66,6 +79,7 @@ public final class MainActivity extends AppCompatActivity {
                     else notificationSettings();
                 }
                 public void photoName() { startPhotoName(); }
+                public void useCurrentHouseLocation() { requestHouseLocation(); }
 
                 public void notificationSettings() {
                     startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -124,6 +138,145 @@ public final class MainActivity extends AppCompatActivity {
     private final androidx.activity.result.ActivityResultLauncher<String> notificationRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
                     granted -> { if (screen != null) { capture(); render(); } });
+
+    private static final String HOUSE_LOCATION_PERMISSION = Manifest.permission.ACCESS_COARSE_LOCATION;
+    private static final long HOUSE_LOCATION_TIMEOUT_MS = 12_000;
+    private final Handler locationHandler = new Handler(Looper.getMainLooper());
+    private Session locationPermissionSession;
+    private CancellationSignal locationCancellation;
+    private final androidx.activity.result.ActivityResultLauncher<String> locationRequest =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
+                    granted -> {
+                        Session session = locationPermissionSession;
+                        locationPermissionSession = null;
+                        if (!canSetHouseLocation(session)) return;
+                        if (granted) readHouseLocation(session);
+                        else if (shouldShowRequestPermissionRationale(HOUSE_LOCATION_PERMISSION)) {
+                            notice(getString(R.string.house_location_denied));
+                        } else {
+                            new MaterialAlertDialogBuilder(this)
+                                    .setMessage(R.string.house_location_denied)
+                                    .setNegativeButton(android.R.string.cancel, null)
+                                    .setPositiveButton(R.string.house_location_settings, (dialog, which) ->
+                                            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                                                    Uri.fromParts("package", getPackageName(), null))))
+                                    .show();
+                        }
+                    });
+
+    private boolean canSetHouseLocation(Session session) {
+        return !isFinishing() && !isDestroyed() && vm != null && mvp != null
+                && session != null && mvp.session == session && mvp.house != null
+                && mvp.house.isOwner(session.uid) && !mvp.readOnly() && !mvp.busy()
+                && "preferences:region".equals(s().route.key());
+    }
+
+    private boolean hasHouseLocationPermission() {
+        return ContextCompat.checkSelfPermission(this, HOUSE_LOCATION_PERMISSION)
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void requestHouseLocation() {
+        Session session = mvp == null ? null : mvp.session;
+        if (!canSetHouseLocation(session) || locationPermissionSession != null || locationCancellation != null) return;
+        if (hasHouseLocationPermission()) {
+            readHouseLocation(session);
+        } else if (shouldShowRequestPermissionRationale(HOUSE_LOCATION_PERMISSION)) {
+            new MaterialAlertDialogBuilder(this)
+                    .setMessage(R.string.house_location_rationale)
+                    .setNegativeButton(android.R.string.cancel, null)
+                    .setPositiveButton(R.string.house_location_allow, (dialog, which) -> launchLocationPermission(session))
+                    .show();
+        } else {
+            launchLocationPermission(session);
+        }
+    }
+
+    private void launchLocationPermission(Session session) {
+        if (!canSetHouseLocation(session)) return;
+        locationPermissionSession = session;
+        locationRequest.launch(HOUSE_LOCATION_PERMISSION);
+    }
+
+    @android.annotation.SuppressLint("MissingPermission") // Permission is checked immediately before the request.
+    private void readHouseLocation(Session session) {
+        if (!canSetHouseLocation(session)) return;
+        if (!hasHouseLocationPermission()) {
+            notice(getString(R.string.house_location_denied));
+            return;
+        }
+        if (weatherVm.regionNames().length == 0) {
+            weatherVm.refresh(true);
+            notice(getString(R.string.weather_ui_region_loading));
+            return;
+        }
+        LocationManager manager = getSystemService(LocationManager.class);
+        if (manager == null || !LocationManagerCompat.isLocationEnabled(manager)) {
+            notice(getString(R.string.house_location_disabled));
+            return;
+        }
+        List<String> providers = manager.getProviders(true);
+        String provider = providers.contains("fused") ? "fused"
+                : providers.contains(LocationManager.NETWORK_PROVIDER) ? LocationManager.NETWORK_PROVIDER : null;
+        if (provider == null) {
+            notice(getString(R.string.house_location_unavailable));
+            return;
+        }
+        CancellationSignal request = new CancellationSignal();
+        locationCancellation = request;
+        notice(getString(R.string.house_location_loading));
+        locationHandler.postDelayed(() -> {
+            if (locationCancellation != request) return;
+            cancelHouseLocation();
+            if (canSetHouseLocation(session)) notice(getString(R.string.house_location_unavailable));
+        }, HOUSE_LOCATION_TIMEOUT_MS);
+        try {
+            LocationManagerCompat.getCurrentLocation(manager, provider, request, ContextCompat.getMainExecutor(this),
+                    location -> {
+                        if (locationCancellation != request) return;
+                        locationCancellation = null;
+                        locationHandler.removeCallbacksAndMessages(null);
+                        if (!canSetHouseLocation(session)) return;
+                        List<Region> candidates = location == null ? java.util.Collections.emptyList()
+                                : weatherVm.nearbyRegions(location.getLatitude(), location.getLongitude());
+                        showHouseLocationCandidates(session, candidates);
+                    });
+        } catch (SecurityException | IllegalArgumentException failure) {
+            cancelHouseLocation();
+            notice(getString(R.string.house_location_unavailable));
+        }
+    }
+
+    private void cancelHouseLocation() {
+        CancellationSignal request = locationCancellation;
+        locationCancellation = null;
+        if (request != null) request.cancel();
+        locationHandler.removeCallbacksAndMessages(null);
+    }
+
+    private void showHouseLocationCandidates(Session session, List<Region> candidates) {
+        if (candidates.isEmpty()) {
+            notice(getString(R.string.house_location_unavailable));
+            return;
+        }
+        String[] names = new String[candidates.size()];
+        for (int i = 0; i < names.length; i++) names[i] = candidates.get(i).name;
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.house_location_candidates)
+                .setItems(names, (dialog, index) -> {
+                    if (!canSetHouseLocation(session)) return;
+                    Region selected = candidates.get(index);
+                    new MaterialAlertDialogBuilder(this)
+                            .setMessage(getString(R.string.house_location_confirm, selected.name))
+                            .setNegativeButton(android.R.string.cancel, null)
+                            .setPositiveButton(R.string.house_location_save, (confirm, which) -> {
+                                if (canSetHouseLocation(session)) mvp.region(selected);
+                            })
+                            .show();
+                })
+                .setNegativeButton(android.R.string.cancel, null)
+                .show();
+    }
 
     private final androidx.activity.result.ActivityResultLauncher<Intent> photoRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
@@ -375,6 +528,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        cancelHouseLocation();
         capture();
         unregisterReceiver(clock);
         super.onStop();

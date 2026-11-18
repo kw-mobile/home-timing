@@ -112,7 +112,10 @@ final class MvpHouseholdScreens {
                 body.addView(ui.label(vm.house != null && vm.house.hasRegion() ? vm.house.regionName
                         : context.getString(R.string.mvp_region_unset)));
                 body.addView(ui.caption(context.getString(R.string.mvp_region_shared)));
-                ui.fullAction(body, context.getString(R.string.weather_ui_region_choose), true, () -> {
+                if (vm.house == null || !vm.house.isOwner(vm.session.uid)) break;
+                ui.fullAction(body, context.getString(R.string.house_location_current), true,
+                        host::useCurrentHouseLocation);
+                ui.fullAction(body, context.getString(R.string.weather_ui_region_choose), false, () -> {
                     WeatherViewModel weather = host.weatherViewModel();
                     if (weather.regionNames().length == 0) { weather.refresh(true); host.notice(context.getString(R.string.weather_ui_region_loading)); return; }
                     ui.choose(context.getString(R.string.weather_ui_region_choose), weather.regionNames(), name -> {

@@ -12,6 +12,8 @@ interface PreviewHost {
 
     void photoName();
 
+    void useCurrentHouseLocation();
+
     void notificationPermission();
 
     void notificationSettings();
