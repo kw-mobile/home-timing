@@ -61,6 +61,8 @@ final class AccountScreens {
             if (mode.equals("login")) {
                 LinearLayout options = ui.box(R.id.auth_options);
                 ui.fullAction(options, context.getString(R.string.mvp_retry_session), false, () -> host.mvp().restore());
+                ui.fullAction(options, context.getString(R.string.update_title), false, () -> context.startActivity(
+                        new android.content.Intent(context, com.kwmobile.hometiming.ui.update.UpdateActivity.class)));
                 if (host.mvp().hasStoredAccount()) ui.fullAction(options,
                         context.getString(R.string.mvp_delete_account), false,
                         () -> MvpHouseholdScreens.deleteAccount(context, host, ui));

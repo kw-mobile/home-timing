@@ -216,3 +216,9 @@ git push origin v0.1.0
 ## 사진 OCR 실험 의존성
 
 CameraX 1.4.2와 ML Kit bundled 한글/라틴 16.0.1을 카탈로그에 고정합니다. 무료 기기 내 OCR이며 키·외부 상품 DB·서버 OCR 설정은 없습니다. 모델은 APK에 포함되어 첫 실행 전 모델 다운로드가 필요하지 않습니다. 사진은 저장/전송하지 않으며 SDK 자체의 성능 지표 통신 가능성은 별개입니다. 기존 도구 버전을 업그레이드하지 않았으며 의존성 lock은 위 절차로 재생성합니다. debug APK에서만 사진 등록 실험에 진입하고 정식 채택은 MVP의 실물 Gate를 따릅니다.
+
+### 앱 내 업데이트용 배포 정보
+
+정식 배포 job은 서명/단위/Lint 검증 후 `scripts/release/create_update_metadata.py`로 `update.json`을 만들고 APK·sha256과 같은 릴리스에 게시합니다. versionName/versionCode/sizeBytes/sha256/apkUrl은 실제 산출물에서 생성하며 사람이 임의로 복사하지 않습니다. 자동 확인 주소는 `https://github.com/kw-mobile/home-timing/releases/latest/download/update.json`이며 공개 저장소라 토큰이나 추가 API 키를 앱에 넣지 않습니다. stable 릴리스를 사용하고 증가하는 기존 run_number 코드 정책을 유지합니다.
+
+처음 이 기능을 포함한 버전은 GitHub 릴리스에서 직접 설치합니다. 이후 정식 APK는 실행 시 새 버전을 확인하고 로그인 화면·설정의 앱 업데이트에서도 확인할 수 있습니다. ‘다운로드 및 설치’의 명시적 요청 후 같은 패키지/서명/상위 코드를 확인하며, 기기에서 설치 허용 또는 확인이 필요할 수 있습니다. 외부 미검증 파일로 설치 화면을 우회하지 않습니다.

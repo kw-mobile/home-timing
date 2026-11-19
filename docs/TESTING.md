@@ -178,3 +178,10 @@ LiteRT 실행 의존성과 모델만 추가했으므로 debug/release 빌드·�
 `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation :app:assembleDebugAndroidTest`로 테스트 패키지를 빌드합니다. 같은 로컬 테스트 키로 서명한 release 앱에 설치할 수 있습니다. 검증 사진은 저장소에 넣지 않으며 COCO 공식 val2017의 `000000365385.jpg`(칫솔), `000000311303.jpg`(컵), `000000167353.jpg`(시계)를 별도로 받아 test 패키지의 private files에 전달합니다. 이 사진은 COCO 데이터에 속하는 알려진 예시이고 실제 이용자 정확도 평가용 독립 표본이 아닙니다. 원본 Flickr 출처·CC BY/CC BY-SA 라이선스·사진 ID는 검증 영수증에 남깁니다.
 
 Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation`을 실행합니다. 실제 이미지→CPU 모델→한국어 일반명을 검사하고 빈 사진, 전체 사물+OCR 칫솔 경로와 OCR 일반명 보조를 확인합니다. `MvpFlowInstrumentation role=ocr`는 기존과 같이 후보의 명시적 적용·취소/다른 초안·날짜/주기 보호·실제 저장을 확인합니다. 코드·모델이 바뀐 뒤 오래된 인식 결과를 현재 성공으로 재사용하지 않습니다. 카메라·물리 기기·새 품목 성능은 해당 기기/독립 표본에서 따로 확인합니다.
+
+## APK 앱 내 업데이트 검증
+
+- `UpdateInfoTest`로 고정 HTTPS 저장소/파일명·정수 코드·해시·크기/범위와 같은/낮은 코드를 검사합니다. `python3 -m unittest discover -s scripts/release/tests -v`와 actionlint로 배포 메타데이터의 파일/버전/해시 계약과 workflow를 확인합니다. debug/release의 빌드·단위·Lint를 수행합니다.
+- 계정 없는 전용 API36 AVD의 `UpdateFlowInstrumentation`은 기본 versionCode1의 debug 앱과, 같은 로컬 테스트 키로 서명한 비디버그 0.4.1/code2 fixture를 사용합니다. 공식 키/정식 배포를 대신하지 않습니다. fixture는 외부 저장소가 아닌 대상 앱 private files/fixtures의 valid.apk와 official-old.apk(다른 공식 서명)로 전달합니다. 올바른 새 APK 수락, 다른 서명·버전 불일치·변조 거부, 저장한 파일 재검사, 자동 확인 설정/Activity 재생성, 설치 허용 취소 시 session 미생성을 검사합니다. 다음 프로세스의 `-e mode tamper`는 저장한 파일을 바꾼 뒤 재검사/삭제되는지 확인합니다. 실제 설치를 commit하지 않습니다.
+- 실제 공식 배포는 metadata/APK/sha256·기존 인증서·증가한 코드·비디버그·Firebase/날씨 구성을 확인합니다. 업데이트 기능이 포함된 이전 공식 APK를 전용 AVD에 설치한 후, 최신 릴리스 자동 감지 → 다운로드 취소/재시도 → 해시/서명 검사 → 설치 허용/시스템 확인 또는 허용된 자동 설치 → 실제 설치된 최신 versionCode를 확인합니다. 실기기/OEM·API26~30의 설치 확인 경로·실사용 로그인 상태 유지는 별도로 기록합니다.
+- 공식 APK는 debug 테스트 패키지와 서명이 다르므로 무단 instrumentation으로 검증하지 않습니다. 전용 AVD의 실제 화면/패키지 버전을 확인하고 개인 기기·타인 앱 데이터나 공용 서비스 데이터를 초기화하지 않습니다.
