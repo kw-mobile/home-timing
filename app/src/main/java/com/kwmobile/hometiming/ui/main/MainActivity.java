@@ -140,10 +140,10 @@ public final class MainActivity extends AppCompatActivity {
                     granted -> { if (screen != null) { capture(); render(); } });
 
     private static final String HOUSE_LOCATION_PERMISSION = Manifest.permission.ACCESS_COARSE_LOCATION;
-    private static final long HOUSE_LOCATION_TIMEOUT_MS = 12_000;
+    private static final long HOUSE_LOCATION_TIMEOUT_MS = 20_000;
     private final Handler locationHandler = new Handler(Looper.getMainLooper());
     private Session locationPermissionSession;
-    private CancellationSignal locationCancellation;
+    private HouseLocationRequest houseLocationRequest;
     private final androidx.activity.result.ActivityResultLauncher<String> locationRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
                     granted -> {
@@ -178,7 +178,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void requestHouseLocation() {
         Session session = mvp == null ? null : mvp.session;
-        if (!canSetHouseLocation(session) || locationPermissionSession != null || locationCancellation != null) return;
+        if (!canSetHouseLocation(session) || locationPermissionSession != null || houseLocationRequest != null) return;
         if (hasHouseLocationPermission()) {
             readHouseLocation(session);
         } else if (shouldShowRequestPermissionRationale(HOUSE_LOCATION_PERMISSION)) {
@@ -215,50 +215,84 @@ public final class MainActivity extends AppCompatActivity {
             notice(getString(R.string.house_location_disabled));
             return;
         }
-        List<String> providers = manager.getProviders(true);
-        String provider = providers.contains("fused") ? "fused"
-                : providers.contains(LocationManager.NETWORK_PROVIDER) ? LocationManager.NETWORK_PROVIDER : null;
-        if (provider == null) {
-            notice(getString(R.string.house_location_unavailable));
+        List<String> available = manager.getProviders(true);
+        List<String> providers = new java.util.ArrayList<>(2);
+        if (available.contains("fused")) providers.add("fused");
+        if (available.contains(LocationManager.NETWORK_PROVIDER)) {
+            providers.add(LocationManager.NETWORK_PROVIDER);
+        }
+        if (providers.isEmpty()) {
+            notice(getString(R.string.house_location_no_fix));
             return;
         }
-        CancellationSignal request = new CancellationSignal();
-        locationCancellation = request;
+
+        HouseLocationRequest request = new HouseLocationRequest(providers.size());
+        houseLocationRequest = request;
         notice(getString(R.string.house_location_loading));
         locationHandler.postDelayed(() -> {
-            if (locationCancellation != request) return;
-            cancelHouseLocation();
-            if (canSetHouseLocation(session)) notice(getString(R.string.house_location_unavailable));
+            if (houseLocationRequest == request) finishHouseLocation(session, request);
         }, HOUSE_LOCATION_TIMEOUT_MS);
-        try {
-            LocationManagerCompat.getCurrentLocation(manager, provider, request, ContextCompat.getMainExecutor(this),
-                    location -> {
-                        if (locationCancellation != request) return;
-                        locationCancellation = null;
-                        locationHandler.removeCallbacksAndMessages(null);
-                        if (!canSetHouseLocation(session)) return;
-                        List<Region> candidates = location == null ? java.util.Collections.emptyList()
-                                : weatherVm.nearbyRegions(location.getLatitude(), location.getLongitude());
-                        showHouseLocationCandidates(session, candidates);
-                    });
-        } catch (SecurityException | IllegalArgumentException failure) {
-            cancelHouseLocation();
-            notice(getString(R.string.house_location_unavailable));
+
+        for (String provider : providers) {
+            CancellationSignal signal = new CancellationSignal();
+            request.signals.add(signal);
+            try {
+                LocationManagerCompat.getCurrentLocation(manager, provider, signal,
+                        ContextCompat.getMainExecutor(this),
+                        location -> onHouseLocation(session, request, location));
+            } catch (SecurityException | IllegalArgumentException failure) {
+                onHouseLocation(session, request, null);
+            }
         }
+    }
+
+    private void onHouseLocation(Session session, HouseLocationRequest request,
+                                 android.location.Location location) {
+        if (houseLocationRequest != request) return;
+        if (!canSetHouseLocation(session)) {
+            cancelHouseLocation();
+            return;
+        }
+        if (location != null) {
+            request.receivedLocation = true;
+            List<Region> candidates = weatherVm.nearbyRegions(location.getLatitude(), location.getLongitude());
+            if (!candidates.isEmpty()) {
+                cancelHouseLocation();
+                showHouseLocationCandidates(session, candidates);
+                return;
+            }
+        }
+        if (--request.pending == 0) finishHouseLocation(session, request);
+    }
+
+    private void finishHouseLocation(Session session, HouseLocationRequest request) {
+        cancelHouseLocation();
+        if (!canSetHouseLocation(session)) return;
+        int message = !hasHouseLocationPermission() ? R.string.house_location_denied
+                : request.receivedLocation ? R.string.house_location_no_region : R.string.house_location_no_fix;
+        notice(getString(message));
     }
 
     private void cancelHouseLocation() {
-        CancellationSignal request = locationCancellation;
-        locationCancellation = null;
-        if (request != null) request.cancel();
+        HouseLocationRequest request = houseLocationRequest;
+        houseLocationRequest = null;
         locationHandler.removeCallbacksAndMessages(null);
+        if (request != null) {
+            for (CancellationSignal signal : request.signals) signal.cancel();
+        }
+    }
+
+    private static final class HouseLocationRequest {
+        final List<CancellationSignal> signals = new java.util.ArrayList<>(2);
+        int pending;
+        boolean receivedLocation;
+
+        HouseLocationRequest(int pending) {
+            this.pending = pending;
+        }
     }
 
     private void showHouseLocationCandidates(Session session, List<Region> candidates) {
-        if (candidates.isEmpty()) {
-            notice(getString(R.string.house_location_unavailable));
-            return;
-        }
         String[] names = new String[candidates.size()];
         for (int i = 0; i < names.length; i++) names[i] = candidates.get(i).name;
         new MaterialAlertDialogBuilder(this)

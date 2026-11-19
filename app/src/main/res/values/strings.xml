@@ -74,7 +74,8 @@
     <string name="house_location_settings">앱 설정</string>
     <string name="house_location_disabled">휴대폰 위치를 켜거나 지역 목록에서 직접 선택해 주세요.</string>
     <string name="house_location_loading">현재 위치를 확인하고 있어요.</string>
-    <string name="house_location_unavailable">현재 위치로 지역을 찾지 못했어요. 지역 목록에서 직접 선택해 주세요.</string>
+    <string name="house_location_no_fix">휴대폰에서 현재 위치를 받지 못했어요. 다시 시도하거나 지역 목록에서 직접 선택해 주세요.</string>
+    <string name="house_location_no_region">현재 위치 주변에 예보 지역 후보가 없어요. 지역 목록에서 직접 선택해 주세요.</string>
     <string name="house_location_candidates">현재 위치 주변 지역</string>
     <string name="house_location_confirm">‘%1$s’을(를) 가족의 집 지역으로 저장할까요?</string>
     <string name="house_location_save">저장</string>
