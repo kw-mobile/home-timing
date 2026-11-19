@@ -75,10 +75,21 @@ public final class HouseLocationInstrumentation extends Instrumentation {
                 pass("runtime permission denial -> manual-selection 안내; no request");
             } else if ("disabled".equals(mode)) {
                 check(!androidx.core.location.LocationManagerCompat.isLocationEnabled(manager), "location disabled by dedicated AVD setup");
-                runOnMainSync(() -> invoke("requestHouseLocation"));
+                triggerRequest();
                 await(() -> visible().contains("휴대폰 위치를 켜거나"), 5000, "location disabled 안내");
                 check(!active(), "disabled location does not start request");
                 pass("location disabled -> manual-selection 안내; no request");
+            } else if ("manual".equals(mode)) {
+                runOnMainSync(() -> invoke("chooseHouseRegion"));
+                await(() -> visible().contains("시·도 선택"), 5000, "province picker");
+                check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시"), "pick Seoul province");
+                await(() -> visible().contains("시·군·구 선택"), 5000, "district picker");
+                check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시 중구"), "pick district");
+                await(() -> visible().contains("집 위치 확인") && visible().contains("서울특별시 중구"), 5000, "district confirmation");
+                screenshot("manual-district-confirm.png");
+                getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+                check(live.house.regionName == null, "manual confirmation cancel leaves shared region unchanged");
+                pass("province -> district -> confirmation; cancel preserves shared region");
             } else {
             for (String provider : new String[]{"fused", "network"}) {
                 manager.addTestProvider(provider, false, false, false, false, true, true, true,
@@ -87,7 +98,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
             }
             request();
             feed("network", 37.5665, 126.9780);
-            await(() -> visible().contains("현재 위치 주변 지역") && visible().contains("서울특별시"), 10000, "network-only fix selects Seoul candidates");
+            await(() -> visible().contains("주변 시·군·구 선택") && visible().contains("서울특별시"), 10000, "network-only fix selects Seoul candidates");
             screenshot("seoul-candidates.png");
             String first = visible();
             check(!first.contains("부산광역시"), "Seoul fix excludes Busan");
@@ -98,7 +109,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
 
             // Remove/reinstall providers to clear their cached fixes before testing fused alone.
             resetProviders(); request(); feed("fused", 35.1796, 129.0756);
-            await(() -> visible().contains("현재 위치 주변 지역") && visible().contains("부산광역시"), 10000, "fused-only fix selects Busan candidates");
+            await(() -> visible().contains("주변 시·군·구 선택") && visible().contains("부산광역시"), 10000, "fused-only fix selects Busan candidates");
             getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
             waitForIdleSync(); pass("fused-only fresh fix -> Busan");
 
@@ -116,7 +127,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
             runOnMainSync(() -> live.session = new Session("other", "other", "Other", false));
             feed("network", 37.5665, 126.9780);
             SystemClock.sleep(1500);
-            check(!visible().contains("현재 위치 주변 지역"), "late fix after account switch rejected");
+            check(!visible().contains("주변 시·군·구 선택"), "late fix after account switch rejected");
             check(live.house.regionName == null, "no server-save call by test");
             pass("late callback after session switch rejected; no Firebase mutation");
             }
@@ -170,7 +181,14 @@ public final class HouseLocationInstrumentation extends Instrumentation {
             manager.setTestProviderEnabled(p, true);
         }
     }
-    private void request() { runOnMainSync(() -> { invoke("requestHouseLocation"); try { Field f = MainActivity.class.getDeclaredField("houseLocationRequest"); f.setAccessible(true); check(f.get(activity) != null, "location request started; readOnly=" + live.readOnly()); } catch (ReflectiveOperationException e) { throw new RuntimeException(e); } }); }
+    private void triggerRequest() {
+        runOnMainSync(() -> invoke("requestHouseLocation"));
+        if (visible().contains("구 단위로 찾기")) {
+            check(clickExact(getUiAutomation().getRootInActiveWindow(), "구 단위로 찾기"), "keep approximate permission");
+            waitForIdleSync();
+        }
+    }
+    private void request() { triggerRequest(); check(active(), "location request started"); }
     private void feed(String provider, double lat, double lon) { feed(provider, lat, lon, 4); }
     private void feed(String provider, double lat, double lon, int count) {
         for (int i = 0; i < count; i++) {

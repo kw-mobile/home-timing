@@ -22,16 +22,9 @@ public final class RegionLocationMatcher {
     private RegionLocationMatcher() {}
 
     public static List<Region> nearby(double latitude, double longitude, List<Region> regions) {
-        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)
-                || latitude <= -90 || latitude >= 90 || longitude < -180 || longitude > 180) {
-            return Collections.emptyList();
-        }
-        double angle = Math.toRadians(longitude - 126);
-        if (angle < -Math.PI) angle += 2 * Math.PI;
-        double distance = radius(Math.toRadians(latitude));
-        long x = Math.round(distance * Math.sin(angle * CONE) + 43);
-        long y = Math.round(ORIGIN_RADIUS - distance * Math.cos(angle * CONE) + 136);
-        if (x < 1 || x > 149 || y < 1 || y > 253) return Collections.emptyList();
+        Region grid = at("", latitude, longitude);
+        if (grid == null) return Collections.emptyList();
+        int x = grid.nx, y = grid.ny;
 
         List<Region> candidates = new ArrayList<>();
         for (Region region : regions) {
@@ -42,6 +35,22 @@ public final class RegionLocationMatcher {
         candidates.sort(Comparator.comparingLong((Region region) -> squaredDistance(x, y, region))
                 .thenComparing(region -> region.name));
         return new ArrayList<>(candidates.subList(0, Math.min(MAX_CANDIDATES, candidates.size())));
+    }
+
+    /** Exact forecast cell for the received coordinate, independent of district office grids. */
+    public static Region at(String name, double latitude, double longitude) {
+        if (!Double.isFinite(latitude) || !Double.isFinite(longitude)
+                || latitude <= -90 || latitude >= 90 || longitude < -180 || longitude > 180) {
+            return null;
+        }
+        double angle = Math.toRadians(longitude - 126);
+        if (angle < -Math.PI) angle += 2 * Math.PI;
+        double distance = radius(Math.toRadians(latitude));
+        long x = Math.round(distance * Math.sin(angle * CONE) + 43);
+        long y = Math.round(ORIGIN_RADIUS - distance * Math.cos(angle * CONE) + 136);
+        if (x < 1 || x > 149 || y < 1 || y > 253) return null;
+
+        return Region.of(name, (int) x, (int) y);
     }
 
     private static long squaredDistance(long x, long y, Region region) {

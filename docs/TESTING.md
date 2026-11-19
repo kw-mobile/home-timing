@@ -67,13 +67,14 @@ adb -s emulator-5572 shell am instrument -w -e role member -e runId mvp-unique-r
 
 ### 현재 위치로 날씨 지역 찾기
 
-`HouseLocationInstrumentation`은 계정 없는 전용 API36 AVD에서 OS의 mock fused/network 제공자를 사용합니다. 앱의 요청·후보 화면·취소·세션 변경 차단을 검사하되, 집/계정은 메모리 상태만 주입하고 Firebase 저장은 호출하지 않습니다. 실기기나 개인 계정이 있는 설치에서 실행하지 않습니다.
+계정 없는 전용 API36 AVD에서 `HouseLocationInstrumentation`(대략적 위치·수동 선택)과 `DongLocationInstrumentation`(정확한 GPS·주소)을 사용합니다. 기본 실행은 집/계정을 메모리에만 주입하며 Firebase 저장을 호출하지 않습니다. 실기기나 개인 계정이 있는 설치에서 실행하지 않습니다.
 
-- `-PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.HouseLocationInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드하고 전용 AVD에 두 APK를 설치합니다.
-- `adb -s <전용기기> shell appops set com.kwmobile.hometiming android:mock_location allow` 및 coarse 위치 권한·기기 위치 켜짐을 준비합니다. `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.HouseLocationInstrumentation`으로 network만 서울·fused만 부산, 범위 밖 좌표, 20초 미수신과 세션 전환을 확인합니다. 종료 때 생성한 mock 제공자를 제거합니다. 앱 `files/seoul-candidates.png`는 모의 좌표의 후보 화면이며 필요 시 별도 보관합니다.
-- 기기 위치를 끈 뒤 `-e mode disabled`, coarse 권한을 철회한 뒤 `-e mode denied`로 각각 실행하여 안내와 요청 미시작을 확인합니다. denied는 영어 시스템 권한 창의 거부 버튼을 눌러 검사합니다. 종료 후 위치 상태·권한·mock app-op을 원복합니다. ADB 종료 코드만으로 통과 처리하지 않고 출력의 `HOUSE LOCATION PASS`를 확인합니다.
+1. `-PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.DongLocationInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드해 두 APK를 설치합니다. OS mock 제공자는 `appops set com.kwmobile.hometiming android:mock_location allow`로 허용하고, 위치를 켭니다. coarse/fine 권한을 둘 다 허용한 상태에서 `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.DongLocationInstrumentation`을 실행합니다. 모의 GPS+합성 주소로 동 확인창·정확도 개선 대기·주소 오류/8초 제한·늦은 결과·화면 중지/세션 전환을 검사합니다. `-e mode backend`는 별도로 공개 서울 좌표를 실제 Android 주소 서비스로 변환합니다. 제공자/네트워크 상태에 따라 실패할 수 있고 모의 성공으로 대체하지 않습니다.
+2. coarse만 허용한 뒤 `HouseLocationInstrumentation`을 실행해 network/fused 각각의 후보, 범위 밖·20초 미수신·세션 변경을 확인합니다. 권한 설명에서는 ‘구 단위로 찾기’를 선택합니다. `-e mode manual`은 시·도 → 시·군·구 → 확인/취소, 위치를 끈 `-e mode disabled`와 권한을 철회한 `-e mode denied`는 안내/요청 미시작을 검사합니다. denied는 영어 시스템 권한 창의 거부 버튼을 사용합니다. 반복 검증 시 전용 설치의 `user-set/user-fixed` 권한 플래그를 초기화하여 실제 권한 창을 구분합니다.
+3. 실제 팀 Firebase 저장은 `DongLocationInstrumentation -e service configured -e projectId <의도한-프로젝트> -e runId mvp-production-<새ID>`로만 실행합니다. 프로젝트/빈 로그인 설치를 확인하고 자신이 만든 임시 계정·집만 사용합니다. GPS와 주소는 모의이지만 확인 버튼 → 실제 서버 재조회 → 자동 날씨 갱신·비테스트 예보를 검사합니다. 성공/실패 후 자신의 계정·집을 정리하며, 미완료 정리를 통과로 쓰지 않습니다. 기상청 키를 로그·원본 URL에 남기지 않습니다.
+4. runner가 생성한 mock 제공자를 제거하고 위치/권한/mock app-op을 원복합니다. ADB 종료 코드가 아닌 출력의 `HOUSE LOCATION PASS`/`DONG LOCATION PASS`와 개별 시나리오를 확인합니다. 확인창·수동 선택·홈·날씨의 테스트 스크린샷은 앱 files에 저장할 수 있으며 생산 사진 저장 기능과 무관합니다.
 
-실기기는 위치를 켠 상태에서 관리자 계정의 설정 → 집 지역 → 현재 위치로 설정을 실행하고, 권한 허용부터 후보까지의 시간·후보 지역·확인 취소 시 기존 지역 유지·확인 저장 후 홈/날씨 지역과 예보 갱신을 기록합니다. 실내/실외 재시도와 권한 거부·기기 위치 꺼짐·20초 미수신도 구분합니다. 모의 좌표 성공이나 API HTTP200은 실기기 GNSS/네트워크 수신·정확도·가족 지역 저장의 성공 근거가 아닙니다. 실제 좌표와 키는 로그나 PR에 넣지 않습니다.
+실기기는 정확한 위치/대략적인 위치를 구분해 허용하고 현재 위치 버튼 → 주소·후보까지의 시간 → 집 위치 확인/취소 → 저장 후 홈·날씨 자동 갱신을 기록합니다. 실내/실외·주소 서비스 미지원·권한 거부·기기 위치 꺼짐을 구분합니다. 법정동과 행정동이 다를 수 있고, 모의 좌표나 실제 Geocoder/HTTP200으로 실기기 GNSS 수신·정확도를 증명하지 않습니다. API26~32의 legacy 주소 경로는 별도 기기 검증 대상입니다. 실제 좌표·도로명·번지·키는 로그/PR에 넣지 않습니다.
 
 ## 식품안전나라 바코드 API 개별 확인
 

@@ -66,6 +66,8 @@ public final class WeatherViewModel extends AndroidViewModel {
         return com.kwmobile.hometiming.data.weather.RegionLocationMatcher.nearby(latitude, longitude, regions);
     }
 
+    public List<Region> regions() { return java.util.Collections.unmodifiableList(regions); }
+
     public Region findRegion(String name) {
         for (Region value : regions) if (value.name.equals(name)) return value;
         return null;
