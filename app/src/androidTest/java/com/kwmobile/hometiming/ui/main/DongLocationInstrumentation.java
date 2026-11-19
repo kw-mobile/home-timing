@@ -49,7 +49,13 @@ public final class DongLocationInstrumentation extends Instrumentation {
         try {
             check(android.os.Build.VERSION.SDK_INT >= 33 && ("ranchu".equals(android.os.Build.HARDWARE)
                     || "goldfish".equals(android.os.Build.HARDWARE)), "dedicated modern AVD required");
-            check(FirebaseAuth.getInstance().getCurrentUser() == null, "no existing account allowed");
+            if ("identify".equals(args.getString("mode"))) {
+                check(FirebaseApp.getInstance().getOptions().getProjectId().equals(args.getString("projectId")), "explicit project guard");
+                com.google.firebase.auth.FirebaseUser own = FirebaseAuth.getInstance().getCurrentUser();
+                check(own != null && own.getEmail() != null && own.getEmail().matches("mvp-production-dong-[0-9]{6}-location@example\\.test"), "only this runner's temporary identity may be reported");
+                String ownRun = own.getEmail().split("-location@")[0];
+                passed = true; out.putString("stream", "DONG OWN RUN " + ownRun + "\n"); finish(Activity.RESULT_OK, out); return;
+            }
             boolean configured = "configured".equals(args.getString("service"));
             if (configured) {
                 String run = args.getString("runId", "");
@@ -57,6 +63,23 @@ public final class DongLocationInstrumentation extends Instrumentation {
                         && FirebaseApp.getInstance().getOptions().getProjectId().equals(args.getString("projectId")), "explicit project/run guards");
                 email = run + "-location@example.test";
             }
+            if ("cleanup".equals(args.getString("mode"))) {
+                check(configured && FirebaseAuth.getInstance().getCurrentUser() != null
+                        && email.equals(FirebaseAuth.getInstance().getCurrentUser().getEmail()), "exact own interrupted test account required");
+                try {
+                    Tasks.await(FirebaseAuth.getInstance().getCurrentUser().reload(), 30, TimeUnit.SECONDS);
+                    Tasks.await(AuthRepository.getInstance().deleteAccount(PASSWORD), 90, TimeUnit.SECONDS);
+                } catch (java.util.concurrent.ExecutionException error) {
+                    Throwable cause = error.getCause();
+                    if (!(cause instanceof com.google.firebase.auth.FirebaseAuthInvalidUserException)
+                            || !"ERROR_USER_NOT_FOUND".equals(((com.google.firebase.auth.FirebaseAuthInvalidUserException) cause).getErrorCode())) throw error;
+                }
+                AuthRepository.getInstance().signOut();
+                check(FirebaseAuth.getInstance().getCurrentUser() == null, "own account cleanup complete");
+                passed = true; out.putString("stream", "DONG LOCATION CLEANUP PASS: exact guarded account only\n");
+                finish(Activity.RESULT_OK, out); return;
+            }
+            check(FirebaseAuth.getInstance().getCurrentUser() == null, "no existing account allowed");
             activity = (MainActivity) startActivitySync(new Intent(getTargetContext(), MainActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
             runOnMainSync(() -> {
                 live = new ViewModelProvider(activity).get(MvpViewModel.class);
@@ -160,7 +183,12 @@ public final class DongLocationInstrumentation extends Instrumentation {
             if (manager != null) for (String provider : installed) try { manager.removeTestProvider(provider); } catch (Exception ignored) { }
             if (email != null && FirebaseAuth.getInstance().getCurrentUser() != null
                     && email.equals(FirebaseAuth.getInstance().getCurrentUser().getEmail())) {
-                try { Tasks.await(AuthRepository.getInstance().deleteAccount(PASSWORD), 90, TimeUnit.SECONDS); results.add("PASS own temporary account/house cleanup"); }
+                try {
+                    if (live == null) throw new AssertionError("test model required for subscription-safe cleanup");
+                    runOnMainSync(() -> live.deleteAccount(PASSWORD));
+                    await(() -> FirebaseAuth.getInstance().getCurrentUser() == null && live.session == null, 90000, "own account/house and local auth cleanup");
+                    results.add("PASS own temporary account/house and local auth cleanup");
+                }
                 catch (Exception cleanup) { passed = false; results.add("FAIL own cleanup " + cleanup); }
             }
             if (activity != null) runOnMainSync(activity::finish);
