@@ -84,8 +84,8 @@ public final class HouseLocationInstrumentation extends Instrumentation {
                 await(() -> visible().contains("시·도 선택"), 5000, "province picker");
                 check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시"), "pick Seoul province");
                 await(() -> visible().contains("시·군·구 선택"), 5000, "district picker");
-                check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시 중구"), "pick district");
-                await(() -> visible().contains("집 위치 확인") && visible().contains("서울특별시 중구"), 5000, "district confirmation");
+                check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시 강남구"), "pick district");
+                await(() -> visible().contains("집 위치 확인") && visible().contains("서울특별시 강남구"), 5000, "district confirmation");
                 screenshot("manual-district-confirm.png");
                 getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
                 check(live.house.regionName == null, "manual confirmation cancel leaves shared region unchanged");
