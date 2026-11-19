@@ -100,3 +100,9 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인�
 `MainActivity`는 버튼으로 시작한 위치 권한·OS 위치 요청·확인 화면의 수명을 관리합니다. 위치는 최대20초, 주소 검색은 최대8초이며 화면 중지나 세션 변경 시 늦은 결과를 무시합니다. `CurrentPlaceResolver`는 Android Geocoder의 비동기 API(33+) 또는 별도 bounded executor(26~32)를 사용하며, 날씨 요청 executor를 막지 않습니다. `PlaceAddress`가 알려진 한국 시·군·구와 동·읍·면만 추출하고 도로·번지·건물 주소를 버립니다. Android 주소 검색이 없는 기기나 낮은 정확도는 기존 지역 후보·시도별 수동 선택을 사용합니다.
 
 확인한 `Region`의 이름과 `RegionLocationMatcher.at`으로 받은 좌표에서 계산한 예보 격자는 기존 `MvpViewModel.region` → `HouseRepository.setRegion`에 전달합니다. 새 Firestore 필드·규칙은 추가하지 않습니다. 집 구독의 변경 → `WeatherViewModel.useSharedRegion`이 기존 요청 세대를 무효화하고 새 격자를 조회하므로 지역을 따로 다시 선택하지 않습니다. 원본 위경도·도로명 주소는 서버·로그에 저장하지 않습니다. Android 주소 검색 서비스에는 좌표가 전달될 수 있습니다.
+
+## APK 업데이트 채널
+
+`UpdateFeed`는 프로젝트의 HTTPS GitHub latest/update.json만 읽고 `UpdateInfo`가 고정 저장소의 stable 버전·코드·크기·APK URL·해시를 검증합니다. application-scoped `UpdateManager`가 자동 확인 간격, DownloadManager ID/확인한 파일의 복구, 취소 세대와 상태 LiveData를 관리합니다. 다운로드 완료 알림에서는 미검증 APK를 열지 않고, private cache 복사 뒤 `ApkVerifier`가 바이트/패키지/버전/현재 서명을 확인합니다. 설치 직전에도 다시 검사합니다.
+
+`UpdateActivity`와 MainActivity는 상태·동의/설치 권한 화면만 담당합니다. 파일은 PackageInstaller 세션으로 전달하며, non-exported `UpdateInstallReceiver`의 explicit mutable PendingIntent로 자기 세션 결과만 수신합니다. Android가 `STATUS_PENDING_USER_ACTION`을 요구하면 받은 시스템 Intent로 연결합니다. 새 버전 설치 후 같은/낮은 메타데이터와 남은 업데이트 파일은 정리하며, Firebase/사진/사용자 항목 데이터와는 독립적입니다. API/SDK/라이브러리는 추가하지 않습니다.

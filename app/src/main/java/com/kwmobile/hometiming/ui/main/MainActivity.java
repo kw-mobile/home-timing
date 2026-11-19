@@ -56,6 +56,7 @@ public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
     private WeatherViewModel weatherVm;
+    private com.kwmobile.hometiming.data.update.UpdateManager updates;
     private MvpViewModel mvp;
     private boolean fixtures;
     private WeatherViewModel.State shownWeatherState;
@@ -432,6 +433,20 @@ public final class MainActivity extends AppCompatActivity {
                 || name.equals("settings");
     }
 
+    private void offerAppUpdate(com.kwmobile.hometiming.data.update.UpdateManager.State state) {
+        if (state == null || state.info == null || isFinishing() || vm == null || !updates.shouldPrompt()
+                || !getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+                || "editor".equals(s().route.screen)) return;
+        updates.markPrompted();
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.update_title)
+                .setMessage(getString(R.string.update_available, state.info.versionName, (state.info.sizeBytes + 1048575) / 1048576))
+                .setNegativeButton(R.string.update_later, null)
+                .setPositiveButton(state.stage == com.kwmobile.hometiming.data.update.UpdateManager.Stage.READY
+                        ? R.string.update_install : R.string.update_download, (dialog, which) -> startActivity(
+                                new Intent(this, com.kwmobile.hometiming.ui.update.UpdateActivity.class)
+                                        .putExtra(com.kwmobile.hometiming.ui.update.UpdateActivity.AUTO_START, true))).show();
+    }
+
     @Override
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -440,6 +455,8 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         vm = new ViewModelProvider(this).get(DesignPreviewViewModel.class);
         vm.restore(saved);
+        updates = com.kwmobile.hometiming.data.update.UpdateManager.get(this);
+        updates.changes().observe(this, this::offerAppUpdate);
         weatherVm = new ViewModelProvider(this).get(WeatherViewModel.class);
         placeResolver = new com.kwmobile.hometiming.data.weather.CurrentPlaceResolver(
                 new android.location.Geocoder(getApplicationContext(), java.util.Locale.KOREA));
@@ -594,6 +611,7 @@ public final class MainActivity extends AppCompatActivity {
     @Override protected void onResume() {
         super.onResume();
         if (mvp != null && screen != null) { capture(); render(); }
+        if (updates != null) { updates.onForeground(); offerAppUpdate(updates.current()); }
     }
 
     private void configureInsets() {

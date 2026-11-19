@@ -71,5 +71,7 @@ jobs:
           cmdline-tools-version: ${{ env.CMDLINE_TOOLS }}
           packages: platform-tools platforms;android-${{ env.COMPILE_SDK }} build-tools;${{ env.BUILD_TOOLS }}
           log-accepted-android-sdk-licenses: false
+      - name: Test APK update metadata
+        run: python3 -m unittest discover -s scripts/release/tests -v
       - name: Verify bootstrap build
         run: ./gradlew --no-daemon --console=plain teamDoctor :app:assembleDebug :app:testDebugUnitTest :app:lintDebug

@@ -62,6 +62,8 @@ jobs:
           cmdline-tools-version: ${{ env.CMDLINE_TOOLS }}
           packages: platform-tools platforms;android-${{ env.COMPILE_SDK }} build-tools;${{ env.BUILD_TOOLS }}
           log-accepted-android-sdk-licenses: false
+      - name: Test APK update metadata
+        run: python3 -m unittest discover -s scripts/release/tests -v
       - name: Build and verify signed release
         shell: bash
         env:
@@ -103,6 +105,9 @@ jobs:
           cp app/build/outputs/apk/release/app-release.apk "dist/home-timing-v$RELEASE_VERSION.apk"
           cd dist
           sha256sum "home-timing-v$RELEASE_VERSION.apk" > "home-timing-v$RELEASE_VERSION.apk.sha256"
+          python3 ../scripts/release/create_update_metadata.py \
+            --apk "home-timing-v$RELEASE_VERSION.apk" --version "$RELEASE_VERSION" \
+            --code "$RELEASE_CODE" --output update.json
       - name: Publish versioned GitHub Release
         shell: bash
         env:
@@ -112,7 +117,7 @@ jobs:
         run: |
           set -euo pipefail
           # Refuse duplicate releases rather than overwrite published signed assets.
-          gh release create "$RELEASE_TAG" dist/*.apk dist/*.sha256 \
+          gh release create "$RELEASE_TAG" dist/*.apk dist/*.sha256 dist/update.json \
             --verify-tag --draft --title "Home Timing $RELEASE_TAG" --generate-notes
           gh release edit "$RELEASE_TAG" --draft=false
       - name: Remove signing material

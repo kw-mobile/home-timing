@@ -53,8 +53,10 @@ final class MvpHouseholdScreens {
                 () -> ui.confirm(context.getString(R.string.preview_copy_185), context.getString(R.string.mvp_logout_help),
                         context.getString(R.string.preview_copy_183), vm::signOut));
         ui.fullAction(body, context.getString(R.string.mvp_delete_account), false, () -> deleteAccount(context, host, ui));
-        body.addView(ui.caption(context.getString(R.string.mvp_build_version,
-                com.kwmobile.hometiming.BuildConfig.VERSION_NAME)));
+        ui.line(body);
+        ui.settingsRow(body, context.getString(R.string.update_title),
+                context.getString(R.string.mvp_build_version, com.kwmobile.hometiming.BuildConfig.VERSION_NAME), R.drawable.ic_cloud,
+                () -> context.startActivity(new android.content.Intent(context, com.kwmobile.hometiming.ui.update.UpdateActivity.class)));
     }
 
     private void status(LinearLayout body) {
