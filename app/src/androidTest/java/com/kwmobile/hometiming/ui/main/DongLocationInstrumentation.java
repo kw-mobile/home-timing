@@ -162,10 +162,13 @@ public final class DongLocationInstrumentation extends Instrumentation {
                     reset(); behavior.set(2); delayed.set(null); request(); feed("gps", 30);
                     await(() -> delayed.get() != null, 3000, "address pending before background");
                     getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME);
-                    SystemClock.sleep(500); delayed.get().trySetResult(Collections.singletonList(address()));
+                    await(() -> !activity.getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED), 8000, "activity actually stopped");
+                    check(read(activity, "houseLocationRequest") == null, "onStop clears pending location/address");
+                    delayed.get().trySetResult(Collections.singletonList(address()));
                     getTargetContext().startActivity(new Intent(getTargetContext(), MainActivity.class)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
-                    waitForIdleSync(); SystemClock.sleep(500);
+                    await(() -> activity.getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED), 8000, "activity resumed");
+                    waitForIdleSync(); SystemClock.sleep(300);
                     check(!visible().contains("집 위치 확인"), "background stop discards late address");
                     results.add("PASS stop/background discards late address");
 
@@ -212,7 +215,11 @@ public final class DongLocationInstrumentation extends Instrumentation {
         value.setAccuracy(accuracy); value.setTime(System.currentTimeMillis()); value.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
         manager.setTestProviderLocation(provider, value); SystemClock.sleep(300);
     }
-    private void back() { getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK); waitForIdleSync(); }
+    private void back() {
+        getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);
+        await(() -> !visible().contains("집 위치 확인") && !visible().contains("주변 시·군·구 선택"), 5000, "dialog dismissed");
+        waitForIdleSync();
+    }
     private String visible() { StringBuilder result = new StringBuilder(); collect(getUiAutomation().getRootInActiveWindow(), result); return result.toString(); }
     private void collect(AccessibilityNodeInfo node, StringBuilder out) {
         if (node == null) return; if (node.getText() != null) out.append(node.getText()).append('\n');
@@ -229,6 +236,7 @@ public final class DongLocationInstrumentation extends Instrumentation {
         finally { bitmap.recycle(); }
     }
     private void invoke(String name) { try { java.lang.reflect.Method m = MainActivity.class.getDeclaredMethod(name); m.setAccessible(true); m.invoke(activity); } catch (Exception e) { throw new RuntimeException(e); } }
+    private static Object read(Object object, String name) { try { Field f = object.getClass().getDeclaredField(name); f.setAccessible(true); return f.get(object); } catch (Exception e) { throw new RuntimeException(e); } }
     private static void set(Object object, String name, Object value) { try { Field field = object.getClass().getDeclaredField(name); field.setAccessible(true); field.set(object, value); } catch (Exception e) { throw new RuntimeException(e); } }
     private void await(BooleanSupplier condition, long timeout, String label) {
         long end = SystemClock.elapsedRealtime() + timeout;
