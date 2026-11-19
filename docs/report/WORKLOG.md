@@ -115,4 +115,4 @@ PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 
 
 | 2026-11-17 | 사용자(성명 확인 필요): 비밀번호 입력란 눈 아이콘 요청·재적용 결정; Codex (도구): Java/XML 구현·코드 검토·빌드 및 에뮬레이터 검증 | 로그인·회원가입 비밀번호/확인란에 Material password_toggle을 배치하고 별도 보기 버튼 제거. 기본 숨김·각 입력란 독립 전환·한국어 접근성 설명·48dp 터치 영역, 입력 시 화면 재생성 제거. main `078316b` + 동일 수정 소스로 Windows/JBR17.0.12에서 Firebase 설정 포함 assembleDebug/testDebugUnitTest/lintDebug/installDebug 성공(단위299·실패/건너뜀0, Lint 오류0·경고75: 버전21/미사용54). Pixel2/API34에서 로그인 표시↔숨김·입력값/포커스 유지, 가입 두 입력란 독립 전환·기본 숨김 확인. 테스트 문자열 제거, 서버 인증 요청 없음. 실기기·큰 글씨·다크/회전 미검증. 기존 개인 설정 보존 | [이슈 #86](https://github.com/kw-mobile/home-timing/issues/86), [PR #87](https://github.com/kw-mobile/home-timing/pull/87). 검증 코드 `bc60e05`와 커밋 직전 동일 소스. `feature/86-password-toggle` 인계·main 미병합 |
 
-| 2026-11-19 | 사용자(성명 확인 필요): 역할 명칭 변경 요청 / Codex(도구): 문구 변경 및 검증 | 가족 관리 화면, 권한 안내, 미리보기와 현행 기준 문서의 명칭을 ‘관리자’로 통일 | [이슈 #91](https://github.com/kw-mobile/home-timing/issues/91) |
+| 2026-11-19 | 사용자(성명 확인 필요): 역할 명칭 변경 요청 / Codex(도구): 문구 변경 및 검증 | 가족 관리 화면, 권한 안내, 미리보기와 현행 기준 문서의 명칭을 ‘관리자’로 통일 | [이슈 #91](https://github.com/kw-mobile/home-timing/issues/91), [PR #92](https://github.com/kw-mobile/home-timing/pull/92) |
