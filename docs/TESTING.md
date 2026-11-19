@@ -65,6 +65,16 @@ adb -s emulator-5572 shell am instrument -w -e role member -e runId mvp-unique-r
 - 실제 API허브 키와 활용신청 완료 후 재빌드하여 지역·예보 대상 시각·조회 시각·출처를 확인합니다. 실패·6시간 이내 이전 캐시·누락 기온·예보 시간 경계·테스트 모드는 별도로 기록합니다. 키·요청 URL은 근거에 넣지 않습니다.
 - `WeatherDisplayTest`와 날씨 파서·로더 테스트는 과거/다음 날 기온 오표시 방지, 공식 최저/최고 누락, 음수·소수 기온, SKY/PTY 우선순위, 캐시 직렬화와 오류를 검증합니다. 네트워크 성공·실기기 검증은 별도입니다.
 
+### 현재 위치로 날씨 지역 찾기
+
+`HouseLocationInstrumentation`은 계정 없는 전용 API36 AVD에서 OS의 mock fused/network 제공자를 사용합니다. 앱의 요청·후보 화면·취소·세션 변경 차단을 검사하되, 집/계정은 메모리 상태만 주입하고 Firebase 저장은 호출하지 않습니다. 실기기나 개인 계정이 있는 설치에서 실행하지 않습니다.
+
+- `-PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.HouseLocationInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드하고 전용 AVD에 두 APK를 설치합니다.
+- `adb -s <전용기기> shell appops set com.kwmobile.hometiming android:mock_location allow` 및 coarse 위치 권한·기기 위치 켜짐을 준비합니다. `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.HouseLocationInstrumentation`으로 network만 서울·fused만 부산, 범위 밖 좌표, 20초 미수신과 세션 전환을 확인합니다. 종료 때 생성한 mock 제공자를 제거합니다. 앱 `files/seoul-candidates.png`는 모의 좌표의 후보 화면이며 필요 시 별도 보관합니다.
+- 기기 위치를 끈 뒤 `-e mode disabled`, coarse 권한을 철회한 뒤 `-e mode denied`로 각각 실행하여 안내와 요청 미시작을 확인합니다. denied는 영어 시스템 권한 창의 거부 버튼을 눌러 검사합니다. 종료 후 위치 상태·권한·mock app-op을 원복합니다. ADB 종료 코드만으로 통과 처리하지 않고 출력의 `HOUSE LOCATION PASS`를 확인합니다.
+
+실기기는 위치를 켠 상태에서 관리자 계정의 설정 → 집 지역 → 현재 위치로 설정을 실행하고, 권한 허용부터 후보까지의 시간·후보 지역·확인 취소 시 기존 지역 유지·확인 저장 후 홈/날씨 지역과 예보 갱신을 기록합니다. 실내/실외 재시도와 권한 거부·기기 위치 꺼짐·20초 미수신도 구분합니다. 모의 좌표 성공이나 API HTTP200은 실기기 GNSS/네트워크 수신·정확도·가족 지역 저장의 성공 근거가 아닙니다. 실제 좌표와 키는 로그나 PR에 넣지 않습니다.
+
 ## 식품안전나라 바코드 API 개별 확인
 
 [로컬 I2570 조회 도구](../scripts/foodsafety/README.md)를 사용합니다. 기본 번호는 `4902430597241`이며 `.env.foodsafety.local`에 본인 키를 넣고 실행합니다. 모의 응답 테스트와 실제 인증키 조회 결과를 구분합니다. 제품 앱 등록·사진 인식의 구현을 뜻하지 않습니다.
