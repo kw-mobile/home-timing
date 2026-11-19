@@ -121,6 +121,8 @@ public final class DongLocationInstrumentation extends Instrumentation {
             } else {
                 manager = getTargetContext().getSystemService(LocationManager.class);
                 for (String provider : new String[]{"fused", "network", "gps"}) addProvider(provider);
+                // First use: no preloaded region table. One click must continue after the asset read.
+                runOnMainSync(() -> set(weather, "regions", Collections.emptyList()));
                 request(); feed("gps", 30);
                 await(() -> visible().contains("집 위치 확인") && visible().contains("태평로1가"), 10000, "GPS -> dong confirmation without district list");
                 screenshot("dong-confirm.png");

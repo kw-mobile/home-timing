@@ -210,12 +210,33 @@ public final class MainActivity extends AppCompatActivity {
         locationRequest.launch(new String[]{HOUSE_LOCATION_PERMISSION, HOUSE_PRECISE_PERMISSION});
     }
 
+    private void prepareHouseRegions(Session session, Runnable ready) {
+        HouseLocationRequest preparing = new HouseLocationRequest(0);
+        houseLocationRequest = preparing;
+        notice(getString(R.string.weather_ui_region_loading));
+        locationHandler.postDelayed(() -> {
+            if (houseLocationRequest == preparing) {
+                cancelHouseLocation(); notice(getString(R.string.house_region_load_failed));
+            }
+        }, HOUSE_ADDRESS_TIMEOUT_MS);
+        weatherVm.prepareRegions().addOnSuccessListener(this, values -> {
+            if (houseLocationRequest != preparing) return;
+            cancelHouseLocation();
+            if (canSetHouseLocation(session)) ready.run();
+        }).addOnFailureListener(this, ignored -> {
+            if (houseLocationRequest != preparing) return;
+            cancelHouseLocation();
+            if (canSetHouseLocation(session)) notice(getString(R.string.house_region_load_failed));
+        });
+    }
+
     @android.annotation.SuppressLint("MissingPermission") // Both callbacks and OS calls recheck the grant.
     private void readHouseLocation(Session session) {
         if (!canSetHouseLocation(session)) return;
         if (!hasHouseLocationPermission()) { notice(getString(R.string.house_location_denied)); return; }
         if (weatherVm.regionNames().length == 0) {
-            weatherVm.refresh(true); notice(getString(R.string.weather_ui_region_loading)); return;
+            prepareHouseRegions(session, () -> readHouseLocation(session));
+            return;
         }
         LocationManager manager = getSystemService(LocationManager.class);
         if (manager == null || !LocationManagerCompat.isLocationEnabled(manager)) {
@@ -339,8 +360,9 @@ public final class MainActivity extends AppCompatActivity {
     private void chooseHouseRegion() {
         Session session = mvp == null ? null : mvp.session;
         if (!canSetHouseLocation(session)) return;
+        cancelHouseLocation(); // Manual selection supersedes any pending GPS/address result.
         List<Region> regions = weatherVm.regions();
-        if (regions.isEmpty()) { weatherVm.refresh(true); notice(getString(R.string.weather_ui_region_loading)); return; }
+        if (regions.isEmpty()) { prepareHouseRegions(session, this::chooseHouseRegion); return; }
         java.util.Set<String> provinces = new java.util.LinkedHashSet<>();
         for (Region region : regions) provinces.add(region.name.split(" ")[0]);
         String[] provinceNames = provinces.toArray(new String[0]);

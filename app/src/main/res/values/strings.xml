@@ -86,4 +86,5 @@
     <string name="house_region_province">시·도 선택</string>
     <string name="house_region_district">시·군·구 선택</string>
     <string name="house_location_help">정확한 위치로 동·읍·면 주소를 찾아요. 주소가 없거나 위치가 대략적이면 주변 시·군·구를 선택할 수 있어요. 저장하면 가족의 날씨가 자동으로 바뀌어요.</string>
+    <string name="house_region_load_failed">지역 목록을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.</string>
 </resources>

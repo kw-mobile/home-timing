@@ -80,7 +80,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
                 check(!active(), "disabled location does not start request");
                 pass("location disabled -> manual-selection 안내; no request");
             } else if ("manual".equals(mode)) {
-                runOnMainSync(() -> invoke("chooseHouseRegion"));
+                runOnMainSync(() -> { set(new ViewModelProvider(activity).get(WeatherViewModel.class), "regions", java.util.Collections.emptyList()); invoke("chooseHouseRegion"); });
                 await(() -> visible().contains("시·도 선택"), 5000, "province picker");
                 check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시"), "pick Seoul province");
                 await(() -> visible().contains("시·군·구 선택"), 5000, "district picker");
@@ -183,12 +183,13 @@ public final class HouseLocationInstrumentation extends Instrumentation {
     }
     private void triggerRequest() {
         runOnMainSync(() -> invoke("requestHouseLocation"));
+        await(() -> active() || visible().contains("구 단위로 찾기") || visible().contains("휴대폰 위치를 켜거나"), 5000, "request or permission choice ready");
         if (visible().contains("구 단위로 찾기")) {
             check(clickExact(getUiAutomation().getRootInActiveWindow(), "구 단위로 찾기"), "keep approximate permission");
             waitForIdleSync();
         }
     }
-    private void request() { triggerRequest(); check(active(), "location request started"); }
+    private void request() { triggerRequest(); await(this::active, 5000, "location request started"); }
     private void feed(String provider, double lat, double lon) { feed(provider, lat, lon, 4); }
     private void feed(String provider, double lat, double lon, int count) {
         for (int i = 0; i < count; i++) {
