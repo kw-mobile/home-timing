@@ -10,7 +10,7 @@
     <string name="mvp_read_only">서버 연결을 확인 중이에요. 저장된 목록을 볼 수 있지만 변경하려면 연결이 필요해요.</string>
     <string name="mvp_invite_help">초대는 24시간 유효해요. 새 코드를 발급하면 이전 코드는 사용할 수 없어요.</string>
     <string name="mvp_stop_invite">초대 중지</string>
-    <string name="mvp_house_boundary">집을 옮겨도 기존 집의 항목·이력은 옮겨지지 않아요. 집장은 다른 구성원이 있으면 나갈 수 없어요.</string>
+    <string name="mvp_house_boundary">집을 옮겨도 기존 집의 항목·이력은 옮겨지지 않아요. 관리자는 다른 구성원이 있으면 나갈 수 없어요.</string>
     <string name="mvp_region_shared">집의 공용 날씨 지역이에요. 변경하면 가족에게도 적용돼요.</string>
     <string name="mvp_request_notifications">기기 알림 권한 허용</string>
     <string name="mvp_notification_settings">기기 알림 설정 열기</string>
@@ -20,7 +20,7 @@
     <string name="mvp_notifications_help">0일은 사전 알림만 끄며 당일 알림은 유지해요. 전체 알림은 기기 알림 설정에서 끌 수 있어요. 다른 기기의 완료는 앱 실행·서버 동기화 후 반영돼요.</string>
     <string name="mvp_join_help">비어 있는 1인 집에서 참여할 수 있어요. 다른 집의 구성원이라면 먼저 나가 주세요.</string>
     <string name="mvp_toggle_test_weather">테스트 날씨 모드 전환</string>
-    <string name="mvp_delete_help">비밀번호를 다시 확인한 뒤 계정과 개인 데이터를 삭제해요. 혼자 있는 집은 항목·이력도 삭제돼요. 공유 집에 남은 항목·이력은 유지돼요. 집장은 다른 구성원을 먼저 내보내야 해요. 중단됐다면 같은 비밀번호로 다시 시도할 수 있어요.</string>
+    <string name="mvp_delete_help">비밀번호를 다시 확인한 뒤 계정과 개인 데이터를 삭제해요. 혼자 있는 집은 항목·이력도 삭제돼요. 공유 집에 남은 항목·이력은 유지돼요. 관리자는 다른 구성원을 먼저 내보내야 해요. 중단됐다면 같은 비밀번호로 다시 시도할 수 있어요.</string>
     <string name="mvp_password_required">비밀번호를 입력해 주세요.</string>
     <string name="mvp_weather_suggestions">가족과 공유하는 집안일의 이번 회차만 변경해요.</string>
     <string name="mvp_weather_proposal">이번 회차 · %1$s → %2$s</string>
