@@ -59,7 +59,7 @@ accountDeletions/{uid}               삭제 재생성 방지용 영속 상태
 | `integrityVersion` | number | ✓ | 새 집은 2. 구형 집은 관리자 전환 완료 뒤 2로 설정 |
 | `closing` | boolean | ✓ | 새 집 false. 혼자인 관리자 탈퇴 시작 시 true로 바꾸고 되돌리지 않음. 구형 필드 부재는 false로 읽고 전환 도구가 채움 |
 | `itemMutationId`, `choreMutationId`, `memberMutationId` | string | | 개수 변경과 함께 쓰는 대상 문서 ID. 집·대상 양쪽 규칙이 실제 생성·삭제를 확인 |
-| `regionName` | string | | 표시용 시·군·구(30자 이하). 관리자만 변경 |
+| `regionName` | string | | 표시용 시·군·구 또는 동·읍·면 주소(30자 이하). 관리자만 변경 |
 | `nx`, `ny` | number | | 기상청 격자(1~149, 1~253). 지역을 정하기 전에는 없음 |
 | `activeInviteCode` | string | | 지금 유효한 초대 코드. 관리자만 바꾸며, 재발급하면 이전 코드가 무효 |
 | `createdAt`, `updatedAt` | timestamp | ✓ | |

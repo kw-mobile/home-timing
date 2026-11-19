@@ -62,6 +62,24 @@ public final class WeatherViewModel extends AndroidViewModel {
         return names;
     }
 
+    List<Region> nearbyRegions(double latitude, double longitude) {
+        return com.kwmobile.hometiming.data.weather.RegionLocationMatcher.nearby(latitude, longitude, regions);
+    }
+
+    /** Assets are local, but the first button click must wait for their asynchronous read. */
+    public com.google.android.gms.tasks.Task<List<Region>> prepareRegions() {
+        if (!regions.isEmpty()) return com.google.android.gms.tasks.Tasks.forResult(regions);
+        return repository.regions().continueWith(task -> {
+            if (disposed) throw new IllegalStateException("Weather screen disposed");
+            if (!task.isSuccessful()) throw new java.io.IOException("Region catalog unavailable");
+            regions = task.getResult();
+            if (regions.isEmpty()) throw new java.io.IOException("Empty region catalog");
+            return regions;
+        });
+    }
+
+    public List<Region> regions() { return java.util.Collections.unmodifiableList(regions); }
+
     public Region findRegion(String name) {
         for (Region value : regions) if (value.name.equals(name)) return value;
         return null;

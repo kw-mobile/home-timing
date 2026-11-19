@@ -94,3 +94,9 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인�
 ## 휴대폰 캘린더 투영
 
 `CalendarEntry`가 실제 Item/Chore의 현재 예정일과 최근 완료일을 순수 Java 값으로 투영합니다. `DeviceCalendarManager`는 기기별 opt-in과 UID/집 바인딩·OperationScope 무효화를 관리하고, 기존 `ReminderRepository.readFromServer`의 서버·소속 검증을 재사용합니다. 데이터 조회와 Provider 쓰기를 직렬화해 오래된 응답 역전을 막습니다. `DeviceCalendarStore`는 선택한 캘린더와 설치별 임의 토큰의 정확한 마커에 한해서 Calendar Provider를 읽고 수정하며, 항목·다음/완료 키로 재시도와 중복을 정리합니다. 전체 개인 일정은 읽지 않습니다. 관리 마커는 Provider의 CUSTOM_APP_URI에 두고 사용자에게 보이는 설명에는 앱에서 수정·완료하라는 안내만 표시합니다. `DeviceCalendarWorker`가 온라인에서 주기적으로 갱신합니다. 설정 Activity는 `CalendarSettingsViewModel`을 통해 권한·선택·해제·재시도를 표시합니다.
+
+## 현재 위치와 집 날씨 연결
+
+`MainActivity`는 버튼으로 시작한 위치 권한·OS 위치 요청·확인 화면의 수명을 관리합니다. 위치는 최대20초, 주소 검색은 최대8초이며 화면 중지나 세션 변경 시 늦은 결과를 무시합니다. `CurrentPlaceResolver`는 Android Geocoder의 비동기 API(33+) 또는 별도 bounded executor(26~32)를 사용하며, 날씨 요청 executor를 막지 않습니다. `PlaceAddress`가 알려진 한국 시·군·구와 동·읍·면만 추출하고 도로·번지·건물 주소를 버립니다. Android 주소 검색이 없는 기기나 낮은 정확도는 기존 지역 후보·시도별 수동 선택을 사용합니다.
+
+확인한 `Region`의 이름과 `RegionLocationMatcher.at`으로 받은 좌표에서 계산한 예보 격자는 기존 `MvpViewModel.region` → `HouseRepository.setRegion`에 전달합니다. 새 Firestore 필드·규칙은 추가하지 않습니다. 집 구독의 변경 → `WeatherViewModel.useSharedRegion`이 기존 요청 세대를 무효화하고 새 격자를 조회하므로 지역을 따로 다시 선택하지 않습니다. 원본 위경도·도로명 주소는 서버·로그에 저장하지 않습니다. Android 주소 검색 서비스에는 좌표가 전달될 수 있습니다.
