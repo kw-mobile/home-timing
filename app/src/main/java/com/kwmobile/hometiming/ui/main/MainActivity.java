@@ -436,7 +436,7 @@ public final class MainActivity extends AppCompatActivity {
     private void offerAppUpdate(com.kwmobile.hometiming.data.update.UpdateManager.State state) {
         if (state == null || state.info == null || isFinishing() || vm == null || !updates.shouldPrompt()
                 || !getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
-                || "editor".equals(s().route.screen)) return;
+                || !rootPage() || fixtures || mvp == null || mvp.session == null) return;
         updates.markPrompted();
         new MaterialAlertDialogBuilder(this).setTitle(R.string.update_title)
                 .setMessage(getString(R.string.update_available, state.info.versionName, (state.info.sizeBytes + 1048575) / 1048576))
@@ -759,6 +759,7 @@ public final class MainActivity extends AppCompatActivity {
         if (!home) FluidMotion.enter(screen, binding.glassBackdrop::refresh);
         binding.glassBackdrop.refresh();
         ViewCompat.setAccessibilityPaneTitle(screen, toolbarTitle(name));
+        if (updates != null) offerAppUpdate(updates.current());
     }
 
     private void prepareHomeBackdrop(View homePhoto) {
@@ -823,6 +824,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void updateNavigation(String name) {
         boolean root = rootPage();
+        binding.topBar.setVisibility(!fixtures && name.equals("login") ? View.GONE : View.VISIBLE);
         binding.backButton.setVisibility(root ? View.GONE : View.VISIBLE);
         binding.brandIcon.setVisibility(root ? View.VISIBLE : View.GONE);
         binding.toolbarTitle.setText(

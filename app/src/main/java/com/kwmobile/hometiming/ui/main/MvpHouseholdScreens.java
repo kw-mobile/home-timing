@@ -28,35 +28,41 @@ final class MvpHouseholdScreens {
 
     void settings() {
         LinearLayout body = ui.box(R.id.settings_content);
-        ui.section(body, vm.session.displayName, context.getString(R.string.mvp_shared_data));
+        ui.section(body, context.getString(R.string.preview_copy_168), "");
         status(body);
-        ui.settingsRow(body, context.getString(R.string.preview_copy_169),
+        ui.settingsRow(body, context.getString(R.string.ui_family_manage),
                 context.getString(R.string.preview_house_members, vm.house == null ? 0 : vm.house.memberCount),
                 R.drawable.ic_users, () -> host.go("family"));
         ui.line(body);
         ui.settingsRow(body, context.getString(R.string.weather_ui_region),
                 vm.house == null || !vm.house.hasRegion() ? context.getString(R.string.mvp_region_unset) : vm.house.regionName,
                 R.drawable.ic_pin, () -> host.go("preferences", "region"));
-        ui.line(body);
-        ui.settingsRow(body, context.getString(R.string.preview_copy_175), vm.notifyTime() + " · " + vm.advanceDays(),
+        ui.gap(body, 24);
+        ui.section(body, context.getString(R.string.ui_settings_connections), "");
+        ui.settingsRow(body, context.getString(R.string.preview_copy_175),
+                context.getString(R.string.ui_notification_summary, vm.notifyTime(), advanceLabel(vm.advanceDays())),
                 R.drawable.ic_bell, () -> host.go("preferences", "notifications"));
         ui.line(body);
+        ui.settingsRow(body, context.getString(R.string.calendar_title), context.getString(R.string.ui_calendar_settings_summary),
+                R.drawable.ic_calendar, () -> context.startActivity(new android.content.Intent(context,
+                        com.kwmobile.hometiming.ui.calendar.CalendarSettingsActivity.class)));
+        ui.gap(body, 24);
+        ui.section(body, context.getString(R.string.ui_settings_app), "");
         ui.settingsRow(body, context.getString(R.string.weather_ui_mode),
                 context.getString(host.weatherViewModel().isTestMode() ? R.string.weather_ui_source_test : R.string.weather_ui_real),
                 R.drawable.ic_cloud, () -> host.go("preferences", "weather"));
         ui.line(body);
-        ui.settingsRow(body, context.getString(R.string.calendar_title), context.getString(R.string.calendar_choose),
-                R.drawable.ic_calendar, () -> context.startActivity(new android.content.Intent(context,
-                        com.kwmobile.hometiming.ui.calendar.CalendarSettingsActivity.class)));
+        ui.settingsRow(body, context.getString(R.string.update_title),
+                context.getString(R.string.mvp_build_version, com.kwmobile.hometiming.BuildConfig.VERSION_NAME), R.drawable.ic_update,
+                () -> context.startActivity(new android.content.Intent(context, com.kwmobile.hometiming.ui.update.UpdateActivity.class)));
         ui.gap(body, 24);
-        ui.fullAction(body, context.getString(R.string.preview_copy_183), false,
+        ui.section(body, context.getString(R.string.ui_settings_account), vm.session.displayName);
+        ui.settingsRow(body, context.getString(R.string.preview_copy_183), "", R.drawable.ic_logout,
                 () -> ui.confirm(context.getString(R.string.preview_copy_185), context.getString(R.string.mvp_logout_help),
                         context.getString(R.string.preview_copy_183), vm::signOut));
-        ui.fullAction(body, context.getString(R.string.mvp_delete_account), false, () -> deleteAccount(context, host, ui));
         ui.line(body);
-        ui.settingsRow(body, context.getString(R.string.update_title),
-                context.getString(R.string.mvp_build_version, com.kwmobile.hometiming.BuildConfig.VERSION_NAME), R.drawable.ic_cloud,
-                () -> context.startActivity(new android.content.Intent(context, com.kwmobile.hometiming.ui.update.UpdateActivity.class)));
+        ui.settingsRow(body, context.getString(R.string.mvp_delete_account), "", R.drawable.ic_users,
+                () -> deleteAccount(context, host, ui), true);
     }
 
     private void status(LinearLayout body) {
@@ -69,7 +75,7 @@ final class MvpHouseholdScreens {
 
     void family() {
         LinearLayout body = ui.box(R.id.family_content);
-        ui.section(body, context.getString(R.string.preview_copy_169), context.getString(R.string.intent_family_limit));
+        ui.section(body, context.getString(R.string.ui_family_members), context.getString(R.string.intent_family_limit));
         status(body);
         for (Member member : vm.members) {
             boolean canRemove = vm.house != null && vm.house.isOwner(vm.session.uid) && !member.uid.equals(vm.session.uid);
@@ -125,7 +131,8 @@ final class MvpHouseholdScreens {
                 ReminderManager reminders = ReminderManager.getInstance(context);
                 body.addView(ui.label(context.getString(reminders.canShowNotifications()
                         ? R.string.mvp_permission_on : R.string.mvp_permission_off)));
-                ui.fullAction(body, context.getString(R.string.mvp_request_notifications), true, host::notificationPermission);
+                if (!reminders.canShowNotifications()) ui.fullAction(body,
+                        context.getString(R.string.mvp_request_notifications), true, host::notificationPermission);
                 ui.fullAction(body, context.getString(R.string.mvp_notification_settings), false, host::notificationSettings);
                 body.addView(ui.caption(context.getString(reminders.canScheduleExactAlarms()
                         ? R.string.mvp_exact_allowed : R.string.mvp_exact_late)));
@@ -137,9 +144,15 @@ final class MvpHouseholdScreens {
                             String.format(Locale.ROOT, "%02d:%02d", h, m), vm.advanceDays()),
                             Integer.parseInt(parts[0]), Integer.parseInt(parts[1]), true).show();
                 });
-                ui.settingsRow(body, context.getString(R.string.preview_copy_233), String.valueOf(vm.advanceDays()), 0,
-                        () -> ui.choose(context.getString(R.string.preview_copy_233), new String[]{"0", "1", "3", "7"},
-                                days -> vm.settings(vm.notifyTime(), Integer.parseInt(days))));
+                ui.settingsRow(body, context.getString(R.string.preview_copy_233), advanceLabel(vm.advanceDays()), 0,
+                        () -> {
+                            int[] days = {0, 1, 3, 7};
+                            String[] labels = new String[days.length];
+                            for (int i = 0; i < days.length; i++) labels[i] = advanceLabel(days[i]);
+                            new MaterialAlertDialogBuilder(context).setTitle(R.string.preview_copy_233)
+                                    .setItems(labels, (dialog, index) -> vm.settings(vm.notifyTime(), days[index]))
+                                    .setNegativeButton(android.R.string.cancel, null).show();
+                        });
                 body.addView(ui.caption(context.getString(R.string.mvp_notifications_help)));
                 break;
             case "join":
@@ -148,7 +161,11 @@ final class MvpHouseholdScreens {
                 EditText input = new androidx.appcompat.widget.AppCompatEditText(context);
                 input.setHint(R.string.preview_copy_241);
                 input.setContentDescription(context.getString(R.string.preview_copy_241));
-                input.setMinHeight(ui.dp(48)); input.setTextSize(24);
+                body.addView(ui.label(context.getString(R.string.ui_invite_code)));
+                input.setMinHeight(ui.dp(56));
+                input.setTextAppearance(context, R.style.TextAppearance_HomeTiming_Body);
+                input.setBackgroundResource(R.drawable.bg_field);
+                input.setPadding(ui.dp(16), ui.dp(16), ui.dp(16), ui.dp(16));
                 input.setInputType(InputType.TYPE_CLASS_NUMBER);
                 input.setFilters(new android.text.InputFilter[]{new android.text.InputFilter.LengthFilter(6)});
                 input.setText(vm.joinCode());
@@ -171,6 +188,11 @@ final class MvpHouseholdScreens {
                 ui.fullAction(body, context.getString(R.string.weather_ui_retry), true,
                         () -> host.weatherViewModel().refresh(true));
         }
+    }
+
+    private String advanceLabel(int days) {
+        return days == 0 ? context.getString(R.string.ui_advance_today)
+                : context.getString(R.string.ui_advance_days, days);
     }
 
     static void deleteAccount(Context context, PreviewHost host, PreviewWidgets ui) {

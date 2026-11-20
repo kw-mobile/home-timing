@@ -36,6 +36,7 @@ public final class UpdateActivity extends AppCompatActivity {
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved); WindowCompat.setDecorFitsSystemWindows(getWindow(), false); setContentView(R.layout.activity_update);
+        ViewCompat.setAccessibilityHeading(findViewById(R.id.feature_heading), true);
         View root = findViewById(R.id.update_root);
         boolean night = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
                 == android.content.res.Configuration.UI_MODE_NIGHT_YES;

@@ -173,7 +173,7 @@
     </style>
     <style name="Widget.HomeTiming.Button.Secondary" parent="Widget.HomeTiming.Button">
         <item name="backgroundTint">@color/ht_container</item>
-        <item name="android:textColor">@color/ht_text</item>
+        <item name="android:textColor">@color/button_secondary_text</item>
     </style>
     <style name="Widget.HomeTiming.CompactButton" parent="Widget.HomeTiming.Button.Secondary">
         <item name="android:textSize">14sp</item>
@@ -184,7 +184,7 @@
         <item name="android:minHeight">48dp</item>
         <item name="android:textAllCaps">false</item>
         <item name="strokeWidth">0dp</item>
-        <item name="android:textColor">@color/ht_text</item>
+        <item name="android:textColor">@color/button_link</item>
         <item name="android:textAppearance">@style/TextAppearance.HomeTiming.Label</item>
     </style>
     <style name="Widget.HomeTiming.Field" parent="Widget.AppCompat.EditText">
