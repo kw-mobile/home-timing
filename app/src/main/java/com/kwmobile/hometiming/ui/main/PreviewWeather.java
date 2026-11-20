@@ -36,8 +36,8 @@ final class PreviewWeather {
 
     void updateWeather() {
         if(screen==null)return;ImageView photo=preview.route.screen.equals("home")?host.homeWeatherBackdrop():screen.findViewById(R.id.weather_photo);if(photo==null)return;
+        TextView homeDate=screen.findViewById(R.id.home_date);
         if(preview.route.screen.equals("home")) {
-            TextView homeDate=screen.findViewById(R.id.home_date);
             if(homeDate!=null)homeDate.setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(context.getString(R.string.preview_copy_034),Locale.KOREAN)));
         }
         WeatherDisplay display=weatherDisplay();
@@ -84,7 +84,7 @@ final class PreviewWeather {
         View heading = screen.findViewById(R.id.home_weather_heading);
         copySize.topMargin = preview.route.screen.equals("home")
                 ? heading.getPaddingTop() + heading.getPaddingBottom()
-                        + ((TextView)screen.findViewById(R.id.home_date)).getLineHeight() : 0;
+                        + homeDate.getLineHeight() : 0;
         ((View)screen.findViewById(R.id.weather_location).getParent()).setLayoutParams(copySize);
         ((TextView)screen.findViewById(R.id.weather_location)).setText(weatherVm.regionName());
         com.kwmobile.hometiming.domain.ForecastHour activeHour = current;
