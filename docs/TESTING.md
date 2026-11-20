@@ -197,3 +197,9 @@ Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometimin
 `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.SettingsDialogInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드하고 계정 없는 전용 AVD에서 실행합니다. `am instrument -w -e prefix light com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.SettingsDialogInstrumentation`의 최종 `SETTINGS MODALS PASS`와 정리 결과를 확인합니다. 처음에는 캘린더 권한을 거부/다시 허용하며, 이미 권한이 있으면 해당 OS 요청 단계는 실행하지 않습니다. 이 경로를 반복할 때는 본인 전용 테스트 설치의 권한 상태만 원복합니다.
 
 테스트는 메모리 집에서 실제 설정 행→모달을 열고 중복 열기·상세/선택 취소·회전 복원·설정 스크롤 유지·날씨 공유 스위치/회전을 확인합니다. 실제 Calendar Provider에 이름/계정이 식별되는 로컬 캘린더 하나만 만들고 선택은 취소합니다. 본인 캘린더 삭제를 재조회하고 날씨 모드를 원복하며, 다른 캘린더/개인 일정·실제 Firebase 계정을 변경하지 않습니다. 이 결과는 실제 서버 일정 내보내기·실기기 캘린더/권한 성공을 뜻하지 않습니다. 라이트/다크·작은 화면/큰 글씨에서 모달 제목·고정 닫기·본문 스크롤과 배경 설정 유지도 확인합니다.
+
+## 전체 앱 흐름 UI 점검 (#99)
+
+학교 과제의 기본 글씨 크기로 점검합니다. 큰 글씨 전용 버전/레이아웃은 만들지 않습니다. `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.FlowUiInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드해 계정 없는 전용 AVD에 설치한 뒤 `am instrument -w -e prefix default-light com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.FlowUiInstrumentation`을 실행합니다. 마지막 `FLOW UI PASS`를 확인합니다.
+
+일반 실행의 실제 바인더에 메모리 집/항목을 넣어 인증 입력 오류, 등록/수정/종류 제약, 초안 회전/취소·저장 중 복귀 차단, 달력/상세/이력, 가족 역할·초대 교체 취소, 잘못된 참여 코드, 지역 없음→설정, 위치 진행/취소·이탈, 테스트 예보/재조회 버튼, 설정 모달·업데이트 왕복, 로그아웃/탈퇴 취소를 검사합니다. 기기의 라이트/다크를 구분하며 종료 후 테스트 날씨 설정을 원복합니다. 캡처는 앱 private files의 prefix PNG이며 공용 데이터를 쓰지 않습니다. 서버 저장·권한·사진 추론·실제 Provider·위치 제공자는 해당 절의 독립 runner로 확인하고, 이 화면 검사로 대신하지 않습니다. 흐름별 범위·미검증은 [점검 기록](report/UI_FLOW_REVIEW.md)에 남깁니다.

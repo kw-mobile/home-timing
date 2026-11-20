@@ -13,6 +13,8 @@ clone 후 최초 환경 설정·setup·온보딩 요청에는 [team-setup](.agen
 
 ## 코드와 문서 배치
 
+- 학교 과제 범위의 UI는 기본 글씨 크기를 기준으로 설계·검증합니다. 큰 글씨 전용 버전·별도 레이아웃·별도 기능은 만들지 않습니다. 화면별 글자 역할과 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다.
+
 - 구조와 의존 방향은 [아키텍처](docs/ARCHITECTURE.md)를 따릅니다. UI는 렌더링·입력, ViewModel은 화면 상태, Repository는 외부 데이터, domain은 순수 Java 규칙을 담당합니다.
 - Activity/Fragment에서 Firebase·Retrofit을 직접 호출하지 않습니다. domain에 Android·Firebase 타입을 넣지 않습니다.
 - 화면 간에는 항목 종류와 문서 ID를 전달합니다. 날짜·회차·권한 규칙은 MVP의 계약을 따르고 화면마다 다르게 구현하지 않습니다.
