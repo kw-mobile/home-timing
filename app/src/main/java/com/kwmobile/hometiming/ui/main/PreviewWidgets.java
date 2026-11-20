@@ -79,6 +79,10 @@ final class PreviewWidgets {
         return text(value, R.style.TextAppearance_HomeTiming_Caption);
     }
 
+    TextView description(String value) {
+        return text(value, R.style.TextAppearance_HomeTiming_Supporting);
+    }
+
     void gap(LinearLayout parent, int size) {
         View space = new View(context);
         space.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
@@ -190,7 +194,7 @@ final class PreviewWidgets {
                     value.equals(selected)
                             ? context.getString(R.string.preview_copy_018)
                             : context.getString(R.string.preview_copy_019));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, dp(48));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
             lp.rightMargin = dp(8);
             group.addView(b, lp);
         }

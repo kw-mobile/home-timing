@@ -20,6 +20,8 @@ interface PreviewHost {
 
     void chooseHouseRegion();
 
+    void cancelCurrentHouseLocation();
+
     void notificationPermission();
 
     void notificationSettings();

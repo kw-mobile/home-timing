@@ -17,6 +17,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.view.View;
+import android.widget.TextView;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.inputmethod.InputMethodManager;
@@ -91,6 +92,7 @@ public final class MainActivity extends AppCompatActivity {
                     com.kwmobile.hometiming.ui.weather.WeatherSettingsDialogFragment.open(getSupportFragmentManager());
                 }
                 public void useCurrentHouseLocation() { requestHouseLocation(); }
+                public void cancelCurrentHouseLocation() { cancelHouseLocation(); }
                 public void chooseHouseRegion() { MainActivity.this.chooseHouseRegion(); }
 
                 public void notificationSettings() {
@@ -158,6 +160,7 @@ public final class MainActivity extends AppCompatActivity {
     private final Handler locationHandler = new Handler(Looper.getMainLooper());
     private Session locationPermissionSession;
     private HouseLocationRequest houseLocationRequest;
+    private int houseLocationStatus;
     private com.kwmobile.hometiming.data.weather.CurrentPlaceResolver placeResolver;
     private final androidx.activity.result.ActivityResultLauncher<String[]> locationRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions(),
@@ -224,7 +227,7 @@ public final class MainActivity extends AppCompatActivity {
     private void prepareHouseRegions(Session session, Runnable ready) {
         HouseLocationRequest preparing = new HouseLocationRequest(0);
         houseLocationRequest = preparing;
-        notice(getString(R.string.weather_ui_region_loading));
+        showHouseLocationProgress(R.string.weather_ui_region_loading);
         locationHandler.postDelayed(() -> {
             if (houseLocationRequest == preparing) {
                 cancelHouseLocation(); notice(getString(R.string.house_region_load_failed));
@@ -262,7 +265,7 @@ public final class MainActivity extends AppCompatActivity {
         if (providers.isEmpty()) { notice(getString(R.string.house_location_no_fix)); return; }
         HouseLocationRequest request = new HouseLocationRequest(providers.size());
         houseLocationRequest = request;
-        notice(getString(R.string.house_location_loading));
+        showHouseLocationProgress(R.string.house_location_loading);
         locationHandler.postDelayed(() -> {
             if (houseLocationRequest == request) resolveHouseLocation(session, request);
         }, HOUSE_LOCATION_TIMEOUT_MS);
@@ -314,7 +317,7 @@ public final class MainActivity extends AppCompatActivity {
         locationHandler.postDelayed(() -> {
             if (houseLocationRequest == request) showApproximateHouseLocation(session, request);
         }, HOUSE_ADDRESS_TIMEOUT_MS);
-        notice(getString(R.string.house_location_address_loading));
+        showHouseLocationProgress(R.string.house_location_address_loading);
         placeResolver.resolve(request.best.getLatitude(), request.best.getLongitude(), weatherVm.regions())
                 .addOnSuccessListener(this, region -> {
                     if (houseLocationRequest != request) return;
@@ -334,8 +337,26 @@ public final class MainActivity extends AppCompatActivity {
         else showHouseLocationCandidates(session, candidates);
     }
 
+    private void showHouseLocationProgress(int message) {
+        houseLocationStatus = message;
+        bindHouseLocationProgress();
+    }
+
+    private void bindHouseLocationProgress() {
+        if (screen == null) return;
+        View status = screen.findViewById(R.id.house_location_status);
+        if (status == null) return;
+        boolean active = houseLocationRequest != null;
+        status.setVisibility(active ? View.VISIBLE : View.GONE);
+        if (active) ((TextView) status).setText(houseLocationStatus);
+        screen.findViewById(R.id.house_location_button).setEnabled(!active);
+        screen.findViewById(R.id.house_location_cancel).setVisibility(active ? View.VISIBLE : View.GONE);
+    }
+
     private void cancelHouseLocation() {
         HouseLocationRequest request = houseLocationRequest; houseLocationRequest = null;
+        houseLocationStatus = 0;
+        bindHouseLocationProgress();
         locationHandler.removeCallbacksAndMessages(null);
         if (request != null) request.cancelSignals();
     }
@@ -701,6 +722,10 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void back() {
+        if (!fixtures && mvp != null && mvp.busy() && s().route.screen.equals("editor")) {
+            notice(getString(R.string.mvp_saving));
+            return;
+        }
         if (!fixtures && mvp != null && mvp.session == null && s().route.screen.equals("login")) {
             finish(); return;
         }
@@ -750,6 +775,7 @@ public final class MainActivity extends AppCompatActivity {
         if (!fixtures && mvp != null && mvp.session == null
                 && !java.util.Arrays.asList("login", "signup", "reset").contains(s().route.screen)) vm.tab("login");
         String name = s().route.screen;
+        if (!"preferences:region".equals(s().route.key())) cancelHouseLocation();
         if (!fixtures && mvp != null) mvp.watchHistory(name.equals("detail") ? s().route.id : "");
         int pageColor = color(R.color.ht_background);
         boolean home = name.equals("home");
@@ -769,6 +795,7 @@ public final class MainActivity extends AppCompatActivity {
         updateNavigation(name);
         restoreScroll();
         bindScreen(name, new PreviewWidgets(screen));
+        bindHouseLocationProgress();
         motion(screen);
         if (!home) FluidMotion.enter(screen, binding.glassBackdrop::refresh);
         binding.glassBackdrop.refresh();

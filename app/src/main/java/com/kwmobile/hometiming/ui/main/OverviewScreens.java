@@ -61,7 +61,8 @@ final class OverviewScreens {
         screen.findViewById(R.id.home_weather_heading).setVisibility(View.VISIBLE);
         View homePhoto = screen.findViewById(R.id.weather_hero);
         ViewGroup.LayoutParams photoSize = homePhoto.getLayoutParams();
-        photoSize.height = ui.dp(420);
+        photoSize.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        homePhoto.setMinimumHeight(ui.dp(420));
         homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature = screen.findViewById(R.id.weather_temperature);
         homeTemperature.setTextSize(64);
@@ -170,7 +171,7 @@ final class OverviewScreens {
         row.setPadding(0, ui.dp(8), 0, ui.dp(8));
         for (Item item : preview.store.sorted()) {
             if (weather.weatherProposalTarget(item) != null) {
-                proposal.addView(ui.caption(context.getString(R.string.weather_ui_fixture_suggestions)));
+                proposal.addView(ui.caption(context.getString(host.mvp() == null ? R.string.weather_ui_fixture_suggestions : R.string.mvp_weather_suggestions)));
                 weather.bindProposal(proposal, item, false);
                 break;
             }
@@ -434,7 +435,8 @@ final class OverviewScreens {
                     });
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = 0;
-            lp.height = ui.dp(54);
+            cell.setMinimumHeight(ui.dp(54));
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             grid.addView(cell, lp);
         }

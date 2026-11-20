@@ -134,6 +134,11 @@
         <item name="android:includeFontPadding">false</item>
         <item name="android:letterSpacing">0</item>
     </style>
+    <style name="TextAppearance.HomeTiming.Supporting" parent="TextAppearance.HomeTiming.Body">
+        <item name="android:textSize">14sp</item>
+        <item name="lineHeight">20sp</item>
+        <item name="android:textColor">@color/ht_text_secondary</item>
+    </style>
     <!-- Modal text is smaller than page text, by role rather than per-sentence resizing. -->
     <style name="TextAppearance.HomeTiming.ModalTitle" parent="TextAppearance.HomeTiming.Title">
         <item name="android:textSize">20sp</item>
