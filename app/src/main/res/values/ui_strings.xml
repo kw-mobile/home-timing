@@ -20,4 +20,16 @@
     <string name="settings_dialog_close">닫기</string>
     <string name="calendar_permission_title">권한 허용 필요</string>
     <string name="calendar_permission_hint">허용되지 않으면 휴대폰 설정에서 캘린더 권한을 켜 주세요.</string>
+    <string name="ui_edit_kind_fixed">종류는 변경할 수 없어요. 다른 종류로 관리하려면 새로 등록해 주세요.</string>
+    <string name="ui_weather_refreshing">예보 새로 확인 중…</string>
+    <string name="ui_location_cancel">위치 확인 취소</string>
+    <string name="ui_invite_replace">새 코드로 교체</string>
+    <string name="ui_invite_replace_title">초대 코드를 바꿀까요?</string>
+    <string name="ui_invite_replace_help">현재 코드는 사용할 수 없게 돼요. 새 코드를 가족에게 전달해 주세요.</string>
+    <string name="ui_family_actions">다른 집 참여</string>
+    <string name="ui_notifications_schedule">알림 시각과 사전 알림</string>
+    <string name="ui_notifications_device">이 기기의 권한</string>
+    <string name="ui_notifications_details">알림 동작 자세히 보기</string>
+    <string name="ui_weather_set_region">집 지역 설정</string>
+    <string name="ui_region_owner_only">집 지역은 관리자만 변경할 수 있어요. 관리자에게 설정을 요청해 주세요.</string>
 </resources>

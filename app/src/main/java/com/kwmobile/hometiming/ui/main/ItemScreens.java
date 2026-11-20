@@ -62,8 +62,16 @@ final class ItemScreens {
                         d.id.isEmpty()
                                 ? context.getString(R.string.preview_copy_086)
                                 : context.getString(R.string.preview_copy_009));
+        LinearLayout kind = ui.box(R.id.editor_kind);
+        if (!d.id.isEmpty()) {
+            kind.addView(ui.label(context.getString(d.chore
+                    ? R.string.preview_copy_088 : R.string.preview_copy_087)));
+            ui.gap(kind, 4);
+            kind.addView(ui.description(context.getString(R.string.ui_edit_kind_fixed)));
+            return;
+        }
         ui.chips(
-                ui.box(R.id.editor_kind),
+                kind,
                 new String[] {
                     context.getString(R.string.preview_copy_087),
                     context.getString(R.string.preview_copy_088)
@@ -113,7 +121,7 @@ final class ItemScreens {
                 ui.box(R.id.editor_category).removeAllViews();
                 bindEditorCategory(d);
             });
-            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-2, ui.dp(48));
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-2, -2);
             size.setMarginEnd(ui.dp(8));
             choices.addView(button, size);
         }
@@ -135,7 +143,11 @@ final class ItemScreens {
             field.addTextChangedListener(
                     ui.watcher(
                             value -> {
-                                if (id == R.id.edit_name) d.name = value;
+                                if (id == R.id.edit_name) {
+                                    d.name = value;
+                                    if (!value.trim().isEmpty() && value.trim().length() <= 60)
+                                        ui.clearError(R.id.edit_name_error);
+                                }
                                 else {
                                     d.cycle = value;
                                     d.cycleEdited = true;

@@ -36,8 +36,8 @@ final class PreviewWeather {
 
     void updateWeather() {
         if(screen==null)return;ImageView photo=preview.route.screen.equals("home")?host.homeWeatherBackdrop():screen.findViewById(R.id.weather_photo);if(photo==null)return;
+        TextView homeDate=screen.findViewById(R.id.home_date);
         if(preview.route.screen.equals("home")) {
-            TextView homeDate=screen.findViewById(R.id.home_date);
             if(homeDate!=null)homeDate.setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(context.getString(R.string.preview_copy_034),Locale.KOREAN)));
         }
         WeatherDisplay display=weatherDisplay();
@@ -75,9 +75,17 @@ final class PreviewWeather {
             LinearLayout.LayoutParams fullWidth=(LinearLayout.LayoutParams)hero.getLayoutParams();
             int gutter=context.getResources().getDimensionPixelSize(R.dimen.ht_screen_gutter);
             fullWidth.leftMargin=-gutter;fullWidth.rightMargin=-gutter;
-            if(!preview.route.screen.equals("home"))fullWidth.height=ui.dp(360);
+            fullWidth.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            hero.setMinimumHeight(ui.dp(preview.route.screen.equals("home") ? 420 : 360));
             hero.setLayoutParams(fullWidth);
         }
+        android.widget.FrameLayout.LayoutParams copySize =
+                (android.widget.FrameLayout.LayoutParams) ((View)screen.findViewById(R.id.weather_location).getParent()).getLayoutParams();
+        View heading = screen.findViewById(R.id.home_weather_heading);
+        copySize.topMargin = preview.route.screen.equals("home")
+                ? heading.getPaddingTop() + heading.getPaddingBottom()
+                        + homeDate.getLineHeight() : 0;
+        ((View)screen.findViewById(R.id.weather_location).getParent()).setLayoutParams(copySize);
         ((TextView)screen.findViewById(R.id.weather_location)).setText(weatherVm.regionName());
         com.kwmobile.hometiming.domain.ForecastHour activeHour = current;
         if(activeHour == null && display != null) {
@@ -182,14 +190,27 @@ final class PreviewWeather {
             }
             if(BuildConfig.DEBUG && state!=null&&state.error==com.kwmobile.hometiming.data.weather.WeatherError.NOT_CONFIGURED)
                 content.addView(ui.caption(context.getString(R.string.weather_ui_key_help)));
+            boolean needsRegion = state != null
+                    && state.error == com.kwmobile.hometiming.data.weather.WeatherError.REGION_NOT_SET;
             com.google.android.material.button.MaterialButton retry = ui.action(
-                    context.getString(R.string.weather_ui_retry), false, () -> weatherVm.refresh(true));
+                    context.getString(needsRegion ? R.string.ui_weather_set_region : R.string.weather_ui_retry),
+                    needsRegion, () -> {
+                        if (needsRegion) host.go("preferences", "region");
+                        else weatherVm.refresh(true);
+                    });
             retry.setEnabled(state != null && !state.loading);
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
             params.topMargin = ui.dp(12); content.addView(retry, params);
             return;
         }
-        ui.fullAction(content,context.getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
+        com.google.android.material.button.MaterialButton refresh = ui.action(
+                context.getString(state.loading ? R.string.ui_weather_refreshing : R.string.weather_ui_retry),
+                false, () -> weatherVm.refresh(true));
+        refresh.setEnabled(!state.loading);
+        LinearLayout.LayoutParams refreshSize = new LinearLayout.LayoutParams(-1, -2);
+        refreshSize.topMargin = ui.dp(12);
+        content.addView(refresh, refreshSize);
+        ui.gap(content, 8);
         content.addView(ui.caption(weatherSource()));
         WeatherDisplay display=weatherDisplay();
         if(display==null)return;
