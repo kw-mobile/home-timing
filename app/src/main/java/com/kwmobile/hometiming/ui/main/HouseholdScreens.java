@@ -78,7 +78,7 @@ final class HouseholdScreens {
         ui.settingsRow(body, context.getString(R.string.weather_ui_mode),
                 context.getString(weatherVm.isTestMode()
                         ? R.string.weather_ui_source_test : R.string.weather_ui_real),
-                R.drawable.ic_cloud, () -> host.go("preferences", "weather"));
+                R.drawable.ic_cloud, host::weatherSettings);
         ui.line(body);
         ui.settingsRow(
                 body,

@@ -44,13 +44,12 @@ final class MvpHouseholdScreens {
                 R.drawable.ic_bell, () -> host.go("preferences", "notifications"));
         ui.line(body);
         ui.settingsRow(body, context.getString(R.string.calendar_title), context.getString(R.string.ui_calendar_settings_summary),
-                R.drawable.ic_calendar, () -> context.startActivity(new android.content.Intent(context,
-                        com.kwmobile.hometiming.ui.calendar.CalendarSettingsActivity.class)));
+                R.drawable.ic_calendar, host::calendarSettings);
         ui.gap(body, 24);
         ui.section(body, context.getString(R.string.ui_settings_app), "");
         ui.settingsRow(body, context.getString(R.string.weather_ui_mode),
                 context.getString(host.weatherViewModel().isTestMode() ? R.string.weather_ui_source_test : R.string.weather_ui_real),
-                R.drawable.ic_cloud, () -> host.go("preferences", "weather"));
+                R.drawable.ic_cloud, host::weatherSettings);
         ui.line(body);
         ui.settingsRow(body, context.getString(R.string.update_title),
                 context.getString(R.string.mvp_build_version, com.kwmobile.hometiming.BuildConfig.VERSION_NAME), R.drawable.ic_update,

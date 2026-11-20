@@ -32,7 +32,6 @@
         </activity>
         <activity android:name=".ui.update.UpdateActivity" android:exported="false" />
         <receiver android:name=".data.update.UpdateInstallReceiver" android:exported="false" />
-        <activity android:name=".ui.calendar.CalendarSettingsActivity" android:exported="false" />
         <activity android:name=".ui.recognition.PhotoNameActivity" android:exported="false" android:windowSoftInputMode="adjustResize" />
         <receiver
             android:name=".notify.ReminderAlarmReceiver"

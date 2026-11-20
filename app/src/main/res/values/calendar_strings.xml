@@ -10,7 +10,7 @@
     <string name="calendar_permission">캘린더 읽기·쓰기 권한이 필요해요. 거부해도 앱의 일정 관리는 사용할 수 있어요. 다시 요청되지 않으면 휴대폰 설정에서 허용해 주세요.</string>
     <string name="calendar_enabled">자동 연동 중</string>
     <string name="calendar_off">자동 연동 꺼짐</string>
-    <string name="calendar_empty">저장 가능한 캘린더가 없어요. 휴대폰 캘린더 앱에서 캘린더나 계정을 준비한 뒤 다시 열어 주세요.</string>
+    <string name="calendar_empty">휴대폰 캘린더 앱에서 저장할 캘린더를 먼저 준비해 주세요.</string>
     <string name="calendar_cleanup_pending">이전에 만든 일정이 남아 있을 수 있어요. 권한을 허용하고 남은 일정 정리를 눌러 주세요.</string>
     <string name="calendar_failure">반영하지 못했어요. 로그인·인터넷·캘린더 권한을 확인한 뒤 다시 시도해 주세요.</string>
     <string name="calendar_synced">캘린더 반영을 마쳤어요.</string>
