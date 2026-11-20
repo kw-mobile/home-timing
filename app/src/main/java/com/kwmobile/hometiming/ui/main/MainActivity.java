@@ -695,11 +695,13 @@ public final class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(out);
     }
 
+    private NestedScrollView restoringScroll;
+
     private void capture() {
         if (screen == null) return;
         NestedScrollView scroll = screen.findViewById(R.id.preview_scroll);
         // A newly inflated page has not restored its offset yet during start/resume callbacks.
-        if (scroll != null && ViewCompat.isLaidOut(scroll))
+        if (scroll != null && scroll != restoringScroll && ViewCompat.isLaidOut(scroll))
             s().scrolls.put(s().route.key(), scroll.getScrollY());
     }
 
@@ -886,10 +888,15 @@ public final class MainActivity extends AppCompatActivity {
 
     private void restoreScroll() {
         NestedScrollView scroll = screen.findViewById(R.id.preview_scroll);
+        restoringScroll = scroll;
         if (scroll != null) {
             scroll.setPadding(0, 0, 0, rootPage() ? dp(100) : dp(24));
             int y = s().scrolls.getOrDefault(s().route.key(), 0);
-            scroll.post(() -> scroll.scrollTo(0, y));
+            androidx.core.view.OneShotPreDrawListener.add(scroll, () -> {
+                if (restoringScroll != scroll) return;
+                scroll.scrollTo(0, y);
+                restoringScroll = null;
+            });
         }
     }
 
