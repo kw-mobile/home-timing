@@ -1,12 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/calendar_settings_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true">
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="24dp">
-        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_back" style="@style/Widget.Material3.Button.TextButton" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="@string/design_001"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:text="@string/calendar_title" android:textAppearance="@style/TextAppearance.HomeTiming.Brand"/>
-        <TextView android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/calendar_help" android:textAppearance="@style/TextAppearance.HomeTiming.Body"/>
-        <TextView android:id="@+id/calendar_status" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginVertical="24dp" android:accessibilityLiveRegion="polite" android:textAppearance="@style/TextAppearance.HomeTiming.Body"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_choose" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/calendar_choose"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_sync" style="@style/Widget.Material3.Button.OutlinedButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/calendar_sync"/>
-        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_disable" style="@style/Widget.Material3.Button.TextButton" android:layout_width="match_parent" android:layout_height="wrap_content" android:minHeight="48dp" android:text="@string/calendar_disable"/>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/calendar_settings_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:focusableInTouchMode="true"
+        android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="8dp" android:paddingBottom="32dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <androidx.appcompat.widget.AppCompatImageButton android:id="@+id/calendar_back" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/design_001" app:srcCompat="@drawable/ic_back" app:tint="@color/ht_text" />
+            <com.google.android.material.textview.MaterialTextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:text="@string/calendar_title" android:textAppearance="@style/TextAppearance.HomeTiming.Brand" android:id="@+id/feature_heading" />
+        </LinearLayout>
+        <com.google.android.material.textview.MaterialTextView  android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" android:text="@string/calendar_summary" android:textAppearance="@style/TextAppearance.HomeTiming.Label"  />
+        <com.google.android.material.textview.MaterialTextView android:id="@+id/calendar_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"  android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" android:accessibilityLiveRegion="polite" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_choose" style="@style/Widget.HomeTiming.Button"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/calendar_choose" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_sync" style="@style/Widget.HomeTiming.Button.Secondary"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/calendar_sync" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_disable" style="@style/Widget.HomeTiming.TextButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/calendar_disable" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/calendar_details" style="@style/Widget.HomeTiming.TextButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="24dp" android:text="@string/calendar_details" />
     </LinearLayout>
 </ScrollView>

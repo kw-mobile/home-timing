@@ -8,6 +8,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowCompat;
 import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.kwmobile.hometiming.R;
@@ -18,13 +19,22 @@ public final class CalendarSettingsActivity extends AppCompatActivity {
             new ActivityResultContracts.RequestMultiplePermissions(), result -> vm.refresh());
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_calendar_settings);
+        ViewCompat.setAccessibilityHeading(findViewById(R.id.feature_heading), true);
+        boolean light = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
+                != android.content.res.Configuration.UI_MODE_NIGHT_YES;
+        WindowCompat.getInsetsController(getWindow(), findViewById(R.id.calendar_settings_root)).setAppearanceLightStatusBars(light);
+        WindowCompat.getInsetsController(getWindow(), findViewById(R.id.calendar_settings_root)).setAppearanceLightNavigationBars(light);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.calendar_settings_root), (view, insets) -> {
-            androidx.core.graphics.Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+            androidx.core.graphics.Insets bars = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.displayCutout());
             view.setPadding(bars.left, bars.top, bars.right, bars.bottom); return insets;
         });
         vm = new ViewModelProvider(this).get(CalendarSettingsViewModel.class);
         findViewById(R.id.calendar_back).setOnClickListener(v -> finish());
+        findViewById(R.id.calendar_details).setOnClickListener(v -> new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.calendar_title).setMessage(R.string.calendar_help)
+                .setPositiveButton(android.R.string.ok, null).show());
         findViewById(R.id.calendar_choose).setOnClickListener(v -> {
             if (!vm.manager.permitted()) { permissions.launch(new String[]{Manifest.permission.READ_CALENDAR, Manifest.permission.WRITE_CALENDAR}); return; }
             if (vm.choices.isEmpty()) { vm.refresh(); return; }
@@ -49,6 +59,12 @@ public final class CalendarSettingsActivity extends AppCompatActivity {
         ((TextView) findViewById(R.id.calendar_status)).setText(vm.busy ? getString(R.string.calendar_busy) : status);
         findViewById(R.id.calendar_choose).setEnabled(!vm.busy);
         findViewById(R.id.calendar_sync).setEnabled(!vm.busy && vm.manager.permitted());
+        findViewById(R.id.calendar_sync).setVisibility(vm.manager.enabled() || vm.manager.cleanupPending()
+                ? android.view.View.VISIBLE : android.view.View.GONE);
+        ((TextView)findViewById(R.id.calendar_sync)).setText(vm.manager.cleanupPending()
+                ? R.string.calendar_cleanup_action : R.string.calendar_sync);
+        findViewById(R.id.calendar_disable).setVisibility(vm.manager.enabled() || vm.manager.cleanupPending()
+                ? android.view.View.VISIBLE : android.view.View.GONE);
         findViewById(R.id.calendar_disable).setEnabled(!vm.busy && (vm.manager.enabled() || vm.manager.cleanupPending()));
     }
 }

@@ -206,13 +206,18 @@ final class PreviewWidgets {
 
     LinearLayout settingsRow(
             LinearLayout parent, String title, String description, int icon, Runnable run) {
+        return settingsRow(parent, title, description, icon, run, false);
+    }
+
+    LinearLayout settingsRow(
+            LinearLayout parent, String title, String description, int icon, Runnable run, boolean destructive) {
         LinearLayout row = horizontal();
         row.setMinimumHeight(dp(76));
         row.setPadding(0, dp(12), 0, dp(12));
         if (icon != 0) {
             ImageView image = new androidx.appcompat.widget.AppCompatImageView(context);
             image.setImageResource(icon);
-            image.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));
+            image.setImageTintList(ColorStateList.valueOf(color(destructive ? R.color.ht_error : R.color.ht_text)));
             image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(22), dp(22));
             lp.rightMargin = dp(16);
@@ -220,7 +225,9 @@ final class PreviewWidgets {
         }
         LinearLayout copy = vertical();
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-        copy.addView(text(title, R.style.TextAppearance_HomeTiming_BodyStrong));
+        TextView label = text(title, R.style.TextAppearance_HomeTiming_BodyStrong);
+        if (destructive) label.setTextColor(color(R.color.ht_error));
+        copy.addView(label);
         if (!description.isEmpty()) {
             gap(copy, 4);
             copy.addView(caption(description));

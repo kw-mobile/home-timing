@@ -29,7 +29,10 @@ final class AccountScreens {
 
     void bindAuth(String mode) {
         android.widget.TextView footer = screen.findViewById(R.id.auth_footer);
-        if (host.mvp() != null && footer != null) footer.setText(R.string.mvp_auth_help);
+        if (host.mvp() != null && footer != null) {
+            footer.setText(R.string.mvp_auth_help);
+            footer.setVisibility(mode.equals("login") ? View.GONE : View.VISIBLE);
+        }
         int[] ids = {R.id.auth_email, R.id.auth_password, R.id.auth_name, R.id.auth_confirm};
         for (int id : ids) {
             EditText field = screen.findViewById(id);
@@ -58,12 +61,11 @@ final class AccountScreens {
         if (host.mvp() != null) {
             submit.setEnabled(!host.mvp().busy());
             if (host.mvp().busy()) submit.setText(R.string.mvp_saving);
-            if (mode.equals("login")) {
+            if (mode.equals("login") && host.mvp().hasStoredAccount() && !host.mvp().busy()) {
                 LinearLayout options = ui.box(R.id.auth_options);
+                options.addView(ui.caption(context.getString(R.string.ui_session_recovery)));
                 ui.fullAction(options, context.getString(R.string.mvp_retry_session), false, () -> host.mvp().restore());
-                ui.fullAction(options, context.getString(R.string.update_title), false, () -> context.startActivity(
-                        new android.content.Intent(context, com.kwmobile.hometiming.ui.update.UpdateActivity.class)));
-                if (host.mvp().hasStoredAccount()) ui.fullAction(options,
+                ui.fullAction(options,
                         context.getString(R.string.mvp_delete_account), false,
                         () -> MvpHouseholdScreens.deleteAccount(context, host, ui));
             }
