@@ -80,6 +80,16 @@ public final class MainActivity extends AppCompatActivity {
                     else notificationSettings();
                 }
                 public void photoName() { startPhotoName(); }
+                public void calendarSettings() {
+                    capture();
+                    hideKeyboard();
+                    com.kwmobile.hometiming.ui.calendar.CalendarSettingsDialogFragment.open(getSupportFragmentManager());
+                }
+                public void weatherSettings() {
+                    capture();
+                    hideKeyboard();
+                    com.kwmobile.hometiming.ui.weather.WeatherSettingsDialogFragment.open(getSupportFragmentManager());
+                }
                 public void useCurrentHouseLocation() { requestHouseLocation(); }
                 public void chooseHouseRegion() { MainActivity.this.chooseHouseRegion(); }
 
@@ -437,6 +447,8 @@ public final class MainActivity extends AppCompatActivity {
         if (state == null || state.info == null || isFinishing() || vm == null || !updates.shouldPrompt()
                 || !getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
                 || !rootPage() || fixtures || mvp == null || mvp.session == null) return;
+        for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments())
+            if (fragment instanceof androidx.fragment.app.DialogFragment && fragment.isAdded()) return;
         updates.markPrompted();
         new MaterialAlertDialogBuilder(this).setTitle(R.string.update_title)
                 .setMessage(getString(R.string.update_available, state.info.versionName, (state.info.sizeBytes + 1048575) / 1048576))
@@ -665,7 +677,9 @@ public final class MainActivity extends AppCompatActivity {
     private void capture() {
         if (screen == null) return;
         NestedScrollView scroll = screen.findViewById(R.id.preview_scroll);
-        if (scroll != null) s().scrolls.put(s().route.key(), scroll.getScrollY());
+        // A newly inflated page has not restored its offset yet during start/resume callbacks.
+        if (scroll != null && ViewCompat.isLaidOut(scroll))
+            s().scrolls.put(s().route.key(), scroll.getScrollY());
     }
 
     private void go(String name) {

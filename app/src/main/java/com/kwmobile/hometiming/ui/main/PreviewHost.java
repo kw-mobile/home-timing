@@ -12,6 +12,10 @@ interface PreviewHost {
 
     void photoName();
 
+    void calendarSettings();
+
+    void weatherSettings();
+
     void useCurrentHouseLocation();
 
     void chooseHouseRegion();

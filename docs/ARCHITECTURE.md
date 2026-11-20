@@ -93,7 +93,7 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인�
 
 ## 휴대폰 캘린더 투영
 
-`CalendarEntry`가 실제 Item/Chore의 현재 예정일과 최근 완료일을 순수 Java 값으로 투영합니다. `DeviceCalendarManager`는 기기별 opt-in과 UID/집 바인딩·OperationScope 무효화를 관리하고, 기존 `ReminderRepository.readFromServer`의 서버·소속 검증을 재사용합니다. 데이터 조회와 Provider 쓰기를 직렬화해 오래된 응답 역전을 막습니다. `DeviceCalendarStore`는 선택한 캘린더와 설치별 임의 토큰의 정확한 마커에 한해서 Calendar Provider를 읽고 수정하며, 항목·다음/완료 키로 재시도와 중복을 정리합니다. 전체 개인 일정은 읽지 않습니다. 관리 마커는 Provider의 CUSTOM_APP_URI에 두고 사용자에게 보이는 설명에는 앱에서 수정·완료하라는 안내만 표시합니다. `DeviceCalendarWorker`가 온라인에서 주기적으로 갱신합니다. 설정 Activity는 `CalendarSettingsViewModel`을 통해 권한·선택·해제·재시도를 표시합니다.
+`CalendarEntry`가 실제 Item/Chore의 현재 예정일과 최근 완료일을 순수 Java 값으로 투영합니다. `DeviceCalendarManager`는 기기별 opt-in과 UID/집 바인딩·OperationScope 무효화를 관리하고, 기존 `ReminderRepository.readFromServer`의 서버·소속 검증을 재사용합니다. 데이터 조회와 Provider 쓰기를 직렬화해 오래된 응답 역전을 막습니다. `DeviceCalendarStore`는 선택한 캘린더와 설치별 임의 토큰의 정확한 마커에 한해서 Calendar Provider를 읽고 수정하며, 항목·다음/완료 키로 재시도와 중복을 정리합니다. 전체 개인 일정은 읽지 않습니다. 관리 마커는 Provider의 CUSTOM_APP_URI에 두고 사용자에게 보이는 설명에는 앱에서 수정·완료하라는 안내만 표시합니다. `DeviceCalendarWorker`가 온라인에서 주기적으로 갱신합니다. `CalendarSettingsDialogFragment`는 기존 MainActivity 위에서 `CalendarSettingsViewModel`을 통해 권한·선택·해제·재시도를 표시합니다. 선택/상세/해제 자식 DialogFragment도 부모 상태를 공유하며 회전에 복원됩니다. 테스트 날씨의 `WeatherSettingsDialogFragment`는 호스트 Activity의 WeatherViewModel을 공유합니다. 짧은 설정을 위해 별도 Activity나 새 데이터 경로를 만들지 않습니다.
 
 ## 현재 위치와 집 날씨 연결
 
