@@ -1,0 +1,27 @@
+PASS dedicated debug emulator
+PASS configured build
+PASS foreground projection populated
+PASS real item and chore schedules persisted
+PASS overdue first
+PASS actual app widget host binding
+PASS background server sync
+PASS host inflated actual schedule rows
+PASS overdue text
+PASS tomorrow chore visible
+PASS compact overflow retains first schedule
+PASS tap opens matching detail
+PASS detail screen route
+PASS stale house tap rejected
+PASS completion removes today's old occurrence
+PASS deletion updates both sections
+PASS empty state
+PASS offline server read fails
+PASS offline keeps stored next occurrence
+PASS server sync recovers after offline
+PASS invalid cached date invalidates projection
+PASS server restores invalid projection
+PASS sign out clears projection
+PASS no old rows after sign out
+PASS signed out state
+Widget PASS (demo Firebase, Android emulator; not physical device)
+

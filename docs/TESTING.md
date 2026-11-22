@@ -217,4 +217,4 @@ adb -s <전용-serial> install -r app/build/outputs/apk/androidTest/debug/app-de
 adb -s <전용-serial> shell am instrument -w -e authPort <auth-port> -e firestorePort <firestore-port> com.kwmobile.hometiming.test/com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation
 ```
 
-`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 오늘·지남·내일 일정, AppWidgetHost의 실제 바인딩/RemoteViews 표시, 좁은 폭/다크/빈 상태, 항목 PendingIntent의 상세 이동, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영을 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.
+`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 오늘·지남·내일 일정, AppWidgetHost의 실제 바인딩/RemoteViews 표시, 좁은 폭/다크/빈 상태, 항목 PendingIntent의 상세 이동, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.
