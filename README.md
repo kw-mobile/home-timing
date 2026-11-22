@@ -6,7 +6,7 @@
 
 ## 시작하기
 
-clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정해줘”** 라고 요청하면 [team-setup](.agents/skills/team-setup/SKILL.md)을 따릅니다. JDK·SDK 확인, 본인 Firebase 연결·설정 파일 배치, 기본 빌드를 진행하며 Google 로그인과 기상청 키는 본인이 준비합니다. 명시적으로 호출하려면 Codex는 `$team-setup`, Claude Code는 `/team-setup`을 사용합니다.
+clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정해줘”** 라고 요청하면 [team-setup](.agents/skills/team-setup/SKILL.md)을 따릅니다. JDK·SDK 확인, 본인 Firebase 연결·설정 파일 배치, 기본 빌드를 진행하며 Firebase 계정 연결과 기상청 키는 본인이 준비합니다. 명시적으로 호출하려면 Codex는 `$team-setup`, Claude Code는 `/team-setup`을 사용합니다.
 
 1. [환경 설정](docs/SETUP.md)에 따라 JDK 17과 Android SDK를 준비합니다.
 2. Android Studio에서 레포 루트를 열고 Gradle JDK를 JDK 17로 선택합니다.
@@ -18,6 +18,8 @@ clone한 뒤 Codex나 Claude Code에 **“이 프로젝트 개발 환경 설정�
 ```
 
 Windows에서는 `./gradlew.bat`를 사용합니다. Firebase 설정과 기상청 키 없이도 기본 빌드가 가능하며, 실제 연동 준비는 [외부 서비스 설정](docs/SETUP.md#외부-서비스)을 따릅니다.
+
+홈 화면 위젯은 항목 아이콘과 D-day로 기한 지난 일정·다가오는7일을 보여주며, 작게 줄이면 첫 일정 카드가 됩니다. 표시/갱신 계약은 [MVP](docs/MVP.md#홈-화면-위젯-106), 현재 APK는 [정식 릴리스](https://github.com/kw-mobile/home-timing/releases/latest), 설치 후 업데이트는 [앱 내 업데이트](docs/SETUP.md#앱-내-업데이트용-배포-정보)를 참고하세요.
 
 현재 화면 구조와 공통 규격은 [디자인 시스템](docs/DESIGN_SYSTEM.md)을 따릅니다. 일반 실행은 로그인 또는 저장된 계정의 집을 엽니다. Firebase 설정이 없으면 설정 안내를 표시하며 예시 데이터로 성공을 대신하지 않습니다. 기존 디자인 갤러리는 debug APK의 명시적 `preview_screen` Intent에서만 열 수 있습니다([미리보기 실행 안내](docs/DESIGN_SYSTEM.md#미리보기-실행)). 서명 APK는 [Release 절차](docs/SETUP.md#release-apk)를 따릅니다.
 

@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:id="@android:id/background" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:orientation="vertical" android:paddingHorizontal="16dp" android:paddingVertical="12dp"
+    android:background="@drawable/bg_schedule_widget">
+    <LinearLayout android:id="@+id/widget_focus" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:orientation="vertical" android:background="@drawable/widget_ripple" android:visibility="gone">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="40dp" android:gravity="center_vertical" android:orientation="horizontal">
+            <android.widget.TextView android:id="@+id/widget_focus_heading" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:text="@string/widget_focus_heading" android:textSize="13sp" android:fontFamily="@font/pretendard_medium"
+                android:textColor="@color/ht_text_secondary" android:maxLines="2" />
+            <android.widget.TextView android:id="@+id/widget_focus_status" android:layout_width="wrap_content" android:layout_height="wrap_content"
+                android:layout_marginStart="8dp" android:textSize="30sp" android:fontFamily="@font/pretendard_semibold"
+                android:fontFeatureSettings="tnum" android:textColor="@color/ht_primary" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"
+            android:minHeight="48dp" android:orientation="horizontal" android:gravity="center_vertical">
+            <android.widget.ImageView android:id="@+id/widget_focus_icon" android:layout_width="32dp" android:layout_height="32dp"
+                android:padding="4dp" android:src="@drawable/ic_update" android:tint="@color/ht_primary"
+                tools:ignore="UseAppTint" android:importantForAccessibility="no" />
+            <android.widget.TextView android:id="@+id/widget_focus_name" android:layout_width="0dp" android:layout_height="wrap_content"
+                android:layout_weight="1" android:layout_marginStart="8dp" android:textSize="17sp"
+                android:fontFamily="@font/pretendard_medium" android:textColor="@color/ht_text" android:maxLines="1" android:ellipsize="end" />
+        </LinearLayout>
+    </LinearLayout>
+    <android.widget.TextView android:id="@+id/widget_message" android:layout_width="match_parent" android:layout_height="match_parent"
+        android:gravity="center_vertical" android:text="@string/widget_sign_in" android:textSize="15sp"
+        android:fontFamily="@font/pretendard" android:textColor="@color/ht_text_secondary" />
+</LinearLayout>

@@ -6,6 +6,7 @@
 
 | 날짜 | 실제 참여자·역할 | 작업 내용 | 근거 |
 | --- | --- | --- | --- |
+| 2026-11-22 | 사용자(성명 확인 필요): 여백 위치 및 비율 지정 / Codex(도구): 구현·검증 | 홈 날짜와 위치 사이 여백을 절반 줄여 강수확률 아래로 이동. Android 빌드·Lint 및 연결 휴대폰 홈 배치 확인 | [이슈 #112](https://github.com/kw-mobile/home-timing/issues/112), [PR #113](https://github.com/kw-mobile/home-timing/pull/113) |
 | 2026-11-08 | 조민제: MVP·공통 환경 요구사항 결정; Codex (도구): 작성·검증 | 제출 MVP 범위 정리, Android 공통 환경·버전 잠금·CI 준비. 환경 검증 기준 `5015e9d`: 로컬/CI 기본 빌드 확인, 제품 테스트는 NO-SOURCE | [계획 #1](https://github.com/kw-mobile/home-timing/issues/1), [환경 PR #2](https://github.com/kw-mobile/home-timing/pull/2), [환경 검증 CI](https://github.com/kw-mobile/home-timing/actions/runs/42461366760) |
 | 2026-11-08 | 조민제: 협업·보고서 기록 기준 요청; Codex (도구): 문서·템플릿 작성 및 정적 검증 | 공통 AGENTS·Claude import, 문서 구조, 참여자별 PR 기록과 보고서 근거 수집 기준 준비 | [작업 기준 PR #2](https://github.com/kw-mobile/home-timing/pull/2), 상세 검증은 PR 본문 |
 | 2026-11-08 | 조민제: 병합 시점·Notion 기록 요구사항 결정; Codex (도구): 구현·오프라인 검증 | 병합 PR의 참여자·검증 근거를 Development History로 옮기는 자동화와 비활성 연결 설정 준비. 실제 Actions→Notion 쓰기는 인증 후 검증 필요 | [자동화 이슈 #3](https://github.com/kw-mobile/home-timing/issues/3), [PR #4](https://github.com/kw-mobile/home-timing/pull/4) |
@@ -128,3 +129,11 @@ PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 
 | 2026-11-20 | 사용자(성명 확인 필요): 전체 흐름 점검 요청·기본 글씨 크기/학교 과제 범위 지정; Codex(도구): UI 점검·수정·검증 | 기존 항목 종류 전환 제한·초안/저장 중 복귀 보호, 가족 초대 교체 확인/참여 구역, 알림 설정/상세 분리, 위치 조회 진행·취소·화면 이탈, 지역 없음→설정 연결, 설정 스크롤 복원 시점·탈퇴 입력 스크롤, 공통 설명 위계. 큰 글씨 전용 버전/별도 레이아웃을 만들지 않는 기준을 AGENTS·디자인 시스템에 기록. 흐름별 실제 실행과 메모리·서버·실기기 한계는 연결 기록에 구분 | [이슈 #99](https://github.com/kw-mobile/home-timing/issues/99), [PR #100](https://github.com/kw-mobile/home-timing/pull/100) |
 
 | 2026-11-22 | 사용자(shoungli415): 홈 화면 할 일 패널 닫기(X) 버튼 제거 및 등록 버튼 우측 배치 요청; Antigravity (도구): OverviewScreens.java 바텀시트 헤더 X 버튼 제거 및 + 등록 버튼 우측 배치, 실기기(Galaxy A50) 및 단위 테스트 검증 | 홈 화면 '할 일' 패널 헤더에서 X(닫기) 버튼 제거, '+ 등록' 버튼을 헤더 우측 끝으로 재배치하여 탭 시 항목 등록 화면 정상 진입 확인. :app:testDebugUnitTest (314 passed), :app:lintDebug 통과 | [이슈 #103](https://github.com/kw-mobile/home-timing/issues/103) |
+
+| 2026-11-22 | 사용자(shoungli415): 로그인 비밀번호 완료 동작 개선 요청; Antigravity (도구): screen_login.xml imeOptions 수정 및 AccountScreens 에디터 액션 연결, 실기기(Galaxy A50) 및 단위 테스트 검증 | 로그인 화면 비밀번호 입력 완료 시 포커스가 이메일로 돌아가지 않고 로그인 버튼 클릭(submit)이 수행되도록 개선. screen_signup/reset 마지막 필드 imeOptions 일관화. :app:testDebugUnitTest 통과, 실기기 동작 확인 | [이슈 #101](https://github.com/kw-mobile/home-timing/issues/101) |
+
+| 2026-11-22 | 사용자(성명 확인 필요): 오늘·내일 일정 중심의 위젯 범위와 기존 앱 디자인 재사용 결정; Codex(도구): 구현·검증 | 기존 중성 색상·Pretendard의 홈 화면 위젯, 오늘/내일·기한 지남·더보기·상세 이동, 현재 집에 묶인 로컬 투영과 서버 갱신·로그아웃 정리. 검증 결과와 실기기/런처 한계는 연결 PR에 기록 | [이슈 #106](https://github.com/kw-mobile/home-timing/issues/106), [PR #107](https://github.com/kw-mobile/home-timing/pull/107) |
+
+| 2026-11-22 | 사용자(성명 확인 필요): 참고 이미지·아이콘/D-day 디자인 요구 및7일 범위 확정; Codex(도구): 구현·검증 | 위젯을 아이콘/이름/D+N·D-day·D-N 정렬의 단일 카드로 개선하고 크기에 따라 첫 일정 카드로 전환. 기존 v0.5.0 캐시·상세 이동·읽기 전용 세션 처리 유지. 기본 빌드·단위319개/실패·건너뜀0·Lint 오류0, 전용 AVD/demo Firebase의 실제 호스트 크기 변경·이동·범위/캐시/로그아웃 검증. 상세 근거와 실기기 한계는 연결 PR | [이슈 #108](https://github.com/kw-mobile/home-timing/issues/108), [PR #109](https://github.com/kw-mobile/home-timing/pull/109) |
+
+| 2026-11-22 | 사용자(성명 확인 필요): 전체 구조/문서 정리 후 배포 요청; Codex(도구): 구조 점검·리팩터링·검증 | MainActivity의 위치 권한/GPS/지역 선택 책임 분리, 세션 종료6개 경로 통합, UI/위젯의 서울 날짜·D-day 공통 계산 재사용. 현행 공용 지역/사진 입력/실행 안내와 과거 보고서 역할 정리. 전체 구조의 변경·유지 판단은 점검 기록, 실제 검증·배포 결과는 연결 PR에 기록 | [이슈 #110](https://github.com/kw-mobile/home-timing/issues/110), [PR #111](https://github.com/kw-mobile/home-timing/pull/111) |

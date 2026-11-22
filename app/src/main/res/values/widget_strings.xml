@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">때맞춤 · 다가오는 일정</string>
+    <string name="widget_description">기한 지난 일정과 다가오는 7일의 교체·집안일을 D-day로 확인합니다. 작게 줄이면 첫 일정을 크게 표시합니다.</string>
+    <string name="widget_heading">다가오는 일정</string>
+    <string name="widget_focus_heading">챙길 일정</string>
+    <string name="widget_count">%1$d개</string>
+    <string name="widget_empty">다가오는 7일 일정이 없어요</string>
+    <string name="widget_sign_in">앱을 열고 로그인해 주세요</string>
+    <string name="widget_loading">앱을 열어 일정을 불러와 주세요</string>
+    <string name="widget_updated">%1$s 기준</string>
+    <string name="widget_cached">저장된 일정</string>
+    <string name="widget_overdue">%1$d일 지남</string>
+    <string name="widget_due_today">오늘 예정</string>
+    <string name="widget_remaining">%1$d일 남음</string>
+    <string name="widget_more">외 %1$d개 · 전체 보기</string>
+    <string name="widget_item_description">%1$s, %2$s, %3$s</string>
+    <string name="widget_preview_brush">칫솔</string>
+    <string name="widget_preview_filter">정수기 필터</string>
+    <string name="widget_preview_air_filter">공기청정기 필터</string>
+</resources>
