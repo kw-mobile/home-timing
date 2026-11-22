@@ -1,0 +1,33 @@
+INSTRUMENTATION_STATUS: step=member: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: signup form visible
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: signup/house/online
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: join shared house
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: shared item form edit
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: chore form save
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: other device chore completion
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: shared region on second device
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: leave creates empty solo house
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: rejoin after leave
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: rejoined member ready
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: removed member recovers solo house
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=member: member account cleanup
+INSTRUMENTATION_STATUS_CODE: 0
+MVP member PASS (demo Firebase emulator; Android emulator)
