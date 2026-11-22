@@ -43,7 +43,7 @@ final class HouseLocationController {
         this.ui = ui;
         this.currentScreen = currentScreen;
         placeResolver = new com.kwmobile.hometiming.data.weather.CurrentPlaceResolver(
-                new android.location.Geocoder(activity, java.util.Locale.KOREA));
+                new android.location.Geocoder(activity.getApplicationContext(), java.util.Locale.KOREA));
         locationRequest =
             activity.registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions(),
                     granted -> {
