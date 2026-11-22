@@ -69,9 +69,17 @@ final class OverviewScreens {
         androidx.core.widget.TextViewCompat.setLineHeight(
                 homeTemperature,
                 Math.round(72 * context.getResources().getDisplayMetrics().scaledDensity));
-        LinearLayout photoCopy =
-                (LinearLayout) screen.findViewById(R.id.weather_location).getParent();
+        View location = screen.findViewById(R.id.weather_location);
+        LinearLayout photoCopy = (LinearLayout) location.getParent();
         photoCopy.setPadding(ui.dp(20), ui.dp(16), ui.dp(20), ui.dp(16));
+        View dateHeading = screen.findViewById(R.id.home_weather_heading);
+        View date = dateHeading.findViewById(R.id.home_date);
+        photoCopy.addOnLayoutChangeListener((view, left, top, right, bottom,
+                                            oldLeft, oldTop, oldRight, oldBottom) -> {
+            int gap = top + location.getTop() - (dateHeading.getTop() + date.getBottom());
+            // Move the forecast up by half the gap; the card's bottom edge stays fixed.
+            view.setTranslationY(-Math.max(0, gap) / 2f);
+        });
         host.prepareHomeBackdrop(homePhoto);
         updateWeather();
         screen.findViewById(R.id.weather_hero).setOnClickListener(v -> host.go("weather"));
