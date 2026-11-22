@@ -24,7 +24,7 @@ import com.kwmobile.hometiming.ui.component.FluidMotion;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import com.kwmobile.hometiming.domain.ReplacementCalculator;
 import java.util.Locale;
 
 final class PreviewWidgets {
@@ -77,6 +77,10 @@ final class PreviewWidgets {
 
     TextView caption(String value) {
         return text(value, R.style.TextAppearance_HomeTiming_Caption);
+    }
+
+    TextView description(String value) {
+        return text(value, R.style.TextAppearance_HomeTiming_Supporting);
     }
 
     void gap(LinearLayout parent, int size) {
@@ -190,7 +194,7 @@ final class PreviewWidgets {
                     value.equals(selected)
                             ? context.getString(R.string.preview_copy_018)
                             : context.getString(R.string.preview_copy_019));
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, dp(48));
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-2, -2);
             lp.rightMargin = dp(8);
             group.addView(b, lp);
         }
@@ -206,13 +210,18 @@ final class PreviewWidgets {
 
     LinearLayout settingsRow(
             LinearLayout parent, String title, String description, int icon, Runnable run) {
+        return settingsRow(parent, title, description, icon, run, false);
+    }
+
+    LinearLayout settingsRow(
+            LinearLayout parent, String title, String description, int icon, Runnable run, boolean destructive) {
         LinearLayout row = horizontal();
         row.setMinimumHeight(dp(76));
         row.setPadding(0, dp(12), 0, dp(12));
         if (icon != 0) {
             ImageView image = new androidx.appcompat.widget.AppCompatImageView(context);
             image.setImageResource(icon);
-            image.setImageTintList(ColorStateList.valueOf(color(R.color.ht_text)));
+            image.setImageTintList(ColorStateList.valueOf(color(destructive ? R.color.ht_error : R.color.ht_text)));
             image.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
             LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(dp(22), dp(22));
             lp.rightMargin = dp(16);
@@ -220,7 +229,9 @@ final class PreviewWidgets {
         }
         LinearLayout copy = vertical();
         copy.setLayoutParams(new LinearLayout.LayoutParams(0, -2, 1));
-        copy.addView(text(title, R.style.TextAppearance_HomeTiming_BodyStrong));
+        TextView label = text(title, R.style.TextAppearance_HomeTiming_BodyStrong);
+        if (destructive) label.setTextColor(color(R.color.ht_error));
+        copy.addView(label);
         if (!description.isEmpty()) {
             gap(copy, 4);
             copy.addView(caption(description));
@@ -250,14 +261,14 @@ final class PreviewWidgets {
     }
 
     String status(Item item) {
-        long d = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+        long d = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
         return d < 0
                 ? Math.abs(d) + context.getString(R.string.preview_copy_021)
                 : d == 0 ? context.getString(R.string.preview_copy_017) : "D−" + d;
     }
 
     int statusColor(Item item) {
-        long d = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+        long d = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
         return d <= 0 ? R.color.ht_error : d <= 3 ? R.color.ht_due_soon : R.color.ht_text_secondary;
     }
 

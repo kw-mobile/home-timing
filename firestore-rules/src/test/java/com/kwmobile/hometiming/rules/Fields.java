@@ -17,6 +17,10 @@ final class Fields {
         return put(name, "{\"stringValue\":" + Json.quote(value) + "}");
     }
 
+    Fields map(String name, Fields fields) {
+        return put(name, "{\"mapValue\":{\"fields\":" + fields.toJson() + "}}");
+    }
+
     Fields num(String name, long value) {
         return put(name, "{\"integerValue\":\"" + value + "\"}");
     }

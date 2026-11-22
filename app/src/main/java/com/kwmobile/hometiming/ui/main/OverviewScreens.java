@@ -1,7 +1,6 @@
 package com.kwmobile.hometiming.ui.main;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,7 +23,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import com.kwmobile.hometiming.domain.ReplacementCalculator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -53,24 +52,33 @@ final class OverviewScreens {
 
     void bindHome() {
         bindHomeHero();
-        LinearLayout heading = bindHomeRows();
-        bindHomePanel(heading);
+        bindHomeRows();
+        bindHomePanel();
     }
 
     private void bindHomeHero() {
         screen.findViewById(R.id.home_weather_heading).setVisibility(View.VISIBLE);
         View homePhoto = screen.findViewById(R.id.weather_hero);
         ViewGroup.LayoutParams photoSize = homePhoto.getLayoutParams();
-        photoSize.height = ui.dp(420);
+        photoSize.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+        homePhoto.setMinimumHeight(ui.dp(420));
         homePhoto.setLayoutParams(photoSize);
         TextView homeTemperature = screen.findViewById(R.id.weather_temperature);
         homeTemperature.setTextSize(64);
         androidx.core.widget.TextViewCompat.setLineHeight(
                 homeTemperature,
                 Math.round(72 * context.getResources().getDisplayMetrics().scaledDensity));
-        LinearLayout photoCopy =
-                (LinearLayout) screen.findViewById(R.id.weather_location).getParent();
+        View location = screen.findViewById(R.id.weather_location);
+        LinearLayout photoCopy = (LinearLayout) location.getParent();
         photoCopy.setPadding(ui.dp(20), ui.dp(16), ui.dp(20), ui.dp(16));
+        View dateHeading = screen.findViewById(R.id.home_weather_heading);
+        View date = dateHeading.findViewById(R.id.home_date);
+        photoCopy.addOnLayoutChangeListener((view, left, top, right, bottom,
+                                            oldLeft, oldTop, oldRight, oldBottom) -> {
+            int gap = top + location.getTop() - (dateHeading.getTop() + date.getBottom());
+            // Move the forecast up by half the gap; the card's bottom edge stays fixed.
+            view.setTranslationY(-Math.max(0, gap) / 2f);
+        });
         host.prepareHomeBackdrop(homePhoto);
         updateWeather();
         screen.findViewById(R.id.weather_hero).setOnClickListener(v -> host.go("weather"));
@@ -79,7 +87,7 @@ final class OverviewScreens {
         screen.findViewById(R.id.weather_hero).setFocusable(true);
     }
 
-    private LinearLayout bindHomeRows() {
+    private void bindHomeRows() {
         LinearLayout rows = ui.box(R.id.home_rows);
         LinearLayout heading = ui.horizontal();
         LinearLayout headingCopy = ui.vertical();
@@ -124,14 +132,13 @@ final class OverviewScreens {
         }
         ui.gap(rows, 16);
         rows.addView(ui.caption(context.getString(host.mvp() == null ? R.string.preview_copy_045 : R.string.mvp_shared_data)));
-        return heading;
     }
 
     private LinearLayout bindHomeSummary(BottomSheetBehavior<View> behavior) {
         LinearLayout summary = ui.box(R.id.home_task_summary);
         int todayCount = 0, lateCount = 0, weekCount = 0;
         for (Item item : preview.store.sorted()) {
-            long days = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+            long days = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
             if (days == 0) todayCount++;
             else if (days < 0) lateCount++;
             else if (days <= 7) weekCount++;
@@ -170,14 +177,14 @@ final class OverviewScreens {
         row.setPadding(0, ui.dp(8), 0, ui.dp(8));
         for (Item item : preview.store.sorted()) {
             if (weather.weatherProposalTarget(item) != null) {
-                proposal.addView(ui.caption(context.getString(R.string.weather_ui_fixture_suggestions)));
+                proposal.addView(ui.caption(context.getString(host.mvp() == null ? R.string.weather_ui_fixture_suggestions : R.string.mvp_weather_suggestions)));
                 weather.bindProposal(proposal, item, false);
                 break;
             }
         }
     }
 
-    private void bindHomePanel(LinearLayout heading) {
+    private void bindHomePanel() {
         View sheet = screen.findViewById(R.id.preview_sheet);
         ((com.kwmobile.hometiming.ui.component.SheetShadowView)
                         screen.findViewById(R.id.home_sheet_shadow))
@@ -191,22 +198,6 @@ final class OverviewScreens {
         reopen.setVisibility(preview.sheetHidden ? View.VISIBLE : View.GONE);
         reopen.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
         FluidMotion.press(reopen);
-        androidx.appcompat.widget.AppCompatImageButton close =
-                new androidx.appcompat.widget.AppCompatImageButton(context);
-        close.setId(View.generateViewId());
-        close.setImageResource(R.drawable.ic_close);
-        close.setContentDescription(context.getString(R.string.preview_sheet_close));
-        android.util.TypedValue closeFeedback = new android.util.TypedValue();
-        context.getTheme()
-                .resolveAttribute(
-                        android.R.attr.selectableItemBackgroundBorderless, closeFeedback, true);
-        close.setBackgroundResource(closeFeedback.resourceId);
-        close.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
-        close.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_HIDDEN));
-        FluidMotion.press(close);
-        LinearLayout.LayoutParams closeSize = new LinearLayout.LayoutParams(ui.dp(48), ui.dp(48));
-        closeSize.leftMargin = ui.dp(4);
-        heading.addView(close, closeSize);
         sheet.post(
                 () -> {
                     if (!sheet.isAttachedToWindow()) return;
@@ -280,7 +271,7 @@ final class OverviewScreens {
                 ui.smallAction(context.getString(R.string.preview_copy_037), () -> host.edit("")));
         controls.addView(add);
         ui.gap(controls, 16);
-        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
         List<String> filters = vm.categories(false, categories.defaults(false));
         filters.add(0, context.getString(R.string.preview_copy_051));
         if (!filters.contains(preview.filter)) preview.filter = filters.get(0);
@@ -434,7 +425,8 @@ final class OverviewScreens {
                     });
             GridLayout.LayoutParams lp = new GridLayout.LayoutParams();
             lp.width = 0;
-            lp.height = ui.dp(54);
+            cell.setMinimumHeight(ui.dp(54));
+            lp.height = ViewGroup.LayoutParams.WRAP_CONTENT;
             lp.columnSpec = GridLayout.spec(GridLayout.UNDEFINED, 1f);
             grid.addView(cell, lp);
         }

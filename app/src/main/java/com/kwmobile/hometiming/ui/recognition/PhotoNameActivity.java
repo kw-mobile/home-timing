@@ -35,7 +35,9 @@ public final class PhotoNameActivity extends AppCompatActivity {
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
         if (getIntent().getStringExtra(REQUEST) == null) { finish(); return; }
+        WindowCompat.setDecorFitsSystemWindows(getWindow(), false);
         setContentView(R.layout.activity_photo_name);
+        ViewCompat.setAccessibilityHeading(findViewById(R.id.feature_heading), true);
         boolean light = (getResources().getConfiguration().uiMode & android.content.res.Configuration.UI_MODE_NIGHT_MASK)
                 != android.content.res.Configuration.UI_MODE_NIGHT_YES;
         WindowCompat.getInsetsController(getWindow(), findViewById(R.id.ocr_root)).setAppearanceLightStatusBars(light);
@@ -46,14 +48,17 @@ public final class PhotoNameActivity extends AppCompatActivity {
             return WindowInsetsCompat.CONSUMED;
         });
         vm = new ViewModelProvider(this).get(PhotoNameViewModel.class);
-        ((TextView)findViewById(R.id.ocr_old_name)).setText(getString(R.string.ocr_old_name, getIntent().getStringExtra(OLD_NAME)));
+        String oldName = getIntent().getStringExtra(OLD_NAME);
+        ((TextView)findViewById(R.id.ocr_old_name)).setText(getString(R.string.ocr_old_name, oldName == null ? "" : oldName));
+        findViewById(R.id.ocr_old_name).setVisibility(oldName == null || oldName.trim().isEmpty() ? View.GONE : View.VISIBLE);
+        findViewById(R.id.ocr_back).setOnClickListener(v -> finish());
         findViewById(R.id.ocr_cancel).setOnClickListener(v -> finish());
         findViewById(R.id.ocr_retry).setOnClickListener(v -> { vm.ready(); startCamera(); });
         findViewById(R.id.ocr_shutter).setOnClickListener(v -> takePhoto());
         EditText name = findViewById(R.id.ocr_name);
         name.addTextChangedListener(new TextWatcher() {
             public void beforeTextChanged(CharSequence s,int a,int c,int f) { }
-            public void onTextChanged(CharSequence s,int a,int b,int c) { vm.selected = s.toString(); }
+            public void onTextChanged(CharSequence s,int a,int b,int c) { vm.selected = s.toString(); updateSelection(); }
             public void afterTextChanged(Editable e) { }
         });
         findViewById(R.id.ocr_apply).setOnClickListener(v -> {
@@ -108,18 +113,38 @@ public final class PhotoNameActivity extends AppCompatActivity {
     }
     private void render() {
         ((TextView)findViewById(R.id.ocr_status)).setText(vm.message);
-        findViewById(R.id.ocr_camera_box).setVisibility(vm.result ? View.GONE : View.VISIBLE);
+        boolean cameraUnavailable = vm.message == R.string.ocr_permission_denied || vm.message == R.string.ocr_camera_unavailable;
+        findViewById(R.id.ocr_camera_box).setVisibility(vm.result || cameraUnavailable ? View.GONE : View.VISIBLE);
+        findViewById(R.id.ocr_shutter).setVisibility(vm.result || cameraUnavailable ? View.GONE : View.VISIBLE);
         findViewById(R.id.ocr_shutter).setEnabled(capture != null && !vm.busy && !vm.result);
+        findViewById(R.id.ocr_retry).setVisibility(vm.result || !vm.busy && vm.message != R.string.ocr_guide ? View.VISIBLE : View.GONE);
         findViewById(R.id.ocr_retry).setEnabled(!vm.busy);
         findViewById(R.id.ocr_result).setVisibility(vm.result ? View.VISIBLE : View.GONE);
         EditText name = findViewById(R.id.ocr_name);
         if (!name.getText().toString().equals(vm.selected)) name.setText(vm.selected);
         LinearLayout choices = findViewById(R.id.ocr_candidates); choices.removeAllViews();
         for (String candidate : vm.candidates) {
-            MaterialButton button = new MaterialButton(this); button.setText(candidate);
-            button.setMinHeight((int)(48*getResources().getDisplayMetrics().density));
-            button.setOnClickListener(v -> vm.select(candidate)); choices.addView(button);
+            MaterialButton button = (MaterialButton)getLayoutInflater().inflate(R.layout.component_preset_option, choices, false);
+            button.setText(candidate); button.setTag(candidate); button.setCheckable(true);
+            button.setOnClickListener(v -> vm.select(candidate));
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            params.topMargin = getResources().getDimensionPixelSize(R.dimen.ht_space_8);
+            choices.addView(button, params);
         }
+        updateSelection();
+    }
+    private void updateSelection() {
+        LinearLayout choices = findViewById(R.id.ocr_candidates);
+        for (int i = 0; i < choices.getChildCount(); i++) {
+            MaterialButton button = (MaterialButton)choices.getChildAt(i);
+            boolean selected = vm.selected.equals(button.getTag());
+            button.setChecked(selected);
+            button.setIconResource(selected ? R.drawable.ic_check : 0);
+            button.setIconTint(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ht_primary)));
+            button.setStrokeWidth(selected ? Math.round(getResources().getDisplayMetrics().density * 2) : 0);
+            button.setStrokeColor(android.content.res.ColorStateList.valueOf(ContextCompat.getColor(this, R.color.ht_primary)));
+        }
+        findViewById(R.id.ocr_apply).setEnabled(vm.result && !vm.busy && !vm.selected.trim().isEmpty());
     }
     @Override protected void onStop() {
         cameraGeneration++; capture = null;

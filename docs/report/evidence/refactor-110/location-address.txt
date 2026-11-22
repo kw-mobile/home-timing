@@ -1,0 +1,7 @@
+PASS GPS-only accurate fix + synthetic address -> dong confirmation; cancel keeps region
+PASS waits for accurate GPS instead of naming a dong from broad network fix
+PASS address service failure -> district fallback
+PASS 8s address timeout -> district fallback; late address ignored
+PASS stop/background discards late address
+PASS session change rejects late dong address; no Firebase writes
+DONG LOCATION PASS: mock GPS is not physical reception

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/update_root" android:layout_width="match_parent" android:layout_height="match_parent" android:fillViewport="true" android:clipToPadding="false">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:focusableInTouchMode="true"
+        android:paddingHorizontal="@dimen/ht_screen_gutter" android:paddingTop="8dp" android:paddingBottom="32dp">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+            <androidx.appcompat.widget.AppCompatImageButton android:id="@+id/update_back" android:layout_width="48dp" android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless" android:contentDescription="@string/design_001" app:srcCompat="@drawable/ic_back" app:tint="@color/ht_text" />
+            <com.google.android.material.textview.MaterialTextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"
+                android:layout_marginStart="8dp" android:text="@string/update_title" android:textAppearance="@style/TextAppearance.HomeTiming.Brand" android:id="@+id/feature_heading" />
+        </LinearLayout>
+        <com.google.android.material.textview.MaterialTextView android:id="@+id/update_version" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"  android:textAppearance="@style/TextAppearance.HomeTiming.Title"  />
+        <com.google.android.material.textview.MaterialTextView android:id="@+id/update_target" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"  android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong"  />
+        <com.google.android.material.textview.MaterialTextView  android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:text="@string/update_help" android:textAppearance="@style/TextAppearance.HomeTiming.Label"  />
+        <com.google.android.material.switchmaterial.SwitchMaterial android:id="@+id/update_auto" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" android:minHeight="56dp" android:text="@string/update_auto" android:textAppearance="@style/TextAppearance.HomeTiming.Body" />
+        <com.google.android.material.textview.MaterialTextView  android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="24dp" android:text="@string/ui_update_status" android:textAppearance="@style/TextAppearance.HomeTiming.Caption"  />
+        <com.google.android.material.textview.MaterialTextView android:id="@+id/update_status" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"  android:textAppearance="@style/TextAppearance.HomeTiming.BodyStrong" android:accessibilityLiveRegion="polite" />
+        <com.google.android.material.progressindicator.LinearProgressIndicator android:id="@+id/update_progress" android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" android:layout_marginBottom="8dp" android:max="100" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/update_action" style="@style/Widget.HomeTiming.Button"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="16dp" android:text="@string/update_download" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/update_check" style="@style/Widget.HomeTiming.Button.Secondary"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/update_check" />
+        <com.google.android.material.button.MaterialButton android:id="@+id/update_cancel" style="@style/Widget.HomeTiming.TextButton"
+            android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:text="@string/update_cancel" />
+    </LinearLayout>
+</ScrollView>

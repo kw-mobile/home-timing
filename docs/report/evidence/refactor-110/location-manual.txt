@@ -1,0 +1,2 @@
+PASS province -> district -> confirmation; cancel preserves shared region
+HOUSE LOCATION PASS: OS mock providers, not physical GPS reception

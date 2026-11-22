@@ -65,6 +65,17 @@ adb -s emulator-5572 shell am instrument -w -e role member -e runId mvp-unique-r
 - 실제 API허브 키와 활용신청 완료 후 재빌드하여 지역·예보 대상 시각·조회 시각·출처를 확인합니다. 실패·6시간 이내 이전 캐시·누락 기온·예보 시간 경계·테스트 모드는 별도로 기록합니다. 키·요청 URL은 근거에 넣지 않습니다.
 - `WeatherDisplayTest`와 날씨 파서·로더 테스트는 과거/다음 날 기온 오표시 방지, 공식 최저/최고 누락, 음수·소수 기온, SKY/PTY 우선순위, 캐시 직렬화와 오류를 검증합니다. 네트워크 성공·실기기 검증은 별도입니다.
 
+### 현재 위치로 날씨 지역 찾기
+
+계정 없는 전용 API36 AVD에서 `HouseLocationInstrumentation`(대략적 위치·수동 선택)과 `DongLocationInstrumentation`(정확한 GPS·주소)을 사용합니다. 기본 실행은 집/계정을 메모리에만 주입하며 Firebase 저장을 호출하지 않습니다. 실기기나 개인 계정이 있는 설치에서 실행하지 않습니다.
+
+1. `-PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.ui.main.DongLocationInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드해 두 APK를 설치합니다. OS mock 제공자는 `appops set com.kwmobile.hometiming android:mock_location allow`로 허용하고, 위치를 켭니다. coarse/fine 권한을 둘 다 허용한 상태에서 `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.DongLocationInstrumentation`을 실행합니다. 모의 GPS+합성 주소로 동 확인창·정확도 개선 대기·주소 오류/8초 제한·늦은 결과·화면 중지/세션 전환을 검사합니다. `-e mode backend`는 별도로 공개 서울 좌표를 실제 Android 주소 서비스로 변환합니다. 제공자/네트워크 상태에 따라 실패할 수 있고 모의 성공으로 대체하지 않습니다.
+2. coarse만 허용한 뒤 `HouseLocationInstrumentation`을 실행해 network/fused 각각의 후보, 범위 밖·20초 미수신·세션 변경을 확인합니다. 권한 설명에서는 ‘구 단위로 찾기’를 선택합니다. `-e mode manual`은 시·도 → 시·군·구 → 확인/취소, 위치를 끈 `-e mode disabled`와 권한을 철회한 `-e mode denied`는 안내/요청 미시작을 검사합니다. denied는 영어 시스템 권한 창의 거부 버튼을 사용합니다. 반복 검증 시 전용 설치의 `user-set/user-fixed` 권한 플래그를 초기화하여 실제 권한 창을 구분합니다.
+3. 실제 팀 Firebase 저장은 `DongLocationInstrumentation -e service configured -e projectId <의도한-프로젝트> -e runId mvp-production-<새ID>`로만 실행합니다. 프로젝트/빈 로그인 설치를 확인하고 자신이 만든 임시 계정·집만 사용합니다. GPS와 주소는 모의이지만 확인 버튼 → 실제 서버 재조회 → 자동 날씨 갱신·비테스트 예보를 검사합니다. 성공/실패 후 자신의 계정·집을 정리하며, 미완료 정리를 통과로 쓰지 않습니다. 기상청 키를 로그·원본 URL에 남기지 않습니다. 중단된 자신의 검사만 복구할 때는 같은 프로젝트를 지정한 `-e mode identify`로 이 runner의 임시 run ID를 확인하고, 그 정확한 ID와 `service configured`를 지정한 `-e mode cleanup`을 사용합니다. 임의 계정은 거부하며, 서버 삭제가 이미 완료된 계정은 `ERROR_USER_NOT_FOUND` 확인 뒤 남은 로컬 세션만 비웁니다.
+4. runner가 생성한 mock 제공자를 제거하고 위치/권한/mock app-op을 원복합니다. ADB 종료 코드가 아닌 출력의 `HOUSE LOCATION PASS`/`DONG LOCATION PASS`와 개별 시나리오를 확인합니다. 확인창·수동 선택·홈·날씨의 테스트 스크린샷은 앱 files에 저장할 수 있으며 생산 사진 저장 기능과 무관합니다.
+
+실기기는 정확한 위치/대략적인 위치를 구분해 허용하고 현재 위치 버튼 → 주소·후보까지의 시간 → 집 위치 확인/취소 → 저장 후 홈·날씨 자동 갱신을 기록합니다. 실내/실외·주소 서비스 미지원·권한 거부·기기 위치 꺼짐을 구분합니다. 법정동과 행정동이 다를 수 있고, 모의 좌표나 실제 Geocoder/HTTP200으로 실기기 GNSS 수신·정확도를 증명하지 않습니다. API26~32의 legacy 주소 경로는 별도 기기 검증 대상입니다. 실제 좌표·도로명·번지·키는 로그/PR에 넣지 않습니다.
+
 ## 식품안전나라 바코드 API 개별 확인
 
 [로컬 I2570 조회 도구](../scripts/foodsafety/README.md)를 사용합니다. 기본 번호는 `4902430597241`이며 `.env.foodsafety.local`에 본인 키를 넣고 실행합니다. 모의 응답 테스트와 실제 인증키 조회 결과를 구분합니다. 제품 앱 등록·사진 인식의 구현을 뜻하지 않습니다.
@@ -167,3 +178,49 @@ LiteRT 실행 의존성과 모델만 추가했으므로 debug/release 빌드·�
 `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation :app:assembleDebugAndroidTest`로 테스트 패키지를 빌드합니다. 같은 로컬 테스트 키로 서명한 release 앱에 설치할 수 있습니다. 검증 사진은 저장소에 넣지 않으며 COCO 공식 val2017의 `000000365385.jpg`(칫솔), `000000311303.jpg`(컵), `000000167353.jpg`(시계)를 별도로 받아 test 패키지의 private files에 전달합니다. 이 사진은 COCO 데이터에 속하는 알려진 예시이고 실제 이용자 정확도 평가용 독립 표본이 아닙니다. 원본 Flickr 출처·CC BY/CC BY-SA 라이선스·사진 ID는 검증 영수증에 남깁니다.
 
 Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.ProductPhotoInstrumentation`을 실행합니다. 실제 이미지→CPU 모델→한국어 일반명을 검사하고 빈 사진, 전체 사물+OCR 칫솔 경로와 OCR 일반명 보조를 확인합니다. `MvpFlowInstrumentation role=ocr`는 기존과 같이 후보의 명시적 적용·취소/다른 초안·날짜/주기 보호·실제 저장을 확인합니다. 코드·모델이 바뀐 뒤 오래된 인식 결과를 현재 성공으로 재사용하지 않습니다. 카메라·물리 기기·새 품목 성능은 해당 기기/독립 표본에서 따로 확인합니다.
+
+## APK 앱 내 업데이트 검증
+
+- `UpdateInfoTest`로 고정 HTTPS 저장소/파일명·정수 코드·해시·크기/범위와 같은/낮은 코드를 검사합니다. `python3 -m unittest discover -s scripts/release/tests -v`와 actionlint로 배포 메타데이터의 파일/버전/해시 계약과 workflow를 확인합니다. debug/release의 빌드·단위·Lint를 수행합니다.
+- 계정 없는 전용 API36 AVD의 `UpdateFlowInstrumentation`은 기본 versionCode1의 debug 앱과, 같은 로컬 테스트 키로 서명한 비디버그 0.4.1/code2 fixture를 사용합니다. 공식 키/정식 배포를 대신하지 않습니다. fixture는 외부 저장소가 아닌 대상 앱 private files/fixtures의 valid.apk와 official-old.apk(다른 공식 서명)로 전달합니다. 올바른 새 APK 수락, 다른 서명·버전 불일치·변조 거부, 저장한 파일 재검사, 자동 확인 설정/Activity 재생성, 설치 허용 취소 시 session 미생성을 검사합니다. 다음 프로세스의 `-e mode tamper`는 저장한 파일을 바꾼 뒤 재검사/삭제되는지 확인합니다. 실제 설치를 commit하지 않습니다.
+- 실제 공식 배포는 metadata/APK/sha256·기존 인증서·증가한 코드·비디버그·Firebase/날씨 구성을 확인합니다. 업데이트 기능이 포함된 이전 공식 APK를 전용 AVD에 설치한 후, 최신 릴리스 자동 감지 → 다운로드 취소/재시도 → 해시/서명 검사 → 설치 허용/시스템 확인 또는 허용된 자동 설치 → 실제 설치된 최신 versionCode를 확인합니다. 실기기/OEM·API26~30의 설치 확인 경로·실사용 로그인 상태 유지는 별도로 기록합니다.
+- 공식 APK는 debug 테스트 패키지와 서명이 다르므로 무단 instrumentation으로 검증하지 않습니다. 전용 AVD의 실제 화면/패키지 버전을 확인하고 개인 기기·타인 앱 데이터나 공용 서비스 데이터를 초기화하지 않습니다.
+
+## 연결 화면의 세부 디자인 점검 (#95)
+
+일반 실행의 빈 계정 로그인에서 보조 업데이트/복구 버튼·불필요한 상단 바가 없는지, 입력 오류·회원가입·비밀번호 보기가 유지되는지 확인합니다. 저장된 계정 복구 실패는 별도 상태로 구분합니다. 실제 화면 바인더에 메모리 전용 집/구성원/사진 후보를 넣어 설정 섹션·업데이트 진입·초대 코드 입력·후보 선택/직접 수정/적용 활성 상태를 점검할 수 있으며, 이는 실제 계정·Firebase 저장·사진 추론의 근거가 아닙니다.
+
+캘린더 초기 화면의 요약/선택과 전체 안내의 닫기, 업데이트 현재/새 버전·자동 확인·버튼 위계, 사진의 준비/결과/권한 오류를 확인합니다. 날씨 로딩/데이터 없음은 빈 최고/최저·강수와 같은 안내를 반복하지 않아야 합니다. 기본/작은 폰·시스템 큰 글씨·가로·태블릿·라이트/다크·애니메이션 축소를 구분해 캡처하고, 활성 화면의 포커스를 확인한 뒤 글자 잘림과 48dp 버튼·스크롤 도달을 확인합니다. 물리 기기/TalkBack 실제 읽기·기존 로그인 유지·서버 저장·실물 인식은 별도입니다. 임시 UI 검사 도구와 환경/화면/결과는 연결 PR의 검증 영수증에 보존하며 공용 데이터를 초기화하지 않습니다.
+
+## 짧은 설정 모달 검증 (#97)
+
+`-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.SettingsDialogInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드하고 계정 없는 전용 AVD에서 실행합니다. `am instrument -w -e prefix light com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.SettingsDialogInstrumentation`의 최종 `SETTINGS MODALS PASS`와 정리 결과를 확인합니다. 처음에는 캘린더 권한을 거부/다시 허용하며, 이미 권한이 있으면 해당 OS 요청 단계는 실행하지 않습니다. 이 경로를 반복할 때는 본인 전용 테스트 설치의 권한 상태만 원복합니다.
+
+테스트는 메모리 집에서 실제 설정 행→모달을 열고 중복 열기·상세/선택 취소·회전 복원·설정 스크롤 유지·날씨 공유 스위치/회전을 확인합니다. 실제 Calendar Provider에 이름/계정이 식별되는 로컬 캘린더 하나만 만들고 선택은 취소합니다. 본인 캘린더 삭제를 재조회하고 날씨 모드를 원복하며, 다른 캘린더/개인 일정·실제 Firebase 계정을 변경하지 않습니다. 이 결과는 실제 서버 일정 내보내기·실기기 캘린더/권한 성공을 뜻하지 않습니다. 라이트/다크·작은 화면/큰 글씨에서 모달 제목·고정 닫기·본문 스크롤과 배경 설정 유지도 확인합니다.
+
+## 전체 앱 흐름 UI 점검 (#99)
+
+학교 과제의 기본 글씨 크기로 점검합니다. 큰 글씨 전용 버전/레이아웃은 만들지 않습니다. `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.FlowUiInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드해 계정 없는 전용 AVD에 설치한 뒤 `am instrument -w -e prefix default-light com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.FlowUiInstrumentation`을 실행합니다. 마지막 `FLOW UI PASS`를 확인합니다.
+
+일반 실행의 실제 바인더에 메모리 집/항목을 넣어 인증 입력 오류, 등록/수정/종류 제약, 초안 회전/취소·저장 중 복귀 차단, 달력/상세/이력, 가족 역할·초대 교체 취소, 잘못된 참여 코드, 지역 없음→설정, 위치 진행/취소·이탈, 테스트 예보/재조회 버튼, 설정 모달·업데이트 왕복, 로그아웃/탈퇴 취소를 검사합니다. 기기의 라이트/다크를 구분하며 종료 후 테스트 날씨 설정을 원복합니다. 캡처는 앱 private files의 prefix PNG이며 공용 데이터를 쓰지 않습니다. 서버 저장·권한·사진 추론·실제 Provider·위치 제공자는 해당 절의 독립 runner로 확인하고, 이 화면 검사로 대신하지 않습니다. 흐름별 범위·미검증은 [점검 기록](report/UI_FLOW_REVIEW.md)에 남깁니다.
+
+## 홈 화면 일정 위젯 검증 (#106)
+
+`WidgetScheduleTest`는 지남~7일 포함/8일 제외·날짜 정렬, D+N/D-day/D-N 부호, 서울 자정·연말 경계, 날씨로 옮긴 집안일 실행일, 완료 후 다음 회차를 확인합니다. 기본 빌드·Lint·전체 단위 테스트도 실행합니다.
+
+전용 빈 debug AVD와 위의 demo Firebase emulator 절차를 사용합니다. 실제 팀 설정이 있는 빌드에서 아래 runner를 선택하고, 전용 Auth/Firestore 포트를 전달합니다. 이 runner는 Firebase 기본 앱을 demo로 교체하므로 공용 서비스 검증이 아닙니다.
+
+```sh
+./gradlew -PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest
+adb -s <전용-serial> install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s <전용-serial> install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb -s <전용-serial> shell am instrument -w -e authPort <auth-port> -e firestorePort <firestore-port> com.kwmobile.hometiming.test/com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation
+```
+
+`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 D+3/D-day/D-1/D-2/D-7 및8일 제외, AppWidgetHost의 실제 바인딩/크기 변경과 목록/작은 카드 표시, 아이콘·접근성 문구, 좁은 폭/다크/빈 상태, 두 형태의 PendingIntent 상세 이동, v0.5.0의 분류 없는 캐시 호환, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.
+
+## 구조 정리 회귀 검증 (#110)
+
+위치 UI는 `HouseLocationController`가 소유합니다. 기존 전체 UI·위치 runner는 이 컨트롤러를 통해 같은 사용자 동작을 실행하며, 권한·현재 세션·지역 화면·취소/주소 제한 검증을 생략하지 않습니다. `FlowUiInstrumentation`은 라이트/다크의 화면 이동·초안/회전·위치 진행/취소를, `HouseLocationInstrumentation`은 수동 지역/대략적 위치와 오류 경계를, `DongLocationInstrumentation`은 정확도 개선·주소 실패/제한·중지/늦은 응답을 확인합니다.
+
+세션 종료 경로를 바꾸면 위의 `MvpFlowInstrumentation` owner/member를 전용 두 AVD와 demo Firebase에서 실행해 가입·공동 목록·완료·일정 변경·집 참여/나가기·재로그인/자기 계정 삭제를 확인합니다. 위젯은 별도의 호스트 runner로 확인합니다. 실제 source SHA/명령/결과와 미실행 시나리오는 연결 PR에 남깁니다. 기본 빌드/Lint/단위 테스트 성공을 실제 두 기기·위치·위젯 검증으로 대신 쓰지 않습니다.

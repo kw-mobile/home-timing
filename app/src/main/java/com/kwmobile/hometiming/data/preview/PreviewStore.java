@@ -1,8 +1,10 @@
 package com.kwmobile.hometiming.data.preview;
 
+import com.kwmobile.hometiming.domain.DateRules;
+
 import java.io.Serializable;
+import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -69,7 +71,7 @@ public final class PreviewStore implements Serializable {
     public final List<Item> items = new ArrayList<>();
 
     public static LocalDate today() {
-        return LocalDate.now(ZoneId.of("Asia/Seoul"));
+        return DateRules.today(Clock.systemUTC());
     }
 
     public PreviewStore() {

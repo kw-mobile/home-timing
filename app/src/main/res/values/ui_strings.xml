@@ -1,0 +1,35 @@
+<resources>
+    <string name="ui_session_recovery">저장된 계정의 집 정보를 불러오지 못했어요. 다시 확인해 주세요.</string>
+    <string name="ui_settings_connections">알림과 연동</string>
+    <string name="ui_settings_app">앱 설정</string>
+    <string name="ui_settings_account">계정 관리</string>
+    <string name="ui_calendar_settings_summary">교체·완료 일정을 휴대폰 캘린더에 표시</string>
+    <string name="ui_notification_summary">%1$s · %2$s</string>
+    <string name="ui_advance_today">당일만 알림</string>
+    <string name="ui_advance_days">%1$d일 전과 당일 알림</string>
+    <string name="ui_invite_code">초대 코드</string>
+    <string name="calendar_summary">예정일과 최근 완료일을 휴대폰 캘린더에 표시해요.</string>
+    <string name="calendar_details">연동 방식 자세히 보기</string>
+    <string name="calendar_cleanup_action">남은 일정 정리</string>
+    <string name="ui_update_status">업데이트 상태</string>
+    <string name="ui_family_manage">가족 관리</string>
+    <string name="ui_family_members">우리 집 구성원</string>
+    <string name="ui_weather_loading">예보 확인 중</string>
+    <string name="ui_weather_unavailable">예보 확인 필요</string>
+    <string name="ui_weather_service_unavailable">날씨를 연결하지 못했어요. 잠시 후 다시 확인해 주세요.</string>
+    <string name="settings_dialog_close">닫기</string>
+    <string name="calendar_permission_title">권한 허용 필요</string>
+    <string name="calendar_permission_hint">허용되지 않으면 휴대폰 설정에서 캘린더 권한을 켜 주세요.</string>
+    <string name="ui_edit_kind_fixed">종류는 변경할 수 없어요. 다른 종류로 관리하려면 새로 등록해 주세요.</string>
+    <string name="ui_weather_refreshing">예보 새로 확인 중…</string>
+    <string name="ui_location_cancel">위치 확인 취소</string>
+    <string name="ui_invite_replace">새 코드로 교체</string>
+    <string name="ui_invite_replace_title">초대 코드를 바꿀까요?</string>
+    <string name="ui_invite_replace_help">현재 코드는 사용할 수 없게 돼요. 새 코드를 가족에게 전달해 주세요.</string>
+    <string name="ui_family_actions">다른 집 참여</string>
+    <string name="ui_notifications_schedule">알림 시각과 사전 알림</string>
+    <string name="ui_notifications_device">이 기기의 권한</string>
+    <string name="ui_notifications_details">알림 동작 자세히 보기</string>
+    <string name="ui_weather_set_region">집 지역 설정</string>
+    <string name="ui_region_owner_only">집 지역은 관리자만 변경할 수 있어요. 관리자에게 설정을 요청해 주세요.</string>
+</resources>

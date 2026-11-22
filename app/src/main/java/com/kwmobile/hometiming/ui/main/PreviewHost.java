@@ -6,11 +6,21 @@ import com.kwmobile.hometiming.data.preview.PreviewStore.Item;
 
 import java.time.LocalDate;
 
-/** Shell operations needed by fixture screens; no Activity or binding escapes. */
+/** Shell operations shared by live screen binders and the debug gallery; no Activity or binding escapes. */
 interface PreviewHost {
     MvpViewModel mvp();
 
     void photoName();
+
+    void calendarSettings();
+
+    void weatherSettings();
+
+    void useCurrentHouseLocation();
+
+    void chooseHouseRegion();
+
+    void cancelCurrentHouseLocation();
 
     void notificationPermission();
 

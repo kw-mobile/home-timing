@@ -157,7 +157,7 @@
     <string name="preview_copy_168" formatted="false">우리 집</string>
     <string name="preview_copy_169" formatted="false">햇살 드는 집</string>
     <string name="preview_copy_172" formatted="false">지역</string>
-    <string name="preview_copy_173" formatted="false"> · 집장만 변경</string>
+    <string name="preview_copy_173" formatted="false"> · 관리자만 변경</string>
     <string name="preview_copy_174" formatted="false">알림</string>
     <string name="preview_copy_175" formatted="false">알림 설정</string>
     <string name="preview_copy_176" formatted="false">일 전</string>
@@ -172,15 +172,15 @@
     <string name="preview_copy_185" formatted="false">로그아웃할까요?</string>
     <string name="preview_copy_186" formatted="false">디자인 미리보기의 로그인 화면으로 돌아가요.</string>
     <string name="preview_copy_187" formatted="false">때맞춤 0.1 · 디자인 미리보기\n계정·날씨·알림은 실제 서비스에 연결되지 않아요.</string>
-    <string name="preview_copy_188" formatted="false">내가 집장이에요</string>
+    <string name="preview_copy_188" formatted="false">내가 관리자예요</string>
     <string name="preview_copy_189" formatted="false">가족 구성원으로 참여 중이에요</string>
     <string name="preview_copy_190" formatted="false">나</string>
-    <string name="preview_copy_191" formatted="false">집장</string>
+    <string name="preview_copy_191" formatted="false">관리자</string>
     <string name="preview_copy_192" formatted="false">구성원</string>
     <string name="preview_copy_193" formatted="false">가족</string>
     <string name="preview_copy_194" formatted="false">가족 초대</string>
     <string name="preview_copy_195" formatted="false">초대 코드는 24시간 동안 사용할 수 있어요.</string>
-    <string name="preview_copy_196" formatted="false">집장에게 초대 코드 발급을 요청해 주세요.</string>
+    <string name="preview_copy_196" formatted="false">관리자에게 초대 코드 발급을 요청해 주세요.</string>
     <string name="preview_copy_197" formatted="false">발급 후 24시간 · 예시 코드</string>
     <string name="preview_copy_198" formatted="false">초대 코드 복사</string>
     <string name="preview_copy_199" formatted="false">때맞춤 예시 초대 코드</string>
@@ -197,7 +197,7 @@
     <string name="preview_copy_210" formatted="false">다른 가족이 남아 있으면 나갈 수 없어요.</string>
     <string name="preview_copy_211" formatted="false">나가면 빈 1인 집이 만들어져요.</string>
     <string name="preview_copy_212" formatted="false">아직 나갈 수 없어요</string>
-    <string name="preview_copy_213" formatted="false">집장은 다른 구성원이 남아 있으면 나갈 수 없어요.</string>
+    <string name="preview_copy_213" formatted="false">관리자는 다른 구성원이 남아 있으면 나갈 수 없어요.</string>
     <string name="preview_copy_214" formatted="false">확인</string>
     <string name="preview_copy_215" formatted="false">이 집에서 나갈까요?</string>
     <string name="preview_copy_216" formatted="false">기존 집의 일정은 더 이상 볼 수 없어요. 실제 집은 변경되지 않는 미리보기예요.</string>
@@ -206,7 +206,7 @@
     <string name="preview_copy_219" formatted="false">예시 구성원과 코드입니다. 실제 초대·참여는 수행하지 않아요.</string>
     <string name="preview_copy_220" formatted="false">우리 집 지역</string>
     <string name="preview_copy_221" formatted="false">날씨와 집안일 제안에 사용할 지역이에요.</string>
-    <string name="preview_copy_222" formatted="false">집장만 바꿀 수 있어요</string>
+    <string name="preview_copy_222" formatted="false">관리자만 바꿀 수 있어요</string>
     <string name="preview_copy_223" formatted="false">서울 마포구</string>
     <string name="preview_copy_224" formatted="false">서울 노원구</string>
     <string name="preview_copy_225" formatted="false">경기 성남시</string>
@@ -266,7 +266,7 @@
     <string name="preview_copy_279" formatted="false">시간대와 권한</string>
     <string name="preview_copy_280" formatted="false">날씨 배경 선택</string>
     <string name="preview_copy_281" formatted="false">기기 시각 · 아침 · 낮 · 저녁 · 밤</string>
-    <string name="preview_copy_282" formatted="false">집장으로 미리보기</string>
+    <string name="preview_copy_282" formatted="false">관리자로 미리보기</string>
     <string name="preview_copy_283" formatted="false">예시 데이터 초기화</string>
     <string name="preview_copy_284" formatted="false">예시를 처음으로 돌릴까요?</string>
     <string name="preview_copy_285" formatted="false">미리보기에서 변경한 항목과 설정을 초기화해요.</string>
@@ -310,13 +310,13 @@
     <string name="intent_member_remove_help">이 집의 일정에 더 이상 참여하지 않게 돼요. 완료 이력은 남겨요. 실제 가족 소속은 바꾸지 않는 디자인 예시입니다.</string>
     <string name="intent_member_remove">내보내기</string>
     <string name="intent_member_removed">구성원 내보내기 예시를 적용했어요.</string>
-    <string name="intent_family_limit">가족은 최대 6명 · 집장만 초대·구성원 관리</string>
+    <string name="intent_family_limit">가족은 최대 6명 · 관리자만 초대·구성원 관리</string>
     <string name="intent_join_blocked">지금은 다른 집에 참여할 수 없어요</string>
     <string name="intent_join_blocked_help">항목과 이력이 없는 1인 집에서만 참여할 수 있어요. 기존 집의 일정은 자동으로 삭제하거나 옮기지 않아요. 가족 관리에서 현재 집 상태를 먼저 확인해 주세요.</string>
     <string name="intent_join_family">가족 관리로 이동</string>
     <string name="intent_permission_separate">앱의 일정 알림 설정과 기기 알림 권한은 별개예요.</string>
     <string name="intent_permission_preview">알림 권한 허용 예시</string>
-    <string name="intent_delete_permission">등록한 사람과 집장만 삭제할 수 있어요.</string>
+    <string name="intent_delete_permission">등록한 사람과 관리자만 삭제할 수 있어요.</string>
     <string name="intent_proposal_outside">3일 예보 범위 밖이라 변경을 제안하지 않았어요.</string>
     <string name="intent_original_plan">원래 회차 예정일: %1$s</string>
 </resources>

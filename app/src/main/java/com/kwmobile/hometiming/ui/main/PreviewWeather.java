@@ -36,8 +36,8 @@ final class PreviewWeather {
 
     void updateWeather() {
         if(screen==null)return;ImageView photo=preview.route.screen.equals("home")?host.homeWeatherBackdrop():screen.findViewById(R.id.weather_photo);if(photo==null)return;
+        TextView homeDate=screen.findViewById(R.id.home_date);
         if(preview.route.screen.equals("home")) {
-            TextView homeDate=screen.findViewById(R.id.home_date);
             if(homeDate!=null)homeDate.setText(PreviewStore.today().format(DateTimeFormatter.ofPattern(context.getString(R.string.preview_copy_034),Locale.KOREAN)));
         }
         WeatherDisplay display=weatherDisplay();
@@ -75,9 +75,17 @@ final class PreviewWeather {
             LinearLayout.LayoutParams fullWidth=(LinearLayout.LayoutParams)hero.getLayoutParams();
             int gutter=context.getResources().getDimensionPixelSize(R.dimen.ht_screen_gutter);
             fullWidth.leftMargin=-gutter;fullWidth.rightMargin=-gutter;
-            if(!preview.route.screen.equals("home"))fullWidth.height=ui.dp(360);
+            fullWidth.height = ViewGroup.LayoutParams.WRAP_CONTENT;
+            hero.setMinimumHeight(ui.dp(preview.route.screen.equals("home") ? 420 : 360));
             hero.setLayoutParams(fullWidth);
         }
+        android.widget.FrameLayout.LayoutParams copySize =
+                (android.widget.FrameLayout.LayoutParams) ((View)screen.findViewById(R.id.weather_location).getParent()).getLayoutParams();
+        View heading = screen.findViewById(R.id.home_weather_heading);
+        copySize.topMargin = preview.route.screen.equals("home")
+                ? heading.getPaddingTop() + heading.getPaddingBottom()
+                        + homeDate.getLineHeight() : 0;
+        ((View)screen.findViewById(R.id.weather_location).getParent()).setLayoutParams(copySize);
         ((TextView)screen.findViewById(R.id.weather_location)).setText(weatherVm.regionName());
         com.kwmobile.hometiming.domain.ForecastHour activeHour = current;
         if(activeHour == null && display != null) {
@@ -88,9 +96,8 @@ final class PreviewWeather {
         ((TextView)screen.findViewById(R.id.weather_temperature)).setText(degrees(activeHour==null?null:activeHour.temperature));
         WeatherViewModel.State state=weatherVm.current();
         String activeCondition = activeHour != null ? WeatherDisplay.condition(activeHour) : condition;
-        String description=state!=null&&state.error!=null?context.getString(state.error.messageRes):
-                state==null||state.loading&&state.result==null?context.getString(R.string.weather_ui_loading):
-                context.getString(weatherConditionText(activeCondition));
+        String description = activeHour != null ? context.getString(weatherConditionText(activeCondition))
+                : context.getString(state == null || state.loading ? R.string.ui_weather_loading : R.string.ui_weather_unavailable);
         ((TextView)screen.findViewById(R.id.weather_condition)).setText(description);
         WeatherDisplay.Day today=display==null?null:display.days.get(PreviewStore.today());
         if(today==null&&display!=null&&!display.days.isEmpty()){
@@ -100,9 +107,10 @@ final class PreviewWeather {
                 degrees(today==null?null:today.high),degrees(today==null?null:today.low)));
         Integer pop=today==null?null:today.pop;
         if(pop==null&&activeHour!=null)pop=activeHour.pop;
-        ((TextView)screen.findViewById(R.id.weather_time)).setText(
-                state==null||state.result==null?(state!=null&&state.error!=null?context.getString(state.error.messageRes):context.getString(R.string.weather_ui_loading)):
-                context.getString(R.string.weather_ui_pop,percent(pop)));
+        boolean hasForecast = state != null && state.result != null;
+        screen.findViewById(R.id.weather_high_low).setVisibility(hasForecast ? View.VISIBLE : View.GONE);
+        screen.findViewById(R.id.weather_time).setVisibility(hasForecast ? View.VISIBLE : View.GONE);
+        ((TextView)screen.findViewById(R.id.weather_time)).setText(context.getString(R.string.weather_ui_pop,percent(pop)));
 
     }
 
@@ -134,6 +142,9 @@ final class PreviewWeather {
     String weatherSummary() {
         WeatherViewModel.State state=weatherVm.current();
         if(state==null||state.loading&&state.result==null)return context.getString(R.string.weather_ui_loading);
+        if (!BuildConfig.DEBUG && (state.error == com.kwmobile.hometiming.data.weather.WeatherError.NOT_CONFIGURED
+                || state.error == com.kwmobile.hometiming.data.weather.WeatherError.NOT_AUTHORIZED))
+            return context.getString(R.string.ui_weather_service_unavailable);
         if(state.error!=null)return BuildConfig.DEBUG&&state.providerCode!=null
                 ?context.getString(R.string.weather_ui_provider_code,context.getString(state.error.messageRes),state.providerCode)
                 :context.getString(state.error.messageRes);
@@ -172,13 +183,34 @@ final class PreviewWeather {
         WeatherViewModel.State state=weatherVm.current();
         ui.settingsRow(content,context.getString(R.string.weather_ui_region),weatherVm.regionName(),R.drawable.ic_pin,
                 () -> host.go("preferences","region"));
-        ui.fullAction(content,context.getString(R.string.weather_ui_retry),false,() -> weatherVm.refresh(true));
         if(state==null||state.result==null) {
-            content.addView(ui.label(weatherSummary()));
-            if(state!=null&&state.error==com.kwmobile.hometiming.data.weather.WeatherError.NOT_CONFIGURED)
+            if (state != null && state.error != null) {
+                ui.gap(content, 12);
+                content.addView(ui.label(weatherSummary()));
+            }
+            if(BuildConfig.DEBUG && state!=null&&state.error==com.kwmobile.hometiming.data.weather.WeatherError.NOT_CONFIGURED)
                 content.addView(ui.caption(context.getString(R.string.weather_ui_key_help)));
+            boolean needsRegion = state != null
+                    && state.error == com.kwmobile.hometiming.data.weather.WeatherError.REGION_NOT_SET;
+            com.google.android.material.button.MaterialButton retry = ui.action(
+                    context.getString(needsRegion ? R.string.ui_weather_set_region : R.string.weather_ui_retry),
+                    needsRegion, () -> {
+                        if (needsRegion) host.go("preferences", "region");
+                        else weatherVm.refresh(true);
+                    });
+            retry.setEnabled(state != null && !state.loading);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-1, -2);
+            params.topMargin = ui.dp(12); content.addView(retry, params);
             return;
         }
+        com.google.android.material.button.MaterialButton refresh = ui.action(
+                context.getString(state.loading ? R.string.ui_weather_refreshing : R.string.weather_ui_retry),
+                false, () -> weatherVm.refresh(true));
+        refresh.setEnabled(!state.loading);
+        LinearLayout.LayoutParams refreshSize = new LinearLayout.LayoutParams(-1, -2);
+        refreshSize.topMargin = ui.dp(12);
+        content.addView(refresh, refreshSize);
+        ui.gap(content, 8);
         content.addView(ui.caption(weatherSource()));
         WeatherDisplay display=weatherDisplay();
         if(display==null)return;

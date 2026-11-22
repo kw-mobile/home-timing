@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:padding="16dp"
+    android:orientation="vertical" android:background="@drawable/bg_schedule_widget">
+    <android.widget.TextView android:layout_width="match_parent" android:layout_height="24dp" android:text="@string/widget_heading"
+        android:textSize="13sp" android:fontFamily="@font/pretendard_medium" android:textColor="@color/ht_text_secondary" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <android.widget.ImageView android:layout_width="32dp" android:layout_height="32dp" android:padding="5dp" android:background="@drawable/bg_widget_icon"
+            android:src="@drawable/ic_brush" android:tint="@color/ht_primary" tools:ignore="UseAppTint" android:importantForAccessibility="no" />
+        <android.widget.TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp"
+            android:text="@string/widget_preview_brush" android:textSize="17sp" android:fontFamily="@font/pretendard_medium" android:textColor="@color/ht_text" />
+        <android.widget.TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="D+3" tools:ignore="HardcodedText"
+            android:textSize="22sp" android:fontFamily="@font/pretendard_semibold" android:textColor="@color/ht_error" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <android.widget.ImageView android:layout_width="32dp" android:layout_height="32dp" android:padding="5dp" android:background="@drawable/bg_widget_icon"
+            android:src="@drawable/ic_filter" android:tint="@color/ht_primary" tools:ignore="UseAppTint" android:importantForAccessibility="no" />
+        <android.widget.TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp"
+            android:text="@string/widget_preview_filter" android:textSize="17sp" android:fontFamily="@font/pretendard_medium" android:textColor="@color/ht_text" />
+        <android.widget.TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="D-2" tools:ignore="HardcodedText"
+            android:textSize="22sp" android:fontFamily="@font/pretendard_semibold" android:textColor="@color/ht_primary" />
+    </LinearLayout>
+    <LinearLayout android:layout_width="match_parent" android:layout_height="48dp" android:gravity="center_vertical">
+        <android.widget.ImageView android:layout_width="32dp" android:layout_height="32dp" android:padding="5dp" android:background="@drawable/bg_widget_icon"
+            android:src="@drawable/ic_filter" android:tint="@color/ht_primary" tools:ignore="UseAppTint" android:importantForAccessibility="no" />
+        <android.widget.TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="10dp"
+            android:text="@string/widget_preview_air_filter" android:textSize="17sp" android:fontFamily="@font/pretendard_medium" android:textColor="@color/ht_text" />
+        <android.widget.TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="D-7" tools:ignore="HardcodedText"
+            android:textSize="22sp" android:fontFamily="@font/pretendard_semibold" android:textColor="@color/ht_primary" />
+    </LinearLayout>
+</LinearLayout>

@@ -2,8 +2,9 @@ package com.kwmobile.hometiming.ui.main;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
-import android.text.InputType;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -30,7 +31,10 @@ final class AccountScreens {
 
     void bindAuth(String mode) {
         android.widget.TextView footer = screen.findViewById(R.id.auth_footer);
-        if (host.mvp() != null && footer != null) footer.setText(R.string.mvp_auth_help);
+        if (host.mvp() != null && footer != null) {
+            footer.setText(R.string.mvp_auth_help);
+            footer.setVisibility(mode.equals("login") ? View.GONE : View.VISIBLE);
+        }
         int[] ids = {R.id.auth_email, R.id.auth_password, R.id.auth_name, R.id.auth_confirm};
         for (int id : ids) {
             EditText field = screen.findViewById(id);
@@ -40,48 +44,47 @@ final class AccountScreens {
             field.addTextChangedListener(ui.watcher(value -> preview.authFields.put(key, value)));
         }
         EditText password = screen.findViewById(R.id.auth_password);
-        if (password != null) {
-            password.setInputType(
-                    InputType.TYPE_CLASS_TEXT
-                            | (preview.passwordVisible
-                                    ? InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
-                                    : InputType.TYPE_TEXT_VARIATION_PASSWORD));
-            LinearLayout options = ui.box(R.id.auth_options);
+        if (password != null && mode.equals("login")) {
             LinearLayout row = ui.horizontal();
-            MaterialButton show =
+            row.setGravity(android.view.Gravity.END);
+            MaterialButton reset =
                     ui.smallAction(
-                            preview.passwordVisible
-                                    ? context.getString(R.string.preview_copy_070)
-                                    : context.getString(R.string.preview_copy_071),
-                            () -> {
-                                preview.passwordVisible = !preview.passwordVisible;
-                                host.capture();
-                                host.render();
-                            });
-            show.setBackgroundTintList(ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-            row.addView(show, new LinearLayout.LayoutParams(0, -2, 1));
-            if (mode.equals("login")) {
-                MaterialButton reset =
-                        ui.smallAction(
-                                context.getString(R.string.preview_copy_072),
-                                () -> host.go("reset"));
-                reset.setBackgroundTintList(
-                        ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
-                row.addView(reset, new LinearLayout.LayoutParams(0, -2, 1));
-            }
-            options.addView(row);
+                            context.getString(R.string.preview_copy_072),
+                            () -> host.go("reset"));
+            reset.setBackgroundTintList(
+                    ColorStateList.valueOf(android.graphics.Color.TRANSPARENT));
+            row.addView(reset, new LinearLayout.LayoutParams(-2, -2));
+            ui.box(R.id.auth_options).addView(row);
         }
         MaterialButton submit = screen.findViewById(R.id.auth_submit);
+        if (submit == null) return;
+        EditText lastField = mode.equals("signup")
+                ? screen.findViewById(R.id.auth_confirm)
+                : (mode.equals("reset") ? screen.findViewById(R.id.auth_email) : screen.findViewById(R.id.auth_password));
+        if (lastField != null) {
+            lastField.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE
+                        || actionId == EditorInfo.IME_ACTION_GO
+                        || (mode.equals("login") && actionId == EditorInfo.IME_ACTION_NEXT)
+                        || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                                && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    submit.performClick();
+                    return true;
+                }
+                return false;
+            });
+        }
         View change = screen.findViewById(R.id.auth_switch);
         if (change != null)
             change.setOnClickListener(v -> host.go(mode.equals("login") ? "signup" : "login"));
         if (host.mvp() != null) {
             submit.setEnabled(!host.mvp().busy());
             if (host.mvp().busy()) submit.setText(R.string.mvp_saving);
-            if (mode.equals("login")) {
+            if (mode.equals("login") && host.mvp().hasStoredAccount() && !host.mvp().busy()) {
                 LinearLayout options = ui.box(R.id.auth_options);
+                options.addView(ui.caption(context.getString(R.string.ui_session_recovery)));
                 ui.fullAction(options, context.getString(R.string.mvp_retry_session), false, () -> host.mvp().restore());
-                if (host.mvp().hasStoredAccount()) ui.fullAction(options,
+                ui.fullAction(options,
                         context.getString(R.string.mvp_delete_account), false,
                         () -> MvpHouseholdScreens.deleteAccount(context, host, ui));
             }

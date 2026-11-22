@@ -1,0 +1,34 @@
+PASS dedicated debug emulator
+PASS configured build
+PASS foreground projection populated
+PASS overdue first
+PASS v0.5.0 cache without category remains readable
+PASS legacy cache has meaningful icon fallback
+PASS server restores complete projection
+PASS actual app widget host binding
+PASS host inflated actual schedule rows
+PASS D+3 overdue status
+PASS D-2 future status
+PASS seventh day included
+PASS host vector icon rendered
+PASS accessible overdue meaning
+PASS short list retains first item and overflow
+PASS actual host switches to compact focus card
+PASS compact card opens first item detail
+PASS all actual items and chores persisted
+PASS due today status
+PASS eighth day excluded
+PASS list tap opens matching chore detail
+PASS stale house tap rejected
+PASS completion removes old occurrence from seven-day list
+PASS deletion updates list
+PASS empty state
+PASS offline server read fails
+PASS offline keeps stored next occurrence
+PASS server sync recovers after offline
+PASS invalid cached date invalidates projection
+PASS server restores invalid projection
+PASS sign out clears projection
+PASS no old rows after sign out
+PASS signed out state
+Widget PASS (demo Firebase, Android emulator; not physical device)

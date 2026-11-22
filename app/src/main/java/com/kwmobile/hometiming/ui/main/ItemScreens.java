@@ -62,8 +62,16 @@ final class ItemScreens {
                         d.id.isEmpty()
                                 ? context.getString(R.string.preview_copy_086)
                                 : context.getString(R.string.preview_copy_009));
+        LinearLayout kind = ui.box(R.id.editor_kind);
+        if (!d.id.isEmpty()) {
+            kind.addView(ui.label(context.getString(d.chore
+                    ? R.string.preview_copy_088 : R.string.preview_copy_087)));
+            ui.gap(kind, 4);
+            kind.addView(ui.description(context.getString(R.string.ui_edit_kind_fixed)));
+            return;
+        }
         ui.chips(
-                ui.box(R.id.editor_kind),
+                kind,
                 new String[] {
                     context.getString(R.string.preview_copy_087),
                     context.getString(R.string.preview_copy_088)
@@ -76,7 +84,7 @@ final class ItemScreens {
                     d.chore = value.equals(context.getString(R.string.preview_copy_088));
                     d.cycle = d.chore ? "7" : "60";
                     d.cycleEdited = false;
-                    CategoryDialog categories = new CategoryDialog(context, vm, ui);
+                    CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
                     d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore),
                             context.getString(d.chore
                                     ? R.string.preview_copy_089 : R.string.preview_copy_053));
@@ -99,7 +107,7 @@ final class ItemScreens {
         int[] categories = {R.string.preview_copy_023, R.string.preview_copy_052,
                 R.string.preview_copy_023, R.string.preview_copy_053};
         int[] days = {90, 30, 60, 7};
-        CategoryDialog categoryDialog = new CategoryDialog(context, vm, ui);
+        CategoryDialog categoryDialog = new CategoryDialog(context, vm, ui, host.mvp());
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
             MaterialButton button = ui.smallAction(context.getString(labels[i]), () -> {
@@ -113,7 +121,7 @@ final class ItemScreens {
                 ui.box(R.id.editor_category).removeAllViews();
                 bindEditorCategory(d);
             });
-            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-2, ui.dp(48));
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(-2, -2);
             size.setMarginEnd(ui.dp(8));
             choices.addView(button, size);
         }
@@ -135,7 +143,11 @@ final class ItemScreens {
             field.addTextChangedListener(
                     ui.watcher(
                             value -> {
-                                if (id == R.id.edit_name) d.name = value;
+                                if (id == R.id.edit_name) {
+                                    d.name = value;
+                                    if (!value.trim().isEmpty() && value.trim().length() <= 60)
+                                        ui.clearError(R.id.edit_name_error);
+                                }
                                 else {
                                     d.cycle = value;
                                     d.cycleEdited = true;
@@ -147,7 +159,7 @@ final class ItemScreens {
     }
 
     private void bindEditorCategory(DesignPreviewViewModel.Draft d) {
-        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
         d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore), d.category);
         LinearLayout category = ui.box(R.id.editor_category);
         ui.gap(category, 16);
@@ -450,7 +462,7 @@ final class ItemScreens {
                             .setMinDate(
                                     preview.store
                                             .earliestCompletion(item)
-                                            .atStartOfDay(java.time.ZoneId.of("Asia/Seoul"))
+                                            .atStartOfDay(com.kwmobile.hometiming.domain.DateRules.ZONE)
                                             .toInstant()
                                             .toEpochMilli());
                     picker.getDatePicker().setMaxDate(System.currentTimeMillis());

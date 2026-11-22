@@ -9,10 +9,12 @@
 | 확정 화면 JPG | [라이트 요약](design-jpg/overview-light.jpg) · [다크 요약](design-jpg/overview-dark.jpg) · [전체 보드](design-jpg) |
 | 팀 공유용 전체 화면 HTML | [오프라인 화면 갤러리](design-review.html) |
 | PRD 의도·화면별 대응·업그레이드 기준 | [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) |
+| 전체 앱 흐름의 UI·취소·오류 점검 | [전체 흐름 점검](report/UI_FLOW_REVIEW.md) |
 | 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
 | 현재 화면 시안을 어떻게 확인하는가 | [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) |
 | 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
 | 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| 전체 구조 점검·리팩터링에서 무엇을 바꾸고 유지했는가 | [리팩터링 점검 기록](report/REFACTOR_REVIEW.md) |
 | Firestore에 무엇을 어떤 구조로 저장하는가 | [DATA_MODEL.md](DATA_MODEL.md) |
 | 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |
 | 변경 후 무엇을 확인하고 어떤 근거를 남기는가 | [TESTING.md](TESTING.md) |
@@ -46,6 +48,7 @@ docs/
 
 ## 문서 관리 원칙
 
+- `report/`의 날짜·커밋이 명시된 점검은 당시 스냅샷입니다. 현재 제품/구조/디자인 기준은 MVP·ARCHITECTURE·DESIGN_SYSTEM을 따르고, 과거 보고서의 계획·미검증을 현재 상태로 확대하지 않습니다.
 - 문서는 합의한 기준, 코드는 실제 구현, 검증 결과는 확인된 동작의 근거입니다. 계획을 적었다고 구현이 완료된 것은 아닙니다.
 - 범위·제품 규칙은 MVP, 기술 배치는 아키텍처에서 수정합니다. 버전 숫자는 빌드 설정 파일, 절차는 SETUP에 둡니다.
 - 변경 의도·구현·상세 검증·참여자 역할은 PR 본문에 기록하고, WORKLOG는 참여자와 근거 링크를 찾는 색인으로 사용합니다. 작업 진행 상태는 GitHub 이슈에서 관리합니다.

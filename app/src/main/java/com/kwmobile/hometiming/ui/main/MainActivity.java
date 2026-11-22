@@ -8,8 +8,11 @@ import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 import android.widget.FrameLayout;
 import android.graphics.Outline;
+
 import android.os.Bundle;
+
 import android.view.View;
+
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.inputmethod.InputMethodManager;
@@ -19,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
+
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -28,6 +32,7 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.snackbar.Snackbar;
 import com.kwmobile.hometiming.BuildConfig;
 import com.kwmobile.hometiming.R;
@@ -37,12 +42,14 @@ import com.kwmobile.hometiming.databinding.ActivityMainBinding;
 import com.kwmobile.hometiming.ui.component.FluidMotion;
 
 import java.time.LocalDate;
+import java.util.List;
 
-/** Complete native design walkthrough. All mutations are restricted to local fixtures. */
+/** App shell for live screens and the explicit debug design gallery. */
 public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
     private WeatherViewModel weatherVm;
+    private com.kwmobile.hometiming.data.update.UpdateManager updates;
     private MvpViewModel mvp;
     private boolean fixtures;
     private WeatherViewModel.State shownWeatherState;
@@ -66,6 +73,19 @@ public final class MainActivity extends AppCompatActivity {
                     else notificationSettings();
                 }
                 public void photoName() { startPhotoName(); }
+                public void calendarSettings() {
+                    capture();
+                    hideKeyboard();
+                    com.kwmobile.hometiming.ui.calendar.CalendarSettingsDialogFragment.open(getSupportFragmentManager());
+                }
+                public void weatherSettings() {
+                    capture();
+                    hideKeyboard();
+                    com.kwmobile.hometiming.ui.weather.WeatherSettingsDialogFragment.open(getSupportFragmentManager());
+                }
+                public void useCurrentHouseLocation() { houseLocation.request(); }
+                public void cancelCurrentHouseLocation() { houseLocation.cancel(); }
+                public void chooseHouseRegion() { houseLocation.chooseRegion(); }
 
                 public void notificationSettings() {
                     startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -125,6 +145,8 @@ public final class MainActivity extends AppCompatActivity {
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
                     granted -> { if (screen != null) { capture(); render(); } });
 
+    HouseLocationController houseLocation;
+
     private final androidx.activity.result.ActivityResultLauncher<Intent> photoRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
                 if (vm == null) return;
@@ -178,6 +200,22 @@ public final class MainActivity extends AppCompatActivity {
                 || name.equals("settings");
     }
 
+    private void offerAppUpdate(com.kwmobile.hometiming.data.update.UpdateManager.State state) {
+        if (state == null || state.info == null || isFinishing() || vm == null || !updates.shouldPrompt()
+                || !getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.RESUMED)
+                || !rootPage() || fixtures || mvp == null || mvp.session == null) return;
+        for (androidx.fragment.app.Fragment fragment : getSupportFragmentManager().getFragments())
+            if (fragment instanceof androidx.fragment.app.DialogFragment && fragment.isAdded()) return;
+        updates.markPrompted();
+        new MaterialAlertDialogBuilder(this).setTitle(R.string.update_title)
+                .setMessage(getString(R.string.update_available, state.info.versionName, (state.info.sizeBytes + 1048575) / 1048576))
+                .setNegativeButton(R.string.update_later, null)
+                .setPositiveButton(state.stage == com.kwmobile.hometiming.data.update.UpdateManager.Stage.READY
+                        ? R.string.update_install : R.string.update_download, (dialog, which) -> startActivity(
+                                new Intent(this, com.kwmobile.hometiming.ui.update.UpdateActivity.class)
+                                        .putExtra(com.kwmobile.hometiming.ui.update.UpdateActivity.AUTO_START, true))).show();
+    }
+
     @Override
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -186,7 +224,10 @@ public final class MainActivity extends AppCompatActivity {
         setContentView(binding.getRoot());
         vm = new ViewModelProvider(this).get(DesignPreviewViewModel.class);
         vm.restore(saved);
+        updates = com.kwmobile.hometiming.data.update.UpdateManager.get(this);
+        updates.changes().observe(this, this::offerAppUpdate);
         weatherVm = new ViewModelProvider(this).get(WeatherViewModel.class);
+        houseLocation = new HouseLocationController(this, host, vm, () -> screen);
         s().region = weatherVm.regionName();
         configureInsets();
         binding.mainContent.setBackgroundColor(color(R.color.ht_background));
@@ -331,13 +372,19 @@ public final class MainActivity extends AppCompatActivity {
 
     private void openReminder(Intent intent) {
         if (mvp == null) return;
+        if ("hometiming".equals(intent.getScheme()) && "widget".equals(intent.getData().getHost())
+                && !intent.hasExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID)) {
+            mvp.openWidgetHome();
+        }
         mvp.openReminder(intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_KIND),
-                intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID));
+                intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID),
+                intent.getStringExtra(com.kwmobile.hometiming.widget.ScheduleWidgetProvider.EXTRA_HOUSE));
     }
 
     @Override protected void onResume() {
         super.onResume();
         if (mvp != null && screen != null) { capture(); render(); }
+        if (updates != null) { updates.onForeground(); offerAppUpdate(updates.current()); }
     }
 
     private void configureInsets() {
@@ -375,6 +422,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
+        houseLocation.cancel();
         capture();
         unregisterReceiver(clock);
         super.onStop();
@@ -387,10 +435,14 @@ public final class MainActivity extends AppCompatActivity {
         super.onSaveInstanceState(out);
     }
 
+    private NestedScrollView restoringScroll;
+
     private void capture() {
         if (screen == null) return;
         NestedScrollView scroll = screen.findViewById(R.id.preview_scroll);
-        if (scroll != null) s().scrolls.put(s().route.key(), scroll.getScrollY());
+        // A newly inflated page has not restored its offset yet during start/resume callbacks.
+        if (scroll != null && scroll != restoringScroll && ViewCompat.isLaidOut(scroll))
+            s().scrolls.put(s().route.key(), scroll.getScrollY());
     }
 
     private void go(String name) {
@@ -412,6 +464,10 @@ public final class MainActivity extends AppCompatActivity {
     }
 
     private void back() {
+        if (!fixtures && mvp != null && mvp.busy() && s().route.screen.equals("editor")) {
+            notice(getString(R.string.mvp_saving));
+            return;
+        }
         if (!fixtures && mvp != null && mvp.session == null && s().route.screen.equals("login")) {
             finish(); return;
         }
@@ -461,6 +517,7 @@ public final class MainActivity extends AppCompatActivity {
         if (!fixtures && mvp != null && mvp.session == null
                 && !java.util.Arrays.asList("login", "signup", "reset").contains(s().route.screen)) vm.tab("login");
         String name = s().route.screen;
+        if (!"preferences:region".equals(s().route.key())) houseLocation.cancel();
         if (!fixtures && mvp != null) mvp.watchHistory(name.equals("detail") ? s().route.id : "");
         int pageColor = color(R.color.ht_background);
         boolean home = name.equals("home");
@@ -480,10 +537,12 @@ public final class MainActivity extends AppCompatActivity {
         updateNavigation(name);
         restoreScroll();
         bindScreen(name, new PreviewWidgets(screen));
+        houseLocation.bindProgress();
         motion(screen);
         if (!home) FluidMotion.enter(screen, binding.glassBackdrop::refresh);
         binding.glassBackdrop.refresh();
         ViewCompat.setAccessibilityPaneTitle(screen, toolbarTitle(name));
+        if (updates != null) offerAppUpdate(updates.current());
     }
 
     private void prepareHomeBackdrop(View homePhoto) {
@@ -548,6 +607,7 @@ public final class MainActivity extends AppCompatActivity {
 
     private void updateNavigation(String name) {
         boolean root = rootPage();
+        binding.topBar.setVisibility(!fixtures && name.equals("login") ? View.GONE : View.VISIBLE);
         binding.backButton.setVisibility(root ? View.GONE : View.VISIBLE);
         binding.brandIcon.setVisibility(root ? View.VISIBLE : View.GONE);
         binding.toolbarTitle.setText(
@@ -568,10 +628,15 @@ public final class MainActivity extends AppCompatActivity {
 
     private void restoreScroll() {
         NestedScrollView scroll = screen.findViewById(R.id.preview_scroll);
+        restoringScroll = scroll;
         if (scroll != null) {
             scroll.setPadding(0, 0, 0, rootPage() ? dp(100) : dp(24));
             int y = s().scrolls.getOrDefault(s().route.key(), 0);
-            scroll.post(() -> scroll.scrollTo(0, y));
+            androidx.core.view.OneShotPreDrawListener.add(scroll, () -> {
+                if (restoringScroll != scroll) return;
+                scroll.scrollTo(0, y);
+                restoringScroll = null;
+            });
         }
     }
 
