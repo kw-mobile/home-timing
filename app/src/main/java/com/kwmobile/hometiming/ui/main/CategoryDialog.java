@@ -41,13 +41,9 @@ final class CategoryDialog {
     void choose(boolean chore, String selected, Consumer<String> pick, Runnable changed) {
         List<String> names = vm.categories(chore, defaults(chore));
         if (mvp == null && !names.contains(selected)) names.add(selected);
-        names.add(context.getString(R.string.category_add_option));
         MaterialAlertDialogBuilder chooser = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.preview_copy_091)
-                .setItems(names.toArray(new String[0]), (dialog, index) -> {
-                    if (index == names.size() - 1) add(chore, pick);
-                    else pick.accept(names.get(index));
-                })
+                .setItems(names.toArray(new String[0]), (dialog, index) -> pick.accept(names.get(index)))
                 .setNegativeButton(R.string.preview_copy_288, null);
         chooser.setNeutralButton(R.string.category_edit,
                 (dialog, which) -> editCategories(chore, changed));
@@ -65,7 +61,7 @@ final class CategoryDialog {
         int maxHeight = Math.min(ui.dp(320),
                 context.getResources().getDisplayMetrics().heightPixels / 2);
         body.addView(scroll, new LinearLayout.LayoutParams(-1,
-                Math.min(ui.dp(names.size() * 64), maxHeight)));
+                Math.min(ui.dp((names.size() + 1) * 64), maxHeight)));
         AlertDialog editor = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.category_edit_title)
                 .setView(body)
@@ -101,6 +97,8 @@ final class CategoryDialog {
             row.addView(delete, deleteSize);
             rows.addView(row);
         }
+        ui.fullAction(rows, context.getString(R.string.category_add_option), false,
+                () -> add(chore, name -> refresh.run()));
         editor.show();
     }
 
