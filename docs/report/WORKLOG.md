@@ -6,6 +6,7 @@
 
 | 날짜 | 실제 참여자·역할 | 작업 내용 | 근거 |
 | --- | --- | --- | --- |
+| 2026-11-23 | 사용자(성명 확인 필요): 분류 추가 버튼 위치 지정 / Codex(도구): 구현·검증 | 분류 선택에서 ‘+ 직접 입력’을 편집 목록 끝으로 이동. Android 빌드·Lint 통과 | [이슈 #115](https://github.com/kw-mobile/home-timing/issues/115), [PR #116](https://github.com/kw-mobile/home-timing/pull/116) |
 | 2026-11-22 | 사용자(성명 확인 필요): 일반 앱 분류 편집과 × 버튼 요청 / Codex(도구): 설계·구현·검증 | 가족 공용 분류 등록·이름 변경·삭제 연결, 삭제 항목과 이력 보존, Firestore 구성원 규칙과 테스트 | [이슈 #88](https://github.com/kw-mobile/home-timing/issues/88), [PR #114](https://github.com/kw-mobile/home-timing/pull/114) |
 | 2026-11-22 | 사용자(성명 확인 필요): 여백 위치 및 비율 지정 / Codex(도구): 구현·검증 | 홈 날짜와 위치 사이 여백을 절반 줄여 강수확률 아래로 이동. Android 빌드·Lint 및 연결 휴대폰 홈 배치 확인 | [이슈 #112](https://github.com/kw-mobile/home-timing/issues/112), [PR #113](https://github.com/kw-mobile/home-timing/pull/113) |
 | 2026-11-08 | 조민제: MVP·공통 환경 요구사항 결정; Codex (도구): 작성·검증 | 제출 MVP 범위 정리, Android 공통 환경·버전 잠금·CI 준비. 환경 검증 기준 `5015e9d`: 로컬/CI 기본 빌드 확인, 제품 테스트는 NO-SOURCE | [계획 #1](https://github.com/kw-mobile/home-timing/issues/1), [환경 PR #2](https://github.com/kw-mobile/home-timing/pull/2), [환경 검증 CI](https://github.com/kw-mobile/home-timing/actions/runs/42461366760) |
