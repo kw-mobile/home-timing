@@ -24,7 +24,7 @@ import com.kwmobile.hometiming.ui.component.FluidMotion;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import com.kwmobile.hometiming.domain.ReplacementCalculator;
 import java.util.Locale;
 
 final class PreviewWidgets {
@@ -261,14 +261,14 @@ final class PreviewWidgets {
     }
 
     String status(Item item) {
-        long d = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+        long d = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
         return d < 0
                 ? Math.abs(d) + context.getString(R.string.preview_copy_021)
                 : d == 0 ? context.getString(R.string.preview_copy_017) : "D−" + d;
     }
 
     int statusColor(Item item) {
-        long d = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+        long d = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
         return d <= 0 ? R.color.ht_error : d <= 3 ? R.color.ht_due_soon : R.color.ht_text_secondary;
     }
 

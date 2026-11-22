@@ -175,8 +175,7 @@ public final class MvpViewModel extends AndroidViewModel {
     }
 
     private void recoverMembership() {
-        closeSubscriptions();
-        reminders.onSessionEnded(); calendars.end(); widgets.end();
+        stopSession();
         clearData();
         session = null;
         ui.state.draft = null;
@@ -331,13 +330,13 @@ public final class MvpViewModel extends AndroidViewModel {
         Session previous = session;
         // The commit removes access to the old house before its Task callback may arrive.
         // Detach first so the resulting listener denial cannot discard our own successful move.
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); widgets.end();
+        stopSession();
         run(houses.join(code), ignored -> changeHouse(), () -> bind(previous));
     }
     public void leave() {
         if (!writable()) return;
         Session previous = session;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); widgets.end();
+        stopSession();
         run(houses.leave(previous.houseId), ignored -> changeHouse(), () -> bind(previous));
     }
     public void removeMember(String uid) {
@@ -353,20 +352,20 @@ public final class MvpViewModel extends AndroidViewModel {
     }
     public void deleteAccount(String password) {
         if (busy || session == null && !auth.isSignedIn()) return;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); widgets.end();
+        stopSession();
         itemCache = choreCache = houseCache = true;
         ui.state.store.items.clear();
         run(auth.deleteAccount(password), ignored -> signOut());
     }
     public void signOut() {
         if (busy) return;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); widgets.end(); auth.signOut(); clearData();
+        stopSession(); auth.signOut(); clearData();
         session = null; pendingReminder = null;
         ui.state.authFields.clear(); ui.state.draft = null; ui.state.passwordVisible = false;
         ui.tab("login"); changed();
     }
     private void changeHouse() {
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); widgets.end(); clearData(); session = null;
+        stopSession(); clearData(); session = null;
         ui.state.draft = null; ui.tab("login");
         // The acknowledged membership transaction invalidates the old operation scope.
         restore();
@@ -411,6 +410,13 @@ public final class MvpViewModel extends AndroidViewModel {
         ui.state.person = ""; ui.state.joinCode = ""; ui.state.time = "09:00"; ui.state.advanceDays = 3;
         ui.state.filter = "전체"; ui.state.scenario = "loading";
     }
+    private void stopSession() {
+        closeSubscriptions();
+        reminders.onSessionEnded();
+        calendars.end();
+        widgets.end();
+    }
+
     private void closeSubscriptions() {
         generation++; busy = false;
         for (Subscription subscription : subscriptions) subscription.remove();

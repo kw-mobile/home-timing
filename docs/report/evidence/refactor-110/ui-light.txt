@@ -1,0 +1,176 @@
+INSTRUMENTATION_STATUS: step=login
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=signup-errors
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=reset-errors
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=home
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=items
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=editor-item
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=edit-existing
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=editor-chore
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=detail-item
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=history
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=detail-chore
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=calendar
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=calendar-next
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=weather-unset
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=weather-test
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=weather-refreshing
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=home-test
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=settings
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=settings-account
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=calendar-settings
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=weather-settings
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=update
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=delete-account
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=delete-empty-password
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=logout-confirm
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=family-owner
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=family-actions
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=join-errors
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=notifications
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=notifications-device
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=notification-details
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=region-owner
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=region-loading
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=region-member
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=family-member
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=items-offline
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=items-empty
+INSTRUMENTATION_STATUS_CODE: 0
+PASS dedicated debug emulator
+PASS no existing account
+CAPTURE login
+PASS action exists 2131296358
+PASS login to signup
+PASS action exists 2131296357
+PASS signup empty validation inline
+CAPTURE signup-errors
+PASS signup back to login
+PASS action exists 2131296357
+PASS reset invalid email stays on form
+CAPTURE reset-errors
+CAPTURE home
+CAPTURE items
+PASS action exists 2131296482
+PASS empty name cannot save
+PASS dirty editor awaits discard confirmation
+PASS dialog action reachable
+PASS dialog action clicked
+PASS discard cancel keeps draft
+CAPTURE editor-item
+PASS rotation retains unsaved editor draft
+PASS saving blocks back before acknowledgement
+PASS dialog action reachable
+PASS dialog action clicked
+PASS confirmed discard returns to origin
+PASS existing item type cannot switch to chore
+CAPTURE edit-existing
+PASS action exists 집안일
+PASS new draft switches to chore
+PASS chore has no photo action
+CAPTURE editor-chore
+PASS dialog action reachable
+PASS dialog action clicked
+CAPTURE detail-item
+CAPTURE history
+CAPTURE detail-chore
+CAPTURE calendar
+PASS navigation exists 다음 달
+CAPTURE calendar-next
+CAPTURE weather-unset
+PASS action exists 집 지역 설정
+PASS unset weather action leads to region setup
+PASS test forecast loaded for layout only
+CAPTURE weather-test
+PASS cached forecast refresh disables repeated action
+CAPTURE weather-refreshing
+CAPTURE home-test
+CAPTURE settings
+CAPTURE settings-account
+PASS action exists 휴대폰 캘린더 연동
+CAPTURE calendar-settings
+PASS calendar modal closes to settings
+PASS action exists 날씨 설정
+CAPTURE weather-settings
+PASS weather modal closes to settings
+PASS action exists 앱 업데이트
+PASS settings opens update activity
+CAPTURE update
+PASS update back returns to settings
+PASS action exists 회원 탈퇴
+CAPTURE delete-account
+PASS delete action reachable after scrolling long explanation
+CAPTURE delete-empty-password
+PASS empty delete password retains form
+PASS dialog action reachable
+PASS dialog action clicked
+PASS delete account canceled without data change
+PASS action exists 로그아웃
+CAPTURE logout-confirm
+PASS dialog action reachable
+PASS dialog action clicked
+PASS logout canceled retains current session
+CAPTURE family-owner
+CAPTURE family-actions
+PASS action exists 새 코드로 교체
+PASS dialog action reachable
+PASS dialog action clicked
+PASS replace invitation canceled without changing code
+PASS action exists 참여하기
+PASS join invalid code inline
+CAPTURE join-errors
+CAPTURE notifications
+CAPTURE notifications-device
+PASS action exists 알림 동작 자세히 보기
+CAPTURE notification-details
+PASS dialog action reachable
+PASS dialog action clicked
+CAPTURE region-owner
+PASS pending location disables repeat request
+PASS location progress persists inline
+CAPTURE region-loading
+PASS action exists 2131296556
+PASS cancel removes pending location and progress
+PASS navigation cancels late location result
+PASS member cannot set shared region
+CAPTURE region-member
+CAPTURE family-member
+CAPTURE items-offline
+CAPTURE items-empty
+PASS no server account created
+FLOW UI PASS: memory data, no Firebase writes

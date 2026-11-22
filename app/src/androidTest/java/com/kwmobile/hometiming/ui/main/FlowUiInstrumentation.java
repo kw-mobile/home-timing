@@ -155,18 +155,18 @@ public final class FlowUiInstrumentation extends Instrumentation {
             clickText(getTargetContext().getString(R.string.ui_notifications_details)); snap("notification-details"); dismissDialog(false);
             go("preferences", "region"); snap("region-owner");
             runOnMainSync(() -> {
-                Object request = constructRequest(); set(activity, "houseLocationRequest", request);
-                invoke("showHouseLocationProgress", new Class<?>[]{int.class}, R.string.house_location_loading);
+                Object request = constructRequest(); set(activity.houseLocation, "houseLocationRequest", request);
+                invokeLocation("showHouseLocationProgress", new Class<?>[]{int.class}, R.string.house_location_loading);
             }); idle();
             check(main(() -> !activity.findViewById(R.id.house_location_button).isEnabled()), "pending location disables repeat request");
             check(main(() -> activity.findViewById(R.id.house_location_status).getVisibility() == View.VISIBLE), "location progress persists inline");
             snap("region-loading"); click(R.id.house_location_cancel);
-            check(main(() -> get(activity, "houseLocationRequest") == null && activity.findViewById(R.id.house_location_cancel).getVisibility() == View.GONE), "cancel removes pending location and progress");
+            check(main(() -> !activity.houseLocation.active() && activity.findViewById(R.id.house_location_cancel).getVisibility() == View.GONE), "cancel removes pending location and progress");
             runOnMainSync(() -> {
-                set(activity, "houseLocationRequest", constructRequest());
-                invoke("showHouseLocationProgress", new Class<?>[]{int.class}, R.string.house_location_loading);
+                set(activity.houseLocation, "houseLocationRequest", constructRequest());
+                invokeLocation("showHouseLocationProgress", new Class<?>[]{int.class}, R.string.house_location_loading);
             }); back();
-            check(main(() -> get(activity, "houseLocationRequest") == null), "navigation cancels late location result");
+            check(main(() -> !activity.houseLocation.active()), "navigation cancels late location result");
             runOnMainSync(() -> live.house = new House("flow-probe", "flow-other", 2, 3, 2, null, null, null, "123456"));
             go("preferences", "region");
             check(main(() -> activity.findViewById(R.id.house_location_button) == null), "member cannot set shared region"); snap("region-member");
@@ -185,7 +185,11 @@ public final class FlowUiInstrumentation extends Instrumentation {
         result.putString("stream", log + "FLOW UI " + (success ? "PASS" : "FAIL") + ": memory data, no Firebase writes\n");
         finish(success ? Activity.RESULT_OK : Activity.RESULT_CANCELED, result);
     }
-    private Object constructRequest() { try { Class<?> c=Class.forName(MainActivity.class.getName()+"$HouseLocationRequest"); Constructor<?> ctor=c.getDeclaredConstructor(int.class);ctor.setAccessible(true);return ctor.newInstance(1); }catch(Exception e){throw new RuntimeException(e);} }
+    private void invokeLocation(String name, Class<?>[] types, Object... args) {
+        try { Method method = HouseLocationController.class.getDeclaredMethod(name, types); method.setAccessible(true); method.invoke(activity.houseLocation, args); }
+        catch (ReflectiveOperationException error) { throw new RuntimeException(error); }
+    }
+    private Object constructRequest() { try { Class<?> c=Class.forName(HouseLocationController.class.getName()+"$HouseLocationRequest"); Constructor<?> ctor=c.getDeclaredConstructor(int.class);ctor.setAccessible(true);return ctor.newInstance(1); }catch(Exception e){throw new RuntimeException(e);} }
     private void go(String page, String id) { runOnMainSync(() -> invoke("go",new Class<?>[]{String.class,String.class},page,id));idle(); }
     private String route() { return main(() -> ui.state.route.key()); }
     private void systemBack() {getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK);idle();}

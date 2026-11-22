@@ -159,7 +159,11 @@ public final class ScheduleWidgetInstrumentation extends Instrumentation {
             AppWidgetHostView view = host.createView(getTargetContext(), widgetId, AppWidgetManager.getInstance(activity).getAppWidgetInfo(widgetId));
             view.setPadding(0, 0, 0, 0);
             FrameLayout root = new FrameLayout(activity); root.setBackgroundColor(0xffeeeeee);
-            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(dp(width), dp(height), Gravity.CENTER);
+            android.graphics.Rect padding = AppWidgetHostView.getDefaultPaddingForWidget(activity,
+                    new ComponentName(activity, ScheduleWidgetProvider.class), null);
+            // Host dimensions include its system padding; the options above describe widget content.
+            FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                    dp(width) + padding.left + padding.right, dp(height) + padding.top + padding.bottom, Gravity.CENTER);
             root.addView(view, params); activity.setContentView(root);
             ScheduleWidgetManager.get(activity).render();
         });

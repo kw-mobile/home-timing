@@ -20,7 +20,7 @@ import com.kwmobile.hometiming.ui.main.MainActivity;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
+import com.kwmobile.hometiming.domain.DateRules;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.LinkedHashMap;
@@ -81,7 +81,7 @@ public final class ScheduleWidgetProvider extends AppWidgetProvider {
         boolean loaded = signedIn && store.loaded();
         boolean hasRows = loaded && !rows.isEmpty();
         String updated = loaded ? store.cached() || store.updated() == 0 ? context.getString(R.string.widget_cached)
-                : context.getString(R.string.widget_updated, Instant.ofEpochMilli(store.updated()).atZone(ZoneId.of("Asia/Seoul"))
+                : context.getString(R.string.widget_updated, Instant.ofEpochMilli(store.updated()).atZone(DateRules.ZONE)
                         .format(DateTimeFormatter.ofPattern("M.d HH:mm"))) : "";
         view.setViewVisibility(R.id.widget_message, hasRows ? View.GONE : View.VISIBLE);
         view.setTextViewText(R.id.widget_message, context.getString(!signedIn ? R.string.widget_sign_in
