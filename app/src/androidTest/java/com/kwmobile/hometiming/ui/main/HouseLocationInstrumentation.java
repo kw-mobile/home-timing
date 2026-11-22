@@ -145,8 +145,19 @@ public final class HouseLocationInstrumentation extends Instrumentation {
     }
     private boolean clickExact(AccessibilityNodeInfo node, String label) {
         if (node == null) return false;
-        if (label.contentEquals(node.getText() == null ? "" : node.getText()))
-            return node.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+        if (label.contentEquals(node.getText() == null ? "" : node.getText())) {
+            if (node.performAction(AccessibilityNodeInfo.ACTION_CLICK)) return true;
+            if (!node.isVisibleToUser()) return false;
+            android.graphics.Rect bounds = new android.graphics.Rect(); node.getBoundsInScreen(bounds);
+            if (bounds.isEmpty()) return false;
+            long now = SystemClock.uptimeMillis();
+            android.view.MotionEvent down = android.view.MotionEvent.obtain(now, now,
+                    android.view.MotionEvent.ACTION_DOWN, bounds.centerX(), bounds.centerY(), 0);
+            android.view.MotionEvent up = android.view.MotionEvent.obtain(now, now + 40,
+                    android.view.MotionEvent.ACTION_UP, bounds.centerX(), bounds.centerY(), 0);
+            try { return getUiAutomation().injectInputEvent(down, true) && getUiAutomation().injectInputEvent(up, true); }
+            finally { down.recycle(); up.recycle(); }
+        }
         for (int i = 0; i < node.getChildCount(); i++) if (clickExact(node.getChild(i), label)) return true;
         return false;
     }
