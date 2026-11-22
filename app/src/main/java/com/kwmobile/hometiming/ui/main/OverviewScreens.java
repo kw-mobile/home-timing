@@ -1,7 +1,6 @@
 package com.kwmobile.hometiming.ui.main;
 
 import android.content.Context;
-import android.content.res.ColorStateList;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,8 +52,8 @@ final class OverviewScreens {
 
     void bindHome() {
         bindHomeHero();
-        LinearLayout heading = bindHomeRows();
-        bindHomePanel(heading);
+        bindHomeRows();
+        bindHomePanel();
     }
 
     private void bindHomeHero() {
@@ -80,7 +79,7 @@ final class OverviewScreens {
         screen.findViewById(R.id.weather_hero).setFocusable(true);
     }
 
-    private LinearLayout bindHomeRows() {
+    private void bindHomeRows() {
         LinearLayout rows = ui.box(R.id.home_rows);
         LinearLayout heading = ui.horizontal();
         LinearLayout headingCopy = ui.vertical();
@@ -125,7 +124,6 @@ final class OverviewScreens {
         }
         ui.gap(rows, 16);
         rows.addView(ui.caption(context.getString(host.mvp() == null ? R.string.preview_copy_045 : R.string.mvp_shared_data)));
-        return heading;
     }
 
     private LinearLayout bindHomeSummary(BottomSheetBehavior<View> behavior) {
@@ -178,7 +176,7 @@ final class OverviewScreens {
         }
     }
 
-    private void bindHomePanel(LinearLayout heading) {
+    private void bindHomePanel() {
         View sheet = screen.findViewById(R.id.preview_sheet);
         ((com.kwmobile.hometiming.ui.component.SheetShadowView)
                         screen.findViewById(R.id.home_sheet_shadow))
@@ -192,22 +190,6 @@ final class OverviewScreens {
         reopen.setVisibility(preview.sheetHidden ? View.VISIBLE : View.GONE);
         reopen.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_COLLAPSED));
         FluidMotion.press(reopen);
-        androidx.appcompat.widget.AppCompatImageButton close =
-                new androidx.appcompat.widget.AppCompatImageButton(context);
-        close.setId(View.generateViewId());
-        close.setImageResource(R.drawable.ic_close);
-        close.setContentDescription(context.getString(R.string.preview_sheet_close));
-        android.util.TypedValue closeFeedback = new android.util.TypedValue();
-        context.getTheme()
-                .resolveAttribute(
-                        android.R.attr.selectableItemBackgroundBorderless, closeFeedback, true);
-        close.setBackgroundResource(closeFeedback.resourceId);
-        close.setPadding(ui.dp(12), ui.dp(12), ui.dp(12), ui.dp(12));
-        close.setOnClickListener(v -> behavior.setState(BottomSheetBehavior.STATE_HIDDEN));
-        FluidMotion.press(close);
-        LinearLayout.LayoutParams closeSize = new LinearLayout.LayoutParams(ui.dp(48), ui.dp(48));
-        closeSize.leftMargin = ui.dp(4);
-        heading.addView(close, closeSize);
         sheet.post(
                 () -> {
                     if (!sheet.isAttachedToWindow()) return;
