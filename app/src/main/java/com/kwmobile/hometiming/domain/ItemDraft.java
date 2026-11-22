@@ -12,6 +12,7 @@ public final class ItemDraft {
 
     public final String name;
     public final String category;
+    public final String categoryId;
     public final LocalDate startDate;
     public final Integer cycleDays;
     public final String productName;
@@ -20,6 +21,12 @@ public final class ItemDraft {
 
     public ItemDraft(String name, String category, LocalDate startDate, Integer cycleDays,
                      String productName, String location, String memo) {
+        this(name, category, startDate, cycleDays, productName, location, memo, "");
+    }
+
+    public ItemDraft(String name, String category, LocalDate startDate, Integer cycleDays,
+                     String productName, String location, String memo, String categoryId) {
+        this.categoryId = trim(categoryId);
         this.name = trim(name);
         String picked = trim(category);
         this.category = picked.isEmpty() ? DEFAULT_CATEGORY : picked;

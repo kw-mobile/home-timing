@@ -11,6 +11,7 @@ public final class Item {
     public final String id;
     public final String name;
     public final String category;
+    public final String categoryId;
     public final LocalDate startDate;
     public final int cycleDays;
     public final LocalDate lastReplacedDate;
@@ -29,6 +30,15 @@ public final class Item {
     public Item(String id, String name, String category, LocalDate startDate, int cycleDays,
                 LocalDate lastReplacedDate, LocalDate nextDueDate, String occurrenceId, int revision,
                 String productName, String location, String memo, String createdBy, boolean hasCompleted) {
+        this(id, name, category, startDate, cycleDays, lastReplacedDate, nextDueDate, occurrenceId,
+                revision, productName, location, memo, createdBy, hasCompleted, "");
+    }
+
+    public Item(String id, String name, String category, LocalDate startDate, int cycleDays,
+                LocalDate lastReplacedDate, LocalDate nextDueDate, String occurrenceId, int revision,
+                String productName, String location, String memo, String createdBy, boolean hasCompleted,
+                String categoryId) {
+        this.categoryId = categoryId == null ? "" : categoryId;
         this.hasCompleted = hasCompleted;
         this.id = Objects.requireNonNull(id, "id");
         this.name = Objects.requireNonNull(name, "name");

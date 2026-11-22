@@ -29,6 +29,7 @@ public final class ItemDocuments {
         fields.put(Schema.Records.DELETING, false);
         fields.put(Schema.Items.NAME, item.name);
         fields.put(Schema.Items.CATEGORY, item.category);
+        putOptional(fields, "categoryId", item.categoryId);
         fields.put(Schema.Items.START_DATE, DateRules.format(item.startDate));
         fields.put(Schema.Items.CYCLE_DAYS, item.cycleDays);
         fields.put(Schema.Items.LAST_REPLACED_DATE, DateRules.format(item.lastReplacedDate));
@@ -79,7 +80,8 @@ public final class ItemDocuments {
                     optional(data, Schema.Items.MEMO),
                     text(data, Schema.Items.CREATED_BY),
                     !(data.get(Schema.Records.COUNT) instanceof Number)
-                            || ((Number) data.get(Schema.Records.COUNT)).longValue() > 0);
+                            || ((Number) data.get(Schema.Records.COUNT)).longValue() > 0,
+                    optional(data, "categoryId"));
         } catch (RuntimeException e) {
             return null;
         }

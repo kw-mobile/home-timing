@@ -27,7 +27,7 @@ public final class ChoreSchedule {
         Objects.requireNonNull(draft, "draft");
         LocalDate first = firstDue(draft.startDate, draft.weekday);
         return new Chore(id, draft.name, draft.type, draft.weatherSensitive, draft.weekday, first, first,
-                occurrenceId, 1, null, null, draft.location, draft.memo, uid);
+                occurrenceId, 1, null, null, draft.location, draft.memo, uid, draft.categoryId, draft.category);
     }
 
     /**
@@ -44,7 +44,7 @@ public final class ChoreSchedule {
         boolean scheduleChanged = weekdayChanged || current.weatherSensitive != draft.weatherSensitive;
         return new Chore(current.id, draft.name, draft.type, draft.weatherSensitive, draft.weekday, planned, next,
                 current.occurrenceId, current.revision + (scheduleChanged ? 1 : 0),
-                current.dismissedOccurrenceId, current.lastDoneDate, draft.location, draft.memo, current.createdBy);
+                current.dismissedOccurrenceId, current.lastDoneDate, draft.location, draft.memo, current.createdBy, draft.categoryId, draft.category);
     }
 
     /**
@@ -75,7 +75,7 @@ public final class ChoreSchedule {
         LocalDate next = nextPlanned(current.plannedDueDate, doneDate);
         return new Chore(current.id, current.name, current.type, current.weatherSensitive, current.weekday,
                 next, next, newOccurrenceId, current.revision + 1, null, doneDate, current.location,
-                current.memo, current.createdBy);
+                current.memo, current.createdBy, current.categoryId, current.category);
     }
 
     /** Whether this occurrence may move to that date: today or later. */
@@ -96,7 +96,7 @@ public final class ChoreSchedule {
         return new Chore(current.id, current.name, current.type, current.weatherSensitive, current.weekday,
                 current.plannedDueDate, target, current.occurrenceId, current.revision + 1,
                 current.dismissedOccurrenceId, current.lastDoneDate, current.location, current.memo,
-                current.createdBy);
+                current.createdBy, current.categoryId, current.category);
     }
 
     /** "그대로 두기": hides the suggestion for this occurrence only. */
@@ -107,7 +107,7 @@ public final class ChoreSchedule {
         }
         return new Chore(current.id, current.name, current.type, current.weatherSensitive, current.weekday,
                 current.plannedDueDate, current.nextDueDate, current.occurrenceId, current.revision + 1,
-                current.occurrenceId, current.lastDoneDate, current.location, current.memo, current.createdBy);
+                current.occurrenceId, current.lastDoneDate, current.location, current.memo, current.createdBy, current.categoryId, current.category);
     }
 
     /** Compares the stored chore with what the screen or suggestion was based on. */

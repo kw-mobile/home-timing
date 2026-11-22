@@ -306,6 +306,8 @@ public final class HouseRepository {
                     Schema.Houses.MEMBER_MUTATION_ID, uid);
             tx.update(user, HouseholdSetup.moveUser(invite.houseId, FieldValue.serverTimestamp()));
             tx.delete(memberRef(firestore, oldHouseId, uid));
+            tx.delete(CategoryRepository.reference(firestore, oldHouseId, false));
+            tx.delete(CategoryRepository.reference(firestore, oldHouseId, true));
             tx.delete(houseRef(firestore, oldHouseId));
             if (oldInvite != null && oldInvite.houseId.equals(oldHouseId)) {
                 tx.delete(inviteRef(firestore, oldHouse.activeInviteCode));

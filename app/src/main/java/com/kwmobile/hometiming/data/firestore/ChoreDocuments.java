@@ -38,6 +38,10 @@ public final class ChoreDocuments {
         fields.put(Schema.Records.DELETING, false);
         fields.put(Schema.Chores.NAME, chore.name);
         fields.put(Schema.Chores.TYPE, chore.type);
+        if (!chore.categoryId.isEmpty()) {
+            fields.put("categoryId", chore.categoryId);
+            fields.put("category", chore.category);
+        }
         fields.put(Schema.Chores.WEATHER_SENSITIVE, chore.weatherSensitive);
         fields.put(Schema.Chores.WEEKDAY, chore.weekday);
         fields.put(Schema.Chores.PLANNED_DUE_DATE, DateRules.format(chore.plannedDueDate));
@@ -113,7 +117,8 @@ public final class ChoreDocuments {
                     lastDone == null ? null : DateRules.parse(lastDone),
                     optional(data, Schema.Chores.LOCATION),
                     optional(data, Schema.Chores.MEMO),
-                    text(data, Schema.Chores.CREATED_BY));
+                    text(data, Schema.Chores.CREATED_BY),
+                    optional(data, "categoryId"), optional(data, "category"));
         } catch (RuntimeException e) {
             return null;
         }

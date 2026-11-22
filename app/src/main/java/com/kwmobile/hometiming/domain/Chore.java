@@ -11,6 +11,8 @@ public final class Chore {
     public final String id;
     public final String name;
     public final String type;
+    public final String categoryId;
+    public final String category;
     public final boolean weatherSensitive;
     /** 1 = Monday … 7 = Sunday. */
     public final int weekday;
@@ -31,6 +33,16 @@ public final class Chore {
                  LocalDate plannedDueDate, LocalDate nextDueDate, String occurrenceId, int revision,
                  String dismissedOccurrenceId, LocalDate lastDoneDate, String location, String memo,
                  String createdBy) {
+        this(id, name, type, weatherSensitive, weekday, plannedDueDate, nextDueDate, occurrenceId,
+                revision, dismissedOccurrenceId, lastDoneDate, location, memo, createdBy, "", "");
+    }
+
+    public Chore(String id, String name, String type, boolean weatherSensitive, int weekday,
+                 LocalDate plannedDueDate, LocalDate nextDueDate, String occurrenceId, int revision,
+                 String dismissedOccurrenceId, LocalDate lastDoneDate, String location, String memo,
+                 String createdBy, String categoryId, String category) {
+        this.categoryId = categoryId == null ? "" : categoryId;
+        this.category = category == null ? "" : category;
         this.id = Objects.requireNonNull(id, "id");
         this.name = Objects.requireNonNull(name, "name");
         this.type = Objects.requireNonNull(type, "type");

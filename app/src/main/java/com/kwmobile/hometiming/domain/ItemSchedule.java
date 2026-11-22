@@ -26,7 +26,7 @@ public final class ItemSchedule {
         requireComplete(draft);
         return new Item(id, draft.name, draft.category, draft.startDate, draft.cycleDays,
                 draft.startDate, ReplacementCalculator.nextDueDate(draft.startDate, draft.cycleDays),
-                occurrenceId, 1, draft.productName, draft.location, draft.memo, uid, false);
+                occurrenceId, 1, draft.productName, draft.location, draft.memo, uid, false, draft.categoryId);
     }
 
     /**
@@ -46,7 +46,7 @@ public final class ItemSchedule {
         }
         Item next = new Item(current.id, draft.name, draft.category, draft.startDate, draft.cycleDays,
                 last, ReplacementCalculator.nextDueDate(last, draft.cycleDays), current.occurrenceId,
-                current.revision, draft.productName, draft.location, draft.memo, current.createdBy, current.hasCompleted);
+                current.revision, draft.productName, draft.location, draft.memo, current.createdBy, current.hasCompleted, draft.categoryId);
         return next.sameSchedule(current) ? next : withRevision(next, current.revision + 1);
     }
 
@@ -71,7 +71,7 @@ public final class ItemSchedule {
         return new Item(current.id, current.name, current.category, current.startDate, current.cycleDays,
                 replacedDate, ReplacementCalculator.nextDueDate(replacedDate, current.cycleDays),
                 newOccurrenceId, current.revision + 1, current.productName, current.location,
-                current.memo, current.createdBy, true);
+                current.memo, current.createdBy, true, current.categoryId);
     }
 
     /** The history entry written with {@link #complete}, keyed by the finished occurrence. */
@@ -101,7 +101,7 @@ public final class ItemSchedule {
     private static Item withRevision(Item item, int revision) {
         return new Item(item.id, item.name, item.category, item.startDate, item.cycleDays,
                 item.lastReplacedDate, item.nextDueDate, item.occurrenceId, revision, item.productName,
-                item.location, item.memo, item.createdBy, item.hasCompleted);
+                item.location, item.memo, item.createdBy, item.hasCompleted, item.categoryId);
     }
 
     private static void requireComplete(ItemDraft draft) {
