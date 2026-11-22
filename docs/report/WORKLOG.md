@@ -128,6 +128,8 @@ PR 기여 표와 참여자 표기가 다르거나 ‘확인 필요’가 남은 
 
 | 2026-11-20 | 사용자(성명 확인 필요): 전체 흐름 점검 요청·기본 글씨 크기/학교 과제 범위 지정; Codex(도구): UI 점검·수정·검증 | 기존 항목 종류 전환 제한·초안/저장 중 복귀 보호, 가족 초대 교체 확인/참여 구역, 알림 설정/상세 분리, 위치 조회 진행·취소·화면 이탈, 지역 없음→설정 연결, 설정 스크롤 복원 시점·탈퇴 입력 스크롤, 공통 설명 위계. 큰 글씨 전용 버전/별도 레이아웃을 만들지 않는 기준을 AGENTS·디자인 시스템에 기록. 흐름별 실제 실행과 메모리·서버·실기기 한계는 연결 기록에 구분 | [이슈 #99](https://github.com/kw-mobile/home-timing/issues/99), [PR #100](https://github.com/kw-mobile/home-timing/pull/100) |
 
+| 2026-11-22 | 사용자(shoungli415): 홈 화면 할 일 패널 닫기(X) 버튼 제거 및 등록 버튼 우측 배치 요청; Antigravity (도구): OverviewScreens.java 바텀시트 헤더 X 버튼 제거 및 + 등록 버튼 우측 배치, 실기기(Galaxy A50) 및 단위 테스트 검증 | 홈 화면 '할 일' 패널 헤더에서 X(닫기) 버튼 제거, '+ 등록' 버튼을 헤더 우측 끝으로 재배치하여 탭 시 항목 등록 화면 정상 진입 확인. :app:testDebugUnitTest (314 passed), :app:lintDebug 통과 | [이슈 #103](https://github.com/kw-mobile/home-timing/issues/103) |
+
 | 2026-11-22 | 사용자(shoungli415): 로그인 비밀번호 완료 동작 개선 요청; Antigravity (도구): screen_login.xml imeOptions 수정 및 AccountScreens 에디터 액션 연결, 실기기(Galaxy A50) 및 단위 테스트 검증 | 로그인 화면 비밀번호 입력 완료 시 포커스가 이메일로 돌아가지 않고 로그인 버튼 클릭(submit)이 수행되도록 개선. screen_signup/reset 마지막 필드 imeOptions 일관화. :app:testDebugUnitTest 통과, 실기기 동작 확인 | [이슈 #101](https://github.com/kw-mobile/home-timing/issues/101) |
 
 | 2026-11-22 | 사용자(성명 확인 필요): 오늘·내일 일정 중심의 위젯 범위와 기존 앱 디자인 재사용 결정; Codex(도구): 구현·검증 | 기존 중성 색상·Pretendard의 홈 화면 위젯, 오늘/내일·기한 지남·더보기·상세 이동, 현재 집에 묶인 로컬 투영과 서버 갱신·로그아웃 정리. 검증 결과와 실기기/런처 한계는 연결 PR에 기록 | [이슈 #106](https://github.com/kw-mobile/home-timing/issues/106), [PR #107](https://github.com/kw-mobile/home-timing/pull/107) |
