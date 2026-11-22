@@ -6,6 +6,7 @@
 
 | 날짜 | 실제 참여자·역할 | 작업 내용 | 근거 |
 | --- | --- | --- | --- |
+| 2026-11-22 | 사용자(성명 확인 필요): 여백 위치 및 비율 지정 / Codex(도구): 구현·검증 | 홈 날짜와 위치 사이 여백을 절반 줄여 강수확률 아래로 이동. Android 빌드·Lint 및 연결 휴대폰 홈 배치 확인 | [이슈 #112](https://github.com/kw-mobile/home-timing/issues/112) |
 | 2026-11-08 | 조민제: MVP·공통 환경 요구사항 결정; Codex (도구): 작성·검증 | 제출 MVP 범위 정리, Android 공통 환경·버전 잠금·CI 준비. 환경 검증 기준 `5015e9d`: 로컬/CI 기본 빌드 확인, 제품 테스트는 NO-SOURCE | [계획 #1](https://github.com/kw-mobile/home-timing/issues/1), [환경 PR #2](https://github.com/kw-mobile/home-timing/pull/2), [환경 검증 CI](https://github.com/kw-mobile/home-timing/actions/runs/42461366760) |
 | 2026-11-08 | 조민제: 협업·보고서 기록 기준 요청; Codex (도구): 문서·템플릿 작성 및 정적 검증 | 공통 AGENTS·Claude import, 문서 구조, 참여자별 PR 기록과 보고서 근거 수집 기준 준비 | [작업 기준 PR #2](https://github.com/kw-mobile/home-timing/pull/2), 상세 검증은 PR 본문 |
 | 2026-11-08 | 조민제: 병합 시점·Notion 기록 요구사항 결정; Codex (도구): 구현·오프라인 검증 | 병합 PR의 참여자·검증 근거를 Development History로 옮기는 자동화와 비활성 연결 설정 준비. 실제 Actions→Notion 쓰기는 인증 후 검증 필요 | [자동화 이슈 #3](https://github.com/kw-mobile/home-timing/issues/3), [PR #4](https://github.com/kw-mobile/home-timing/pull/4) |
