@@ -32,4 +32,3 @@ PASS sign out clears projection
 PASS no old rows after sign out
 PASS signed out state
 Widget PASS (demo Firebase, Android emulator; not physical device)
-
