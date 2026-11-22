@@ -32,7 +32,7 @@ final class ScheduleWidgetStore {
         JSONArray array = new JSONArray();
         try {
             for (Entry row : rows) array.put(new JSONObject().put("kind", row.kind.name()).put("id", row.id)
-                    .put("name", row.name).put("due", row.due.toString()));
+                    .put("name", row.name).put("due", row.due.toString()).put("category", row.category));
         } catch (JSONException error) { throw new IllegalStateException(error); }
         SharedPreferences.Editor edit = prefs.edit().putString("rows", array.toString()).putBoolean("cached", cached);
         if (!cached) edit.putLong("updated", System.currentTimeMillis());
@@ -45,7 +45,7 @@ final class ScheduleWidgetStore {
             for (int i = 0; i < array.length(); i++) {
                 JSONObject row = array.getJSONObject(i);
                 rows.add(new Entry(ReminderKey.Kind.valueOf(row.getString("kind")), row.getString("id"),
-                        row.getString("name"), LocalDate.parse(row.getString("due"))));
+                        row.getString("name"), LocalDate.parse(row.getString("due")), row.optString("category", "")));
             }
             return rows;
         } catch (JSONException | IllegalArgumentException | DateTimeException error) {
