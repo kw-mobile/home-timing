@@ -92,6 +92,7 @@ public final class MvpFlowInstrumentation extends Instrumentation {
             ui = main(() -> new ViewModelProvider(activity).get(DesignPreviewViewModel.class));
             if (role.equals("owner")) owner(); else if (role.equals("member")) member();
             else if (role.equals("ocr")) ocr();
+            else if (role.equals("categories") && !configured) categories();
             else throw new AssertionError("Unknown role");
             result.putString("stream", "MVP " + role + " PASS (" + (configured ? "configured Firebase project" : "demo Firebase emulator") + "; Android emulator)\n");
             finish(Activity.RESULT_OK, result);
@@ -119,6 +120,38 @@ public final class MvpFlowInstrumentation extends Instrumentation {
         click(R.id.auth_submit);
         await(() -> live.session != null && !live.readOnly() && !live.busy(), "signup/house/online");
         check(main(() -> ui.state.store.items.isEmpty()), "new house contains no fixtures");
+    }
+
+    private void categories() throws Exception {
+        signup("Categories");
+        await(() -> live.catalog(false) != null && live.catalog(true) != null, "shared catalogs loaded");
+        String original = "서재 검증";
+        String renamed = "창고 검증";
+        String other = activity.getString(R.string.preview_copy_053);
+        mainAction(() -> live.changeCategory(live.catalog(false), null, original, null,
+                saved -> check(saved, "add category accepted")));
+        await(() -> !live.busy() && live.catalog(false).idForName(original) != null, "new category acknowledged");
+        mainAction(() -> {
+            ui.edit("");
+            ui.state.draft.name = "CategoryTest-" + run;
+            ui.state.draft.category = original;
+        });
+        recreate(); click(R.id.edit_submit);
+        await(() -> ui.state.draft == null && ui.state.store.items.size() == 1, "item saved with category");
+        String itemId = main(() -> ui.state.store.items.get(0).id);
+
+        mainAction(() -> live.changeCategory(live.catalog(false), original, renamed, null,
+                saved -> check(saved, "rename accepted")));
+        await(() -> renamed.equals(ui.state.store.find(itemId).category), "rename reflected on saved item");
+        mainAction(() -> live.changeCategory(live.catalog(false), renamed, null, other,
+                saved -> check(saved, "delete accepted")));
+        await(() -> other.equals(ui.state.store.find(itemId).category)
+                        && live.catalog(false).idForName(renamed) == null,
+                "category deleted and item moved");
+
+        mainAction(() -> live.deleteAccount(PASSWORD));
+        await(() -> live.session == null && FirebaseAuth.getInstance().getCurrentUser() == null,
+                "demo account and its catalogs removed");
     }
 
     private void owner() throws Exception {
