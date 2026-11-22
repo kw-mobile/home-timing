@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_label">때맞춤 · 오늘과 내일</string>
+    <string name="widget_description">오늘과 내일의 용품 교체·집안일 일정을 확인합니다.</string>
+    <string name="widget_today">오늘</string>
+    <string name="widget_tomorrow">내일</string>
+    <string name="widget_empty">예정된 일정이 없어요</string>
+    <string name="widget_sign_in">앱을 열고 로그인해 주세요</string>
+    <string name="widget_loading">앱을 열어 일정을 불러와 주세요</string>
+    <string name="widget_updated">%1$s 기준</string>
+    <string name="widget_cached">저장된 일정</string>
+    <string name="widget_overdue">%1$d일 지남</string>
+    <string name="widget_more">외 %1$d개 · 앱에서 보기</string>
+    <string name="widget_preview_today">수세미 교체</string>
+    <string name="widget_preview_tomorrow">침구 세탁</string>
+</resources>

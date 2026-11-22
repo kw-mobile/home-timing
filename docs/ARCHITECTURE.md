@@ -106,3 +106,9 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인�
 `UpdateFeed`는 프로젝트의 HTTPS GitHub latest/update.json만 읽고 `UpdateInfo`가 고정 저장소의 stable 버전·코드·크기·APK URL·해시를 검증합니다. application-scoped `UpdateManager`가 자동 확인 간격, DownloadManager ID/확인한 파일의 복구, 취소 세대와 상태 LiveData를 관리합니다. 다운로드 완료 알림에서는 미검증 APK를 열지 않고, private cache 복사 뒤 `ApkVerifier`가 바이트/패키지/버전/현재 서명을 확인합니다. 설치 직전에도 다시 검사합니다.
 
 `UpdateActivity`와 MainActivity는 상태·동의/설치 권한 화면만 담당합니다. 파일은 PackageInstaller 세션으로 전달하며, non-exported `UpdateInstallReceiver`의 explicit mutable PendingIntent로 자기 세션 결과만 수신합니다. Android가 `STATUS_PENDING_USER_ACTION`을 요구하면 받은 시스템 Intent로 연결합니다. 새 버전 설치 후 같은/낮은 메타데이터와 남은 업데이트 파일은 정리하며, Firebase/사진/사용자 항목 데이터와는 독립적입니다. API/SDK/라이브러리는 추가하지 않습니다.
+
+## 홈 화면 일정 위젯
+
+`domain/WidgetSchedule`이 용품·집안일의 실제 예정일을 오늘/내일로 나누고, 서울 날짜와 기한 지난 항목 정렬을 공유합니다. `widget/ScheduleWidgetProvider`는 framework RemoteViews와 항목별 immutable PendingIntent를 사용합니다. 앱의 Java/XML·색상·폰트를 그대로 재사용하며 새 UI 의존성을 추가하지 않습니다.
+
+`ScheduleWidgetManager`는 `MvpViewModel`에서 현재 집의 두 목록이 모두 수신된 뒤 계정/집에 묶인 읽기 전용 로컬 투영을 받습니다. `OperationScope` 무효화와 로그아웃은 투영을 지웁니다. `ScheduleWidgetWorker`는 기존 `ReminderRepository.readFromServer(uid, house)`의 소속 검증을 재사용하며, 로컬 게시/세션 변경보다 오래된 서버 응답은 세대 번호로 폐기합니다. 서버 오류를 빈 일정으로 저장하지 않습니다. 저장된 일정은 Provider가 현재 서울 날짜로 다시 나눕니다. 범위·갱신 한계는 [MVP](MVP.md#홈-화면-위젯-106)를 따릅니다.

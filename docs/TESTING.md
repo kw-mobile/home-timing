@@ -203,3 +203,18 @@ Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometimin
 학교 과제의 기본 글씨 크기로 점검합니다. 큰 글씨 전용 버전/레이아웃은 만들지 않습니다. `-PdeviceTestRunner=com.kwmobile.hometiming.ui.main.FlowUiInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest`로 빌드해 계정 없는 전용 AVD에 설치한 뒤 `am instrument -w -e prefix default-light com.kwmobile.hometiming.test/com.kwmobile.hometiming.ui.main.FlowUiInstrumentation`을 실행합니다. 마지막 `FLOW UI PASS`를 확인합니다.
 
 일반 실행의 실제 바인더에 메모리 집/항목을 넣어 인증 입력 오류, 등록/수정/종류 제약, 초안 회전/취소·저장 중 복귀 차단, 달력/상세/이력, 가족 역할·초대 교체 취소, 잘못된 참여 코드, 지역 없음→설정, 위치 진행/취소·이탈, 테스트 예보/재조회 버튼, 설정 모달·업데이트 왕복, 로그아웃/탈퇴 취소를 검사합니다. 기기의 라이트/다크를 구분하며 종료 후 테스트 날씨 설정을 원복합니다. 캡처는 앱 private files의 prefix PNG이며 공용 데이터를 쓰지 않습니다. 서버 저장·권한·사진 추론·실제 Provider·위치 제공자는 해당 절의 독립 runner로 확인하고, 이 화면 검사로 대신하지 않습니다. 흐름별 범위·미검증은 [점검 기록](report/UI_FLOW_REVIEW.md)에 남깁니다.
+
+## 홈 화면 일정 위젯 검증 (#106)
+
+`WidgetScheduleTest`는 지남/오늘/내일/그 이후 분리, 서울 자정·연말 경계, 날씨로 옮긴 집안일 실행일, 완료 후 다음 회차를 확인합니다. 기본 빌드·Lint·전체 단위 테스트도 실행합니다.
+
+전용 빈 debug AVD와 위의 demo Firebase emulator 절차를 사용합니다. 실제 팀 설정이 있는 빌드에서 아래 runner를 선택하고, 전용 Auth/Firestore 포트를 전달합니다. 이 runner는 Firebase 기본 앱을 demo로 교체하므로 공용 서비스 검증이 아닙니다.
+
+```sh
+./gradlew -PrequireFirebase=true -PdeviceTestRunner=com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation :app:assembleDebug :app:assembleDebugAndroidTest
+adb -s <전용-serial> install -r app/build/outputs/apk/debug/app-debug.apk
+adb -s <전용-serial> install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb -s <전용-serial> shell am instrument -w -e authPort <auth-port> -e firestorePort <firestore-port> com.kwmobile.hometiming.test/com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation
+```
+
+`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 오늘·지남·내일 일정, AppWidgetHost의 실제 바인딩/RemoteViews 표시, 좁은 폭/다크/빈 상태, 항목 PendingIntent의 상세 이동, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.

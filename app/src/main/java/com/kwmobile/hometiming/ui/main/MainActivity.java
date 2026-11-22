@@ -637,8 +637,13 @@ public final class MainActivity extends AppCompatActivity {
 
     private void openReminder(Intent intent) {
         if (mvp == null) return;
+        if ("hometiming".equals(intent.getScheme()) && "widget".equals(intent.getData().getHost())
+                && !intent.hasExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID)) {
+            mvp.openWidgetHome();
+        }
         mvp.openReminder(intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_KIND),
-                intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID));
+                intent.getStringExtra(com.kwmobile.hometiming.notify.ReminderManager.EXTRA_DOCUMENT_ID),
+                intent.getStringExtra(com.kwmobile.hometiming.widget.ScheduleWidgetProvider.EXTRA_HOUSE));
     }
 
     @Override protected void onResume() {
