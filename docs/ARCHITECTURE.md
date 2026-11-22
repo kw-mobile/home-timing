@@ -109,6 +109,6 @@ CameraX는 화면 수명에 연결하고 종료 시 해제합니다. 사진 인�
 
 ## 홈 화면 일정 위젯
 
-`domain/WidgetSchedule`이 용품·집안일의 실제 예정일을 오늘/내일로 나누고, 서울 날짜와 기한 지난 항목 정렬을 공유합니다. `widget/ScheduleWidgetProvider`는 framework RemoteViews와 항목별 immutable PendingIntent를 사용합니다. 앱의 Java/XML·색상·폰트를 그대로 재사용하며 새 UI 의존성을 추가하지 않습니다.
+`domain/WidgetSchedule`이 용품·집안일의 실제 예정일을 기한 지남~다가오는7일로 투영하고, 서울 날짜·정렬·D-day 부호 규칙을 공유합니다. `widget/ScheduleWidgetProvider`는 framework RemoteViews와 항목별 immutable PendingIntent를 사용합니다. 앱의 Java/XML·색상·폰트를 그대로 재사용하며 새 UI 의존성을 추가하지 않습니다. API31 이상은 크기별 RemoteViews 맵으로 목록/첫 일정 카드를 전환하고, 이전 버전은 가로/세로 옵션을 사용합니다. `ScheduleWidgetIcons`가 항목 이름·종류·분류를 기존 벡터로 변환하며 로컬 투영의 분류는 선택 필드여서 v0.5.0 캐시도 읽습니다.
 
-`ScheduleWidgetManager`는 `MvpViewModel`에서 현재 집의 두 목록이 모두 수신된 뒤 계정/집에 묶인 읽기 전용 로컬 투영을 받습니다. `OperationScope` 무효화와 로그아웃은 투영을 지웁니다. `ScheduleWidgetWorker`는 기존 `ReminderRepository.readFromServer(uid, house)`의 소속 검증을 재사용하며, 로컬 게시/세션 변경보다 오래된 서버 응답은 세대 번호로 폐기합니다. 서버 오류를 빈 일정으로 저장하지 않습니다. 저장된 일정은 Provider가 현재 서울 날짜로 다시 나눕니다. 범위·갱신 한계는 [MVP](MVP.md#홈-화면-위젯-106)를 따릅니다.
+`ScheduleWidgetManager`는 `MvpViewModel`에서 현재 집의 두 목록이 모두 수신된 뒤 계정/집에 묶인 읽기 전용 로컬 투영을 받습니다. `OperationScope` 무효화와 로그아웃은 투영을 지웁니다. `ScheduleWidgetWorker`는 기존 `ReminderRepository.readFromServer(uid, house)`의 소속 검증을 재사용하며, 로컬 게시/세션 변경보다 오래된 서버 응답은 세대 번호로 폐기합니다. 서버 오류를 빈 일정으로 저장하지 않습니다. 저장된 일정은 Provider가 현재 서울 날짜로 다시 투영합니다. 범위·갱신 한계는 [MVP](MVP.md#홈-화면-위젯-106)를 따릅니다.

@@ -206,7 +206,7 @@ Wi-Fi/데이터를 끈 전용 AVD에서 `am instrument -w com.kwmobile.hometimin
 
 ## 홈 화면 일정 위젯 검증 (#106)
 
-`WidgetScheduleTest`는 지남/오늘/내일/그 이후 분리, 서울 자정·연말 경계, 날씨로 옮긴 집안일 실행일, 완료 후 다음 회차를 확인합니다. 기본 빌드·Lint·전체 단위 테스트도 실행합니다.
+`WidgetScheduleTest`는 지남~7일 포함/8일 제외·날짜 정렬, D+N/D-day/D-N 부호, 서울 자정·연말 경계, 날씨로 옮긴 집안일 실행일, 완료 후 다음 회차를 확인합니다. 기본 빌드·Lint·전체 단위 테스트도 실행합니다.
 
 전용 빈 debug AVD와 위의 demo Firebase emulator 절차를 사용합니다. 실제 팀 설정이 있는 빌드에서 아래 runner를 선택하고, 전용 Auth/Firestore 포트를 전달합니다. 이 runner는 Firebase 기본 앱을 demo로 교체하므로 공용 서비스 검증이 아닙니다.
 
@@ -217,4 +217,4 @@ adb -s <전용-serial> install -r app/build/outputs/apk/androidTest/debug/app-de
 adb -s <전용-serial> shell am instrument -w -e authPort <auth-port> -e firestorePort <firestore-port> com.kwmobile.hometiming.test/com.kwmobile.hometiming.widget.ScheduleWidgetInstrumentation
 ```
 
-`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 오늘·지남·내일 일정, AppWidgetHost의 실제 바인딩/RemoteViews 표시, 좁은 폭/다크/빈 상태, 항목 PendingIntent의 상세 이동, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.
+`Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 D+3/D-day/D-1/D-2/D-7 및8일 제외, AppWidgetHost의 실제 바인딩/크기 변경과 목록/작은 카드 표시, 아이콘·접근성 문구, 좁은 폭/다크/빈 상태, 두 형태의 PendingIntent 상세 이동, v0.5.0의 분류 없는 캐시 호환, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.

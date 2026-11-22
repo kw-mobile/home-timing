@@ -8,6 +8,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Build;
+import android.util.SizeF;
 import android.view.View;
 import android.widget.RemoteViews;
 import com.kwmobile.hometiming.R;
@@ -20,8 +22,9 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public final class ScheduleWidgetProvider extends AppWidgetProvider {
     public static final String EXTRA_HOUSE = "com.kwmobile.hometiming.extra.WIDGET_HOUSE";
@@ -47,57 +50,92 @@ public final class ScheduleWidgetProvider extends AppWidgetProvider {
     }
     static void render(Context context, ScheduleWidgetStore store) {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
-        for (int id : ids(context)) manager.updateAppWidget(id, views(context, store,
-                manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 336)));
+        for (int id : ids(context)) {
+            RemoteViews content;
+            if (Build.VERSION.SDK_INT >= 31) {
+                // Let the host choose its actual size, including orientation changes, without a wakeup.
+                Map<SizeF, RemoteViews> sizes = new LinkedHashMap<>();
+                sizes.put(new SizeF(180, 112), views(context, store, 180, 112));
+                for (int height : new int[] {160, 208, 256, 304, 352, 448})
+                    sizes.put(new SizeF(240, height), views(context, store, 240, height));
+                content = new RemoteViews(sizes);
+            } else {
+                Bundle options = manager.getAppWidgetOptions(id);
+                int minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 250);
+                int maxWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH, minWidth);
+                int minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 208);
+                int maxHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT, minHeight);
+                content = new RemoteViews(views(context, store, maxWidth, minHeight), views(context, store, minWidth, maxHeight));
+            }
+            manager.updateAppWidget(id, content);
+        }
     }
-    static RemoteViews views(Context context, ScheduleWidgetStore store, int height) {
-        RemoteViews view = new RemoteViews(context.getPackageName(), R.layout.widget_schedule);
+    static RemoteViews views(Context context, ScheduleWidgetStore store, int width, int height) {
+        boolean compact = width < 240 || height < 160;
+        RemoteViews view = new RemoteViews(context.getPackageName(), compact
+                ? R.layout.widget_schedule_compact : R.layout.widget_schedule);
+        view.setOnClickPendingIntent(android.R.id.background, open(context, store.house(), null));
         LocalDate today = WidgetSchedule.today(Clock.systemUTC());
-        view.setTextViewText(R.id.widget_date, today.format(DateTimeFormatter.ofPattern("M.d")));
-        view.setOnClickPendingIntent(R.id.widget_header, open(context, store.house(), null));
-        view.setOnClickPendingIntent(R.id.widget_message, open(context, store.house(), null));
-        List<Entry> rows = store.rows();
+        List<Entry> rows = WidgetSchedule.upcoming(store.rows(), today);
         boolean signedIn = !store.uid().isEmpty();
         boolean loaded = signedIn && store.loaded();
-        view.setViewVisibility(R.id.widget_days, loaded ? View.VISIBLE : View.GONE);
-        view.setViewVisibility(R.id.widget_message, loaded ? View.GONE : View.VISIBLE);
-        view.setTextViewText(R.id.widget_message, context.getString(signedIn ? R.string.widget_loading : R.string.widget_sign_in));
-        String updated = "";
-        if (loaded) {
-            updated = store.cached() || store.updated() == 0 ? context.getString(R.string.widget_cached)
-                    : context.getString(R.string.widget_updated, Instant.ofEpochMilli(store.updated()).atZone(ZoneId.of("Asia/Seoul"))
-                            .format(DateTimeFormatter.ofPattern("M.d HH:mm")));
-            // Reserve a 48dp overflow row when entries do not fit. Both days always remain visible.
-            int slots = Math.max(2, Math.min(4, (height - 144) / 96));
-            section(context, view, R.id.widget_today_rows, WidgetSchedule.day(rows, today, false), today, store.house(), slots);
-            section(context, view, R.id.widget_tomorrow_rows, WidgetSchedule.day(rows, today, true), today, store.house(), slots);
+        boolean hasRows = loaded && !rows.isEmpty();
+        String updated = loaded ? store.cached() || store.updated() == 0 ? context.getString(R.string.widget_cached)
+                : context.getString(R.string.widget_updated, Instant.ofEpochMilli(store.updated()).atZone(ZoneId.of("Asia/Seoul"))
+                        .format(DateTimeFormatter.ofPattern("M.d HH:mm"))) : "";
+        view.setViewVisibility(R.id.widget_message, hasRows ? View.GONE : View.VISIBLE);
+        view.setTextViewText(R.id.widget_message, context.getString(!signedIn ? R.string.widget_sign_in
+                : !loaded ? R.string.widget_loading : R.string.widget_empty));
+        if (compact) {
+            view.setViewVisibility(R.id.widget_focus, hasRows ? View.VISIBLE : View.GONE);
+            if (hasRows) {
+                Entry entry = rows.get(0);
+                view.setTextViewText(R.id.widget_focus_heading, context.getString(store.cached()
+                        ? R.string.widget_cached : R.string.widget_focus_heading));
+                view.setTextViewText(R.id.widget_focus_name, entry.name);
+                view.setImageViewResource(R.id.widget_focus_icon, ScheduleWidgetIcons.of(entry));
+                view.setTextViewText(R.id.widget_focus_status, WidgetSchedule.dDay(entry, today));
+                view.setTextColor(R.id.widget_focus_status, statusColor(context, entry, today));
+                view.setContentDescription(R.id.widget_focus, description(context, entry, today, updated));
+                view.setOnClickPendingIntent(R.id.widget_focus, open(context, store.house(), entry));
+            }
+        } else {
+            view.setTextViewText(R.id.widget_updated, updated);
+            view.setTextViewText(R.id.widget_count, loaded ? context.getString(R.string.widget_count, rows.size()) : "");
+            view.setViewVisibility(R.id.widget_rows, hasRows ? View.VISIBLE : View.GONE);
+            view.removeAllViews(R.id.widget_rows);
+            if (hasRows) {
+                int slots = Math.max(2, Math.min(8, (height - 64) / 48));
+                int shown = rows.size() > slots ? slots - 1 : rows.size();
+                for (int i = 0; i < shown; i++) {
+                    Entry entry = rows.get(i);
+                    RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_row);
+                    row.setTextViewText(R.id.widget_row_name, entry.name);
+                    row.setImageViewResource(R.id.widget_row_icon, ScheduleWidgetIcons.of(entry));
+                    row.setTextViewText(R.id.widget_row_status, WidgetSchedule.dDay(entry, today));
+                    row.setTextColor(R.id.widget_row_status, statusColor(context, entry, today));
+                    row.setContentDescription(R.id.widget_row, description(context, entry, today, updated));
+                    row.setOnClickPendingIntent(R.id.widget_row, open(context, store.house(), entry));
+                    view.addView(R.id.widget_rows, row);
+                }
+                if (rows.size() > shown) {
+                    RemoteViews more = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_text);
+                    more.setTextViewText(R.id.widget_row_text, context.getString(R.string.widget_more, rows.size() - shown));
+                    more.setOnClickPendingIntent(R.id.widget_row_text, open(context, store.house(), null));
+                    view.addView(R.id.widget_rows, more);
+                }
+            }
         }
-        view.setTextViewText(R.id.widget_updated, updated);
         return view;
     }
-    private static void section(Context context, RemoteViews parent, int target, List<Entry> rows,
-                                LocalDate today, String house, int slots) {
-        parent.removeAllViews(target);
-        if (rows.isEmpty()) { parent.addView(target, textRow(context, context.getString(R.string.widget_empty), house)); return; }
-        int shown = rows.size() > slots ? slots - 1 : rows.size();
-        for (int i = 0; i < shown; i++) {
-            Entry entry = rows.get(i);
-            RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_row);
-            row.setTextViewText(R.id.widget_row_name, entry.name);
-            long overdue = ChronoUnit.DAYS.between(entry.due, today);
-            row.setViewVisibility(R.id.widget_row_status, overdue > 0 ? View.VISIBLE : View.GONE);
-            row.setTextViewText(R.id.widget_row_status, overdue > 0 ? context.getString(R.string.widget_overdue, overdue) : "");
-            row.setOnClickPendingIntent(R.id.widget_row, open(context, house, entry));
-            parent.addView(target, row);
-        }
-        if (rows.size() > shown) parent.addView(target, textRow(context,
-                context.getString(R.string.widget_more, rows.size() - shown), house));
+    private static int statusColor(Context context, Entry entry, LocalDate today) {
+        return context.getColor(WidgetSchedule.daysUntil(entry, today) <= 0 ? R.color.ht_error : R.color.ht_primary);
     }
-    private static RemoteViews textRow(Context context, String text, String house) {
-        RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_schedule_text);
-        row.setTextViewText(R.id.widget_row_text, text);
-        row.setOnClickPendingIntent(R.id.widget_row_text, open(context, house, null));
-        return row;
+    private static String description(Context context, Entry entry, LocalDate today, String updated) {
+        long days = WidgetSchedule.daysUntil(entry, today);
+        String remaining = context.getString(days < 0 ? R.string.widget_overdue
+                : days == 0 ? R.string.widget_due_today : R.string.widget_remaining, Math.abs(days));
+        return context.getString(R.string.widget_item_description, entry.name, remaining, updated);
     }
     private static PendingIntent open(Context context, String house, Entry entry) {
         Uri.Builder data = new Uri.Builder().scheme("hometiming").authority("widget").appendPath(house);

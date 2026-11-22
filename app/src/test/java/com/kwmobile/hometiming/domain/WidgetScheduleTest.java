@@ -15,44 +15,52 @@ public class WidgetScheduleTest {
     private WidgetSchedule.Entry entry(String id, int offset) {
         return new WidgetSchedule.Entry(ReminderKey.Kind.ITEM, id, id, today.plusDays(offset));
     }
-    @Test public void includesOverdueBeforeTodayAndOnlyTomorrowInSecondSection() {
-        List<WidgetSchedule.Entry> all = Arrays.asList(entry("future", 2), entry("tomorrow", 1),
-                entry("today", 0), entry("older", -5), entry("yesterday", -1));
-        List<WidgetSchedule.Entry> first = WidgetSchedule.day(all, today, false);
-        assertEquals(Arrays.asList("older", "yesterday", "today"),
-                Arrays.asList(first.get(0).id, first.get(1).id, first.get(2).id));
-        assertEquals(1, WidgetSchedule.day(all, today, true).size());
-        assertEquals("tomorrow", WidgetSchedule.day(all, today, true).get(0).id);
-        assertEquals("future", all.get(0).id); // Projection does not reorder the source.
+    @Test public void includesOverdueThroughSevenDaysAndExcludesDayEight() {
+        List<WidgetSchedule.Entry> all = Arrays.asList(entry("outside", 8), entry("day-seven", 7),
+                entry("day-two", 2), entry("today", 0), entry("older", -5), entry("yesterday", -1));
+        List<WidgetSchedule.Entry> rows = WidgetSchedule.upcoming(all, today);
+        assertEquals(5, rows.size());
+        assertEquals(Arrays.asList("older", "yesterday", "today", "day-two", "day-seven"),
+                Arrays.asList(rows.get(0).id, rows.get(1).id, rows.get(2).id, rows.get(3).id, rows.get(4).id));
+        assertEquals("outside", all.get(0).id);
     }
-    @Test public void rollsTomorrowIntoTodayAtSeoulMidnightRegardlessOfDeviceZone() {
+    @Test public void formatsOverdueTodayAndFutureWithoutReversingSigns() {
+        assertEquals("D+3", WidgetSchedule.dDay(entry("overdue", -3), today));
+        assertEquals("D-day", WidgetSchedule.dDay(entry("today", 0), today));
+        assertEquals("D-2", WidgetSchedule.dDay(entry("future", 2), today));
+        assertEquals("D-7", WidgetSchedule.dDay(entry("boundary", 7), today));
+    }
+    @Test public void crossesSeoulMidnightRegardlessOfDeviceZone() {
         Clock before = Clock.fixed(Instant.parse("2026-11-22T14:59:59Z"), ZoneOffset.ofHours(-8));
         Clock after = Clock.offset(before, java.time.Duration.ofSeconds(1));
         assertEquals(today, WidgetSchedule.today(before));
         assertEquals(today.plusDays(1), WidgetSchedule.today(after));
-        List<WidgetSchedule.Entry> rows = Collections.singletonList(entry("rollover", 1));
-        assertTrue(WidgetSchedule.day(rows, WidgetSchedule.today(before), false).isEmpty());
-        assertEquals(1, WidgetSchedule.day(rows, WidgetSchedule.today(after), false).size());
-        assertTrue(WidgetSchedule.day(rows, WidgetSchedule.today(after), true).isEmpty());
+        WidgetSchedule.Entry tomorrow = entry("rollover", 1);
+        assertEquals("D-1", WidgetSchedule.dDay(tomorrow, WidgetSchedule.today(before)));
+        assertEquals("D-day", WidgetSchedule.dDay(tomorrow, WidgetSchedule.today(after)));
+        assertEquals("D+1", WidgetSchedule.dDay(tomorrow, today.plusDays(2)));
+        assertTrue(WidgetSchedule.upcoming(Collections.singletonList(entry("outside", 8)), today).isEmpty());
+        assertEquals(1, WidgetSchedule.upcoming(Collections.singletonList(entry("outside", 8)), today.plusDays(1)).size());
     }
     @Test public void usesMovedExecutionDateAndNextOccurrenceAfterCompletion() {
         Item completed = new Item("same-id", "수세미", "주방", today.minusDays(30), 30, today,
                 today.plusDays(30), "new-occurrence", 2, "", "", "", "owner", true);
-        Chore moved = new Chore("same-id", "세탁", "laundry", true, 7, today, today.plusDays(1),
+        Chore moved = new Chore("same-id", "세탁", "BEDDING_WASH", true, 7, today, today.plusDays(2),
                 "chore-occurrence", 1, null, null, "", "", "owner");
         List<WidgetSchedule.Entry> rows = WidgetSchedule.project(Collections.singletonList(completed), Collections.singletonList(moved));
-        assertTrue(WidgetSchedule.day(rows, today, false).isEmpty());
-        List<WidgetSchedule.Entry> tomorrow = WidgetSchedule.day(rows, today, true);
-        assertEquals(1, tomorrow.size());
-        assertEquals(ReminderKey.Kind.CHORE, tomorrow.get(0).kind);
-        assertEquals("same-id", tomorrow.get(0).id);
-        assertEquals("세탁", tomorrow.get(0).name);
+        List<WidgetSchedule.Entry> upcoming = WidgetSchedule.upcoming(rows, today);
+        assertEquals(1, upcoming.size());
+        assertEquals(ReminderKey.Kind.CHORE, upcoming.get(0).kind);
+        assertEquals("same-id", upcoming.get(0).id);
+        assertEquals("D-2", WidgetSchedule.dDay(upcoming.get(0), today));
+        assertEquals("BEDDING_WASH", upcoming.get(0).category);
+        assertEquals("주방", rows.get(0).category);
     }
-    @Test public void yearBoundaryAndEmptySections() {
+    @Test public void yearBoundaryAndEmptyList() {
         LocalDate end = LocalDate.of(2026, 12, 31);
-        List<WidgetSchedule.Entry> rows = Collections.singletonList(new WidgetSchedule.Entry(
-                ReminderKey.Kind.CHORE, "new-year", "청소", LocalDate.of(2027, 1, 1)));
-        assertEquals(1, WidgetSchedule.day(rows, end, true).size());
-        assertTrue(WidgetSchedule.day(Collections.emptyList(), end, false).isEmpty());
+        WidgetSchedule.Entry row = new WidgetSchedule.Entry(ReminderKey.Kind.CHORE, "new-year", "청소", LocalDate.of(2027, 1, 7));
+        assertEquals(1, WidgetSchedule.upcoming(Collections.singletonList(row), end).size());
+        assertEquals("D-7", WidgetSchedule.dDay(row, end));
+        assertTrue(WidgetSchedule.upcoming(Collections.emptyList(), end).isEmpty());
     }
 }
