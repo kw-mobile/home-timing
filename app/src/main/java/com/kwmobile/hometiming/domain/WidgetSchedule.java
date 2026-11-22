@@ -2,8 +2,6 @@ package com.kwmobile.hometiming.domain;
 
 import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -12,7 +10,7 @@ import java.util.List;
 public final class WidgetSchedule {
     private WidgetSchedule() { }
     public static LocalDate today(Clock clock) {
-        return LocalDate.now(clock.withZone(ZoneId.of("Asia/Seoul")));
+        return DateRules.today(clock);
     }
     public static final class Entry {
         public final ReminderKey.Kind kind;
@@ -32,7 +30,7 @@ public final class WidgetSchedule {
         return rows;
     }
     public static long daysUntil(Entry entry, LocalDate today) {
-        return ChronoUnit.DAYS.between(today, entry.due);
+        return ReplacementCalculator.daysUntil(entry.due, today);
     }
     public static String dDay(Entry entry, LocalDate today) {
         long days = daysUntil(entry, today);

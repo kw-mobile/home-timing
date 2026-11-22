@@ -62,7 +62,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
             });
             waitForIdleSync();
             if ("denied".equals(mode)) {
-                runOnMainSync(() -> invoke("requestHouseLocation"));
+                runOnMainSync(() -> activity.houseLocation.request());
                 await(() -> visible().contains("위치 권한 요청") || visible().contains("Don’t allow")
                         || visible().contains("Don't allow"), 10000, "permission prompt or rationale");
                 if (visible().contains("위치 권한 요청")) {
@@ -80,7 +80,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
                 check(!active(), "disabled location does not start request");
                 pass("location disabled -> manual-selection 안내; no request");
             } else if ("manual".equals(mode)) {
-                runOnMainSync(() -> { set(new ViewModelProvider(activity).get(WeatherViewModel.class), "regions", java.util.Collections.emptyList()); invoke("chooseHouseRegion"); });
+                runOnMainSync(() -> { set(new ViewModelProvider(activity).get(WeatherViewModel.class), "regions", java.util.Collections.emptyList()); activity.houseLocation.chooseRegion(); });
                 await(() -> visible().contains("시·도 선택"), 5000, "province picker");
                 check(clickExact(getUiAutomation().getRootInActiveWindow(), "서울특별시"), "pick Seoul province");
                 await(() -> visible().contains("시·군·구 선택"), 5000, "district picker");
@@ -159,10 +159,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
     }
     private boolean active() {
         java.util.concurrent.atomic.AtomicBoolean result = new java.util.concurrent.atomic.AtomicBoolean();
-        runOnMainSync(() -> {
-            try { Field f = MainActivity.class.getDeclaredField("houseLocationRequest"); f.setAccessible(true); result.set(f.get(activity) != null); }
-            catch (ReflectiveOperationException e) { throw new RuntimeException(e); }
-        });
+        runOnMainSync(() -> result.set(activity.houseLocation.active()));
         return result.get();
     }
     private void screenshot(String name) {
@@ -182,7 +179,7 @@ public final class HouseLocationInstrumentation extends Instrumentation {
         }
     }
     private void triggerRequest() {
-        runOnMainSync(() -> invoke("requestHouseLocation"));
+        runOnMainSync(() -> activity.houseLocation.request());
         await(() -> active() || visible().contains("구 단위로 찾기") || visible().contains("휴대폰 위치를 켜거나"), 5000, "request or permission choice ready");
         if (visible().contains("구 단위로 찾기")) {
             check(clickExact(getUiAutomation().getRootInActiveWindow(), "구 단위로 찾기"), "keep approximate permission");

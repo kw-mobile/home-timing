@@ -218,3 +218,9 @@ adb -s <전용-serial> shell am instrument -w -e authPort <auth-port> -e firesto
 ```
 
 `Widget PASS`와 개별 PASS를 확인합니다. Repository로 생성한 D+3/D-day/D-1/D-2/D-7 및8일 제외, AppWidgetHost의 실제 바인딩/크기 변경과 목록/작은 카드 표시, 아이콘·접근성 문구, 좁은 폭/다크/빈 상태, 두 형태의 PendingIntent 상세 이동, v0.5.0의 분류 없는 캐시 호환, 이전 집의 탭 거부, 완료·삭제·로그아웃 반영, 오프라인 저장 목록 유지와 재연결, 손상된 로컬 날짜의 폐기/복구를 검사합니다. 테스트 이미지 `widget-*.png`는 전용 기기의 앱 external files에 저장됩니다. 런처 위젯 선택기에서 수동 추가·리사이즈, 프로세스 종료/재부팅/오프라인·실제 날짜 변경, 실기기·여러 런처·두 기기 가족 반영은 별도 검증하며 host 테스트로 대신 성공 처리하지 않습니다.
+
+## 구조 정리 회귀 검증 (#110)
+
+위치 UI는 `HouseLocationController`가 소유합니다. 기존 전체 UI·위치 runner는 이 컨트롤러를 통해 같은 사용자 동작을 실행하며, 권한·현재 세션·지역 화면·취소/주소 제한 검증을 생략하지 않습니다. `FlowUiInstrumentation`은 라이트/다크의 화면 이동·초안/회전·위치 진행/취소를, `HouseLocationInstrumentation`은 수동 지역/대략적 위치와 오류 경계를, `DongLocationInstrumentation`은 정확도 개선·주소 실패/제한·중지/늦은 응답을 확인합니다.
+
+세션 종료 경로를 바꾸면 위의 `MvpFlowInstrumentation` owner/member를 전용 두 AVD와 demo Firebase에서 실행해 가입·공동 목록·완료·일정 변경·집 참여/나가기·재로그인/자기 계정 삭제를 확인합니다. 위젯은 별도의 호스트 runner로 확인합니다. 실제 source SHA/명령/결과와 미실행 시나리오는 연결 PR에 남깁니다. 기본 빌드/Lint/단위 테스트 성공을 실제 두 기기·위치·위젯 검증으로 대신 쓰지 않습니다.

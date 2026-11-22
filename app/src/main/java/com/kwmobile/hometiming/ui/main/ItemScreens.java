@@ -462,7 +462,7 @@ final class ItemScreens {
                             .setMinDate(
                                     preview.store
                                             .earliestCompletion(item)
-                                            .atStartOfDay(java.time.ZoneId.of("Asia/Seoul"))
+                                            .atStartOfDay(com.kwmobile.hometiming.domain.DateRules.ZONE)
                                             .toInstant()
                                             .toEpochMilli());
                     picker.getDatePicker().setMaxDate(System.currentTimeMillis());

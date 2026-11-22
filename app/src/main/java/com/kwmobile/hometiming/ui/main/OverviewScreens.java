@@ -24,7 +24,7 @@ import java.time.LocalDate;
 import java.time.YearMonth;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
+import com.kwmobile.hometiming.domain.ReplacementCalculator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -132,7 +132,7 @@ final class OverviewScreens {
         LinearLayout summary = ui.box(R.id.home_task_summary);
         int todayCount = 0, lateCount = 0, weekCount = 0;
         for (Item item : preview.store.sorted()) {
-            long days = ChronoUnit.DAYS.between(PreviewStore.today(), item.due);
+            long days = ReplacementCalculator.daysUntil(item.due, PreviewStore.today());
             if (days == 0) todayCount++;
             else if (days < 0) lateCount++;
             else if (days <= 7) weekCount++;

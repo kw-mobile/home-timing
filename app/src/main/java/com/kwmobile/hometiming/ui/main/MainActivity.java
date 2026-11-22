@@ -1,6 +1,5 @@
 package com.kwmobile.hometiming.ui.main;
 
-import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -9,15 +8,11 @@ import android.content.res.Configuration;
 import android.content.res.ColorStateList;
 import android.widget.FrameLayout;
 import android.graphics.Outline;
-import android.location.LocationManager;
-import android.net.Uri;
+
 import android.os.Bundle;
-import android.os.CancellationSignal;
-import android.os.Handler;
-import android.os.Looper;
-import android.provider.Settings;
+
 import android.view.View;
-import android.widget.TextView;
+
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.inputmethod.InputMethodManager;
@@ -27,7 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
-import androidx.core.location.LocationManagerCompat;
+
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -46,13 +41,10 @@ import com.kwmobile.hometiming.data.preview.PreviewStore.Item;
 import com.kwmobile.hometiming.databinding.ActivityMainBinding;
 import com.kwmobile.hometiming.ui.component.FluidMotion;
 
-import com.kwmobile.hometiming.data.auth.Session;
-import com.kwmobile.hometiming.data.weather.Region;
-
 import java.time.LocalDate;
 import java.util.List;
 
-/** Complete native design walkthrough. All mutations are restricted to local fixtures. */
+/** App shell for live screens and the explicit debug design gallery. */
 public final class MainActivity extends AppCompatActivity {
     private ActivityMainBinding binding;
     private DesignPreviewViewModel vm;
@@ -91,9 +83,9 @@ public final class MainActivity extends AppCompatActivity {
                     hideKeyboard();
                     com.kwmobile.hometiming.ui.weather.WeatherSettingsDialogFragment.open(getSupportFragmentManager());
                 }
-                public void useCurrentHouseLocation() { requestHouseLocation(); }
-                public void cancelCurrentHouseLocation() { cancelHouseLocation(); }
-                public void chooseHouseRegion() { MainActivity.this.chooseHouseRegion(); }
+                public void useCurrentHouseLocation() { houseLocation.request(); }
+                public void cancelCurrentHouseLocation() { houseLocation.cancel(); }
+                public void chooseHouseRegion() { houseLocation.chooseRegion(); }
 
                 public void notificationSettings() {
                     startActivity(new Intent(android.provider.Settings.ACTION_APP_NOTIFICATION_SETTINGS)
@@ -153,263 +145,7 @@ public final class MainActivity extends AppCompatActivity {
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestPermission(),
                     granted -> { if (screen != null) { capture(); render(); } });
 
-    private static final String HOUSE_LOCATION_PERMISSION = Manifest.permission.ACCESS_COARSE_LOCATION;
-    private static final String HOUSE_PRECISE_PERMISSION = Manifest.permission.ACCESS_FINE_LOCATION;
-    private static final long HOUSE_LOCATION_TIMEOUT_MS = 20_000;
-    private static final long HOUSE_ADDRESS_TIMEOUT_MS = 8_000;
-    private final Handler locationHandler = new Handler(Looper.getMainLooper());
-    private Session locationPermissionSession;
-    private HouseLocationRequest houseLocationRequest;
-    private int houseLocationStatus;
-    private com.kwmobile.hometiming.data.weather.CurrentPlaceResolver placeResolver;
-    private final androidx.activity.result.ActivityResultLauncher<String[]> locationRequest =
-            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.RequestMultiplePermissions(),
-                    granted -> {
-                        Session session = locationPermissionSession;
-                        locationPermissionSession = null;
-                        if (!canSetHouseLocation(session)) return;
-                        if (hasHouseLocationPermission()) readHouseLocation(session);
-                        else if (shouldShowRequestPermissionRationale(HOUSE_LOCATION_PERMISSION)) {
-                            notice(getString(R.string.house_location_denied));
-                        } else {
-                            new MaterialAlertDialogBuilder(this)
-                                    .setMessage(R.string.house_location_denied)
-                                    .setNegativeButton(android.R.string.cancel, null)
-                                    .setPositiveButton(R.string.house_location_settings, (dialog, which) ->
-                                            startActivity(new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                                    Uri.fromParts("package", getPackageName(), null))))
-                                    .show();
-                        }
-                    });
-
-    private boolean canSetHouseLocation(Session session) {
-        return !isFinishing() && !isDestroyed() && vm != null && mvp != null
-                && session != null && mvp.session == session && mvp.house != null
-                && mvp.house.isOwner(session.uid) && !mvp.readOnly() && !mvp.busy()
-                && "preferences:region".equals(s().route.key());
-    }
-
-    private boolean hasHouseLocationPermission() {
-        return ContextCompat.checkSelfPermission(this, HOUSE_LOCATION_PERMISSION)
-                == android.content.pm.PackageManager.PERMISSION_GRANTED;
-    }
-
-    private boolean hasPreciseHouseLocationPermission() {
-        return ContextCompat.checkSelfPermission(this, HOUSE_PRECISE_PERMISSION)
-                == android.content.pm.PackageManager.PERMISSION_GRANTED;
-    }
-
-    private void requestHouseLocation() {
-        Session session = mvp == null ? null : mvp.session;
-        if (!canSetHouseLocation(session) || locationPermissionSession != null || houseLocationRequest != null) return;
-        if (hasPreciseHouseLocationPermission()) {
-            readHouseLocation(session);
-        } else if (hasHouseLocationPermission() || shouldShowRequestPermissionRationale(HOUSE_LOCATION_PERMISSION)) {
-            new MaterialAlertDialogBuilder(this)
-                    .setMessage(R.string.house_location_rationale)
-                    .setNegativeButton(hasHouseLocationPermission() ? R.string.house_location_approximate : R.string.house_region_manual, (dialog, which) -> {
-                        if (hasHouseLocationPermission()) readHouseLocation(session);
-                        else chooseHouseRegion();
-                    })
-                    .setPositiveButton(R.string.house_location_allow, (dialog, which) -> launchLocationPermission(session))
-                    .show();
-        } else {
-            launchLocationPermission(session);
-        }
-    }
-
-    private void launchLocationPermission(Session session) {
-        if (!canSetHouseLocation(session)) return;
-        locationPermissionSession = session;
-        locationRequest.launch(new String[]{HOUSE_LOCATION_PERMISSION, HOUSE_PRECISE_PERMISSION});
-    }
-
-    private void prepareHouseRegions(Session session, Runnable ready) {
-        HouseLocationRequest preparing = new HouseLocationRequest(0);
-        houseLocationRequest = preparing;
-        showHouseLocationProgress(R.string.weather_ui_region_loading);
-        locationHandler.postDelayed(() -> {
-            if (houseLocationRequest == preparing) {
-                cancelHouseLocation(); notice(getString(R.string.house_region_load_failed));
-            }
-        }, HOUSE_ADDRESS_TIMEOUT_MS);
-        weatherVm.prepareRegions().addOnSuccessListener(this, values -> {
-            if (houseLocationRequest != preparing) return;
-            cancelHouseLocation();
-            if (canSetHouseLocation(session)) ready.run();
-        }).addOnFailureListener(this, ignored -> {
-            if (houseLocationRequest != preparing) return;
-            cancelHouseLocation();
-            if (canSetHouseLocation(session)) notice(getString(R.string.house_region_load_failed));
-        });
-    }
-
-    @android.annotation.SuppressLint("MissingPermission") // Both callbacks and OS calls recheck the grant.
-    private void readHouseLocation(Session session) {
-        if (!canSetHouseLocation(session)) return;
-        if (!hasHouseLocationPermission()) { notice(getString(R.string.house_location_denied)); return; }
-        if (weatherVm.regionNames().length == 0) {
-            prepareHouseRegions(session, () -> readHouseLocation(session));
-            return;
-        }
-        LocationManager manager = getSystemService(LocationManager.class);
-        if (manager == null || !LocationManagerCompat.isLocationEnabled(manager)) {
-            notice(getString(R.string.house_location_disabled)); return;
-        }
-        List<String> available = manager.getProviders(true);
-        List<String> providers = new java.util.ArrayList<>(3);
-        if (available.contains("fused")) providers.add("fused");
-        if (available.contains(LocationManager.NETWORK_PROVIDER)) providers.add(LocationManager.NETWORK_PROVIDER);
-        if (hasPreciseHouseLocationPermission() && available.contains(LocationManager.GPS_PROVIDER))
-            providers.add(LocationManager.GPS_PROVIDER);
-        if (providers.isEmpty()) { notice(getString(R.string.house_location_no_fix)); return; }
-        HouseLocationRequest request = new HouseLocationRequest(providers.size());
-        houseLocationRequest = request;
-        showHouseLocationProgress(R.string.house_location_loading);
-        locationHandler.postDelayed(() -> {
-            if (houseLocationRequest == request) resolveHouseLocation(session, request);
-        }, HOUSE_LOCATION_TIMEOUT_MS);
-        for (String provider : providers) {
-            CancellationSignal signal = new CancellationSignal(); request.signals.add(signal);
-            try {
-                LocationManagerCompat.getCurrentLocation(manager, provider, signal,
-                        ContextCompat.getMainExecutor(this), location -> onHouseLocation(session, request, location));
-            } catch (SecurityException | IllegalArgumentException failure) { onHouseLocation(session, request, null); }
-        }
-    }
-
-    private void onHouseLocation(Session session, HouseLocationRequest request, android.location.Location location) {
-        if (houseLocationRequest != request || request.resolvingAddress) return;
-        if (!canSetHouseLocation(session)) { cancelHouseLocation(); return; }
-        if (location != null) {
-            long age = android.os.SystemClock.elapsedRealtimeNanos() - location.getElapsedRealtimeNanos();
-            if (age >= 0 && age <= 120_000_000_000L
-                    && Double.isFinite(location.getLatitude()) && Double.isFinite(location.getLongitude())
-                    && location.getLatitude() > -90 && location.getLatitude() < 90
-                    && location.getLongitude() >= -180 && location.getLongitude() <= 180
-                    && (request.best == null || location.hasAccuracy()
-                    && (!request.best.hasAccuracy() || location.getAccuracy() < request.best.getAccuracy()))) {
-                request.best = location;
-            }
-        }
-        // Coarse fixes can only suggest districts. With precise access, wait for a useful dong fix.
-        if (request.best != null && (!hasPreciseHouseLocationPermission()
-                || request.best.hasAccuracy() && request.best.getAccuracy() <= 200)) {
-            resolveHouseLocation(session, request); return;
-        }
-        if (--request.pending == 0) resolveHouseLocation(session, request);
-    }
-
-    private void resolveHouseLocation(Session session, HouseLocationRequest request) {
-        if (houseLocationRequest != request) return;
-        if (!canSetHouseLocation(session) || !hasHouseLocationPermission()) {
-            cancelHouseLocation(); return;
-        }
-        if (request.best == null) {
-            cancelHouseLocation(); notice(getString(R.string.house_location_no_fix)); return;
-        }
-        if (!hasPreciseHouseLocationPermission() || !request.best.hasAccuracy() || request.best.getAccuracy() > 200) {
-            showApproximateHouseLocation(session, request); return;
-        }
-        request.resolvingAddress = true;
-        locationHandler.removeCallbacksAndMessages(null);
-        request.cancelSignals();
-        locationHandler.postDelayed(() -> {
-            if (houseLocationRequest == request) showApproximateHouseLocation(session, request);
-        }, HOUSE_ADDRESS_TIMEOUT_MS);
-        showHouseLocationProgress(R.string.house_location_address_loading);
-        placeResolver.resolve(request.best.getLatitude(), request.best.getLongitude(), weatherVm.regions())
-                .addOnSuccessListener(this, region -> {
-                    if (houseLocationRequest != request) return;
-                    cancelHouseLocation();
-                    if (canSetHouseLocation(session) && hasPreciseHouseLocationPermission()) confirmHouseLocation(session, region);
-                }).addOnFailureListener(this, ignored -> {
-                    if (houseLocationRequest == request) showApproximateHouseLocation(session, request);
-                });
-    }
-
-    private void showApproximateHouseLocation(Session session, HouseLocationRequest request) {
-        android.location.Location location = request.best;
-        cancelHouseLocation();
-        if (!canSetHouseLocation(session) || !hasHouseLocationPermission()) return;
-        List<Region> candidates = weatherVm.nearbyRegions(location.getLatitude(), location.getLongitude());
-        if (candidates.isEmpty()) notice(getString(R.string.house_location_no_region));
-        else showHouseLocationCandidates(session, candidates);
-    }
-
-    private void showHouseLocationProgress(int message) {
-        houseLocationStatus = message;
-        bindHouseLocationProgress();
-    }
-
-    private void bindHouseLocationProgress() {
-        if (screen == null) return;
-        View status = screen.findViewById(R.id.house_location_status);
-        if (status == null) return;
-        boolean active = houseLocationRequest != null;
-        status.setVisibility(active ? View.VISIBLE : View.GONE);
-        if (active) ((TextView) status).setText(houseLocationStatus);
-        screen.findViewById(R.id.house_location_button).setEnabled(!active);
-        screen.findViewById(R.id.house_location_cancel).setVisibility(active ? View.VISIBLE : View.GONE);
-    }
-
-    private void cancelHouseLocation() {
-        HouseLocationRequest request = houseLocationRequest; houseLocationRequest = null;
-        houseLocationStatus = 0;
-        bindHouseLocationProgress();
-        locationHandler.removeCallbacksAndMessages(null);
-        if (request != null) request.cancelSignals();
-    }
-
-    private static final class HouseLocationRequest {
-        final List<CancellationSignal> signals = new java.util.ArrayList<>(3);
-        int pending;
-        android.location.Location best;
-        boolean resolvingAddress;
-        HouseLocationRequest(int pending) { this.pending = pending; }
-        void cancelSignals() { for (CancellationSignal signal : signals) signal.cancel(); }
-    }
-
-    private void showHouseLocationCandidates(Session session, List<Region> candidates) {
-        String[] names = new String[candidates.size()];
-        for (int i = 0; i < names.length; i++) names[i] = candidates.get(i).name;
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.house_location_candidates)
-                .setItems(names, (dialog, index) -> { if (canSetHouseLocation(session)) confirmHouseLocation(session, candidates.get(index)); })
-                .setNeutralButton(R.string.house_region_manual, (dialog, which) -> chooseHouseRegion())
-                .setNegativeButton(android.R.string.cancel, null).show();
-    }
-
-    private void confirmHouseLocation(Session session, Region region) {
-        if (!canSetHouseLocation(session)) return;
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.house_location_check)
-                .setMessage(getString(R.string.house_location_confirm, region.name))
-                .setNegativeButton(android.R.string.cancel, null)
-                .setPositiveButton(R.string.house_location_save, (dialog, which) -> {
-                    if (canSetHouseLocation(session)) mvp.region(region);
-                }).show();
-    }
-
-    private void chooseHouseRegion() {
-        Session session = mvp == null ? null : mvp.session;
-        if (!canSetHouseLocation(session)) return;
-        cancelHouseLocation(); // Manual selection supersedes any pending GPS/address result.
-        List<Region> regions = weatherVm.regions();
-        if (regions.isEmpty()) { prepareHouseRegions(session, this::chooseHouseRegion); return; }
-        java.util.Set<String> provinces = new java.util.LinkedHashSet<>();
-        for (Region region : regions) provinces.add(region.name.split(" ")[0]);
-        String[] provinceNames = provinces.toArray(new String[0]);
-        new MaterialAlertDialogBuilder(this).setTitle(R.string.house_region_province)
-                .setItems(provinceNames, (dialog, index) -> {
-                    if (!canSetHouseLocation(session)) return;
-                    List<Region> districts = new java.util.ArrayList<>();
-                    for (Region region : regions) if (region.name.split(" ")[0].equals(provinceNames[index])) districts.add(region);
-                    String[] names = new String[districts.size()];
-                    for (int i = 0; i < names.length; i++) names[i] = districts.get(i).name;
-                    new MaterialAlertDialogBuilder(this).setTitle(R.string.house_region_district)
-                            .setItems(names, (pick, selected) -> { if (canSetHouseLocation(session)) confirmHouseLocation(session, districts.get(selected)); })
-                            .setNegativeButton(android.R.string.cancel, null).show();
-                }).setNegativeButton(android.R.string.cancel, null).show();
-    }
+    HouseLocationController houseLocation;
 
     private final androidx.activity.result.ActivityResultLauncher<Intent> photoRequest =
             registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(), result -> {
@@ -491,8 +227,7 @@ public final class MainActivity extends AppCompatActivity {
         updates = com.kwmobile.hometiming.data.update.UpdateManager.get(this);
         updates.changes().observe(this, this::offerAppUpdate);
         weatherVm = new ViewModelProvider(this).get(WeatherViewModel.class);
-        placeResolver = new com.kwmobile.hometiming.data.weather.CurrentPlaceResolver(
-                new android.location.Geocoder(getApplicationContext(), java.util.Locale.KOREA));
+        houseLocation = new HouseLocationController(this, host, vm, () -> screen);
         s().region = weatherVm.regionName();
         configureInsets();
         binding.mainContent.setBackgroundColor(color(R.color.ht_background));
@@ -687,7 +422,7 @@ public final class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onStop() {
-        cancelHouseLocation();
+        houseLocation.cancel();
         capture();
         unregisterReceiver(clock);
         super.onStop();
@@ -782,7 +517,7 @@ public final class MainActivity extends AppCompatActivity {
         if (!fixtures && mvp != null && mvp.session == null
                 && !java.util.Arrays.asList("login", "signup", "reset").contains(s().route.screen)) vm.tab("login");
         String name = s().route.screen;
-        if (!"preferences:region".equals(s().route.key())) cancelHouseLocation();
+        if (!"preferences:region".equals(s().route.key())) houseLocation.cancel();
         if (!fixtures && mvp != null) mvp.watchHistory(name.equals("detail") ? s().route.id : "");
         int pageColor = color(R.color.ht_background);
         boolean home = name.equals("home");
@@ -802,7 +537,7 @@ public final class MainActivity extends AppCompatActivity {
         updateNavigation(name);
         restoreScroll();
         bindScreen(name, new PreviewWidgets(screen));
-        bindHouseLocationProgress();
+        houseLocation.bindProgress();
         motion(screen);
         if (!home) FluidMotion.enter(screen, binding.glassBackdrop::refresh);
         binding.glassBackdrop.refresh();
