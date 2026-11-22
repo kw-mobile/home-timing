@@ -136,7 +136,7 @@ public final class WeatherViewModel extends AndroidViewModel {
     }
 
     public java.time.LocalDate proposalTarget(java.time.LocalDate due) {
-        java.time.LocalDate today = java.time.LocalDate.now(com.kwmobile.hometiming.domain.DateRules.ZONE);
+        java.time.LocalDate today = com.kwmobile.hometiming.domain.DateRules.today(java.time.Clock.systemUTC());
         if (due.isBefore(today) || verdict(due) != com.kwmobile.hometiming.domain.LaundryAdvisor.Verdict.BAD) return null;
         return com.kwmobile.hometiming.domain.LaundryAdvisor.findAlternative(due, days(), today);
     }

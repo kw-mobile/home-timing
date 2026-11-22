@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/widget_row" android:layout_width="match_parent" android:layout_height="48dp"
+    android:orientation="horizontal" android:gravity="center_vertical" android:background="@drawable/widget_ripple">
+    <android.widget.ImageView android:id="@+id/widget_row_icon" android:layout_width="32dp" android:layout_height="32dp"
+        android:padding="5dp" android:background="@drawable/bg_widget_icon" android:src="@drawable/ic_update"
+        android:tint="@color/ht_primary" tools:ignore="UseAppTint" android:importantForAccessibility="no" />
+    <android.widget.TextView android:id="@+id/widget_row_name" android:layout_width="0dp" android:layout_height="wrap_content"
+        android:layout_weight="1" android:layout_marginStart="10dp" android:textSize="17sp"
+        android:fontFamily="@font/pretendard_medium" android:maxLines="1" android:ellipsize="end" android:textColor="@color/ht_text" />
+    <android.widget.TextView android:id="@+id/widget_row_status" android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:minWidth="70dp" android:gravity="end" android:layout_marginStart="8dp" android:textSize="22sp"
+        android:fontFamily="@font/pretendard_semibold" android:fontFeatureSettings="tnum" android:textColor="@color/ht_primary" />
+</LinearLayout>

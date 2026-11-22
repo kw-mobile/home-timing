@@ -24,6 +24,7 @@ public final class MvpViewModel extends AndroidViewModel {
     private final ChoreRepository chores = ChoreRepository.getInstance();
     private final HouseRepository houses = HouseRepository.getInstance();
     private final ReminderManager reminders;
+    private final com.kwmobile.hometiming.widget.ScheduleWidgetManager widgets;
     private final com.kwmobile.hometiming.data.calendar.DeviceCalendarManager calendars;
     private final MutableLiveData<Integer> changes = new MutableLiveData<>(0);
     private final List<Subscription> subscriptions = new ArrayList<>();
@@ -34,8 +35,9 @@ public final class MvpViewModel extends AndroidViewModel {
     private List<Chore> choreRows = Collections.emptyList();
     private PreviewStore.Item editing;
     private int generation;
+    private boolean itemsLoaded, choresLoaded;
     private boolean started, disposed, busy, itemCache = true, choreCache = true, houseCache = true;
-    private String historyId = "", message, pendingReminder;
+    private String historyId = "", message, pendingReminder, pendingReminderHouse;
     public Session session;
     public House house;
     public List<Member> members = Collections.emptyList();
@@ -43,6 +45,7 @@ public final class MvpViewModel extends AndroidViewModel {
     public MvpViewModel(@NonNull Application app) {
         super(app);
         reminders = ReminderManager.getInstance(app);
+        widgets = com.kwmobile.hometiming.widget.ScheduleWidgetManager.get(app);
         calendars = com.kwmobile.hometiming.data.calendar.DeviceCalendarManager.get(app);
     }
 
@@ -71,8 +74,17 @@ public final class MvpViewModel extends AndroidViewModel {
         }
     }
 
-    public void openReminder(String kind, String id) {
+    public void openWidgetHome() {
+        pendingReminder = null; pendingReminderHouse = null;
+        if (session != null) { ui.tab("home"); changed(); }
+    }
+
+    public void openReminder(String kind, String id) { openReminder(kind, id, null); }
+
+    public void openReminder(String kind, String id, String expectedHouse) {
         if (id == null || id.isEmpty() || id.contains("/") || !("ITEM".equals(kind) || "CHORE".equals(kind))) return;
+        if (session != null && expectedHouse != null && !expectedHouse.equals(session.houseId)) return;
+        pendingReminderHouse = expectedHouse;
         pendingReminder = ("ITEM".equals(kind) ? "item:" : "chore:") + id;
         if (session != null) {
             ui.navigate("detail", pendingReminder); pendingReminder = null; changed();
@@ -103,19 +115,24 @@ public final class MvpViewModel extends AndroidViewModel {
         ui.state.authFields.clear();
         ui.state.passwordVisible = false;
         ui.tab("home");
-        if (pendingReminder != null) { ui.navigate("detail", pendingReminder); pendingReminder = null; }
+        if (pendingReminder != null) {
+            if (pendingReminderHouse == null || pendingReminderHouse.equals(value.houseId)) ui.navigate("detail", pendingReminder);
+            pendingReminder = null; pendingReminderHouse = null;
+        }
+        widgets.start(value.uid, value.houseId);
+        itemsLoaded = false; choresLoaded = false;
         int token = generation;
         subscriptions.add(items.listenItems(value.houseId, new ItemRepository.ItemsListener() {
             public void onItems(@NonNull List<Item> rows, boolean cache) {
                 if (!current(token)) return;
-                itemRows = rows; itemCache = cache; rebuild();
+                itemRows = rows; itemCache = cache; itemsLoaded = true; rebuild();
             }
             public void onError(@NonNull ItemError error) { readError(token, error); }
         }));
         subscriptions.add(chores.listenChores(value.houseId, new ChoreRepository.ChoresListener() {
             public void onChores(@NonNull List<Chore> rows, boolean cache) {
                 if (!current(token)) return;
-                choreRows = rows; choreCache = cache; rebuild();
+                choreRows = rows; choreCache = cache; choresLoaded = true; rebuild();
             }
             public void onError(@NonNull ItemError error) { readError(token, error); }
         }));
@@ -158,8 +175,7 @@ public final class MvpViewModel extends AndroidViewModel {
     }
 
     private void recoverMembership() {
-        closeSubscriptions();
-        reminders.onSessionEnded(); calendars.end();
+        stopSession();
         clearData();
         session = null;
         ui.state.draft = null;
@@ -174,6 +190,8 @@ public final class MvpViewModel extends AndroidViewModel {
     }
 
     private void rebuild() {
+        if (session != null && itemsLoaded && choresLoaded)
+            widgets.publish(session.uid, session.houseId, itemRows, choreRows, itemCache || choreCache);
         ui.state.store.items.clear();
         for (Item row : itemRows) ui.state.store.items.add(MvpRecords.item(row));
         for (Chore row : choreRows) ui.state.store.items.add(MvpRecords.chore(row, PreviewStore.today()));
@@ -312,13 +330,13 @@ public final class MvpViewModel extends AndroidViewModel {
         Session previous = session;
         // The commit removes access to the old house before its Task callback may arrive.
         // Detach first so the resulting listener denial cannot discard our own successful move.
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
+        stopSession();
         run(houses.join(code), ignored -> changeHouse(), () -> bind(previous));
     }
     public void leave() {
         if (!writable()) return;
         Session previous = session;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
+        stopSession();
         run(houses.leave(previous.houseId), ignored -> changeHouse(), () -> bind(previous));
     }
     public void removeMember(String uid) {
@@ -334,20 +352,20 @@ public final class MvpViewModel extends AndroidViewModel {
     }
     public void deleteAccount(String password) {
         if (busy || session == null && !auth.isSignedIn()) return;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end();
+        stopSession();
         itemCache = choreCache = houseCache = true;
         ui.state.store.items.clear();
         run(auth.deleteAccount(password), ignored -> signOut());
     }
     public void signOut() {
         if (busy) return;
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); auth.signOut(); clearData();
+        stopSession(); auth.signOut(); clearData();
         session = null; pendingReminder = null;
         ui.state.authFields.clear(); ui.state.draft = null; ui.state.passwordVisible = false;
         ui.tab("login"); changed();
     }
     private void changeHouse() {
-        closeSubscriptions(); reminders.onSessionEnded(); calendars.end(); clearData(); session = null;
+        stopSession(); clearData(); session = null;
         ui.state.draft = null; ui.tab("login");
         // The acknowledged membership transaction invalidates the old operation scope.
         restore();
@@ -381,6 +399,7 @@ public final class MvpViewModel extends AndroidViewModel {
         result.removeIf(old -> old.id.equals(chore.id)); result.add(chore); choreRows = result; rebuild();
     }
     private void clearData() {
+        itemsLoaded = false; choresLoaded = false;
         itemRows = Collections.emptyList(); choreRows = Collections.emptyList();
         histories.clear(); house = null; members = Collections.emptyList(); editing = null;
         itemCache = choreCache = houseCache = true;
@@ -391,6 +410,13 @@ public final class MvpViewModel extends AndroidViewModel {
         ui.state.person = ""; ui.state.joinCode = ""; ui.state.time = "09:00"; ui.state.advanceDays = 3;
         ui.state.filter = "전체"; ui.state.scenario = "loading";
     }
+    private void stopSession() {
+        closeSubscriptions();
+        reminders.onSessionEnded();
+        calendars.end();
+        widgets.end();
+    }
+
     private void closeSubscriptions() {
         generation++; busy = false;
         for (Subscription subscription : subscriptions) subscription.remove();

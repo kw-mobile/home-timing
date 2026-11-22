@@ -1,0 +1,2 @@
+PASS runtime permission denial -> manual-selection 안내; no request
+HOUSE LOCATION PASS: OS mock providers, not physical GPS reception

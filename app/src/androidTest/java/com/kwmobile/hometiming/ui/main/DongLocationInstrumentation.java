@@ -111,7 +111,7 @@ public final class DongLocationInstrumentation extends Instrumentation {
                         }
                         return Tasks.forResult(Collections.singletonList(address()));
                     };
-                    set(activity, "placeResolver", new CurrentPlaceResolver(fake));
+                    set(activity.houseLocation, "placeResolver", new CurrentPlaceResolver(fake));
                 }
             });
             if ("backend".equals(args.getString("mode"))) {
@@ -165,7 +165,7 @@ public final class DongLocationInstrumentation extends Instrumentation {
                     await(() -> delayed.get() != null, 3000, "address pending before background");
                     getUiAutomation().performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME);
                     await(() -> !activity.getLifecycle().getCurrentState().isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED), 8000, "activity actually stopped");
-                    check(read(activity, "houseLocationRequest") == null, "onStop clears pending location/address");
+                    check(!activity.houseLocation.active(), "onStop clears pending location/address");
                     delayed.get().trySetResult(Collections.singletonList(address()));
                     getTargetContext().startActivity(new Intent(getTargetContext(), MainActivity.class)
                             .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_REORDER_TO_FRONT));
@@ -211,7 +211,7 @@ public final class DongLocationInstrumentation extends Instrumentation {
         manager.setTestProviderEnabled(provider, true); if (!installed.contains(provider)) installed.add(provider);
     }
     private void reset() { for (String provider : installed) { manager.removeTestProvider(provider); addProvider(provider); } }
-    private void request() { runOnMainSync(() -> invoke("requestHouseLocation")); }
+    private void request() { runOnMainSync(() -> activity.houseLocation.request()); }
     private void feed(String provider, float accuracy) {
         Location value = new Location(provider); value.setLatitude(37.5665); value.setLongitude(126.9780);
         value.setAccuracy(accuracy); value.setTime(System.currentTimeMillis()); value.setElapsedRealtimeNanos(SystemClock.elapsedRealtimeNanos());
@@ -238,7 +238,6 @@ public final class DongLocationInstrumentation extends Instrumentation {
         finally { bitmap.recycle(); }
     }
     private void invoke(String name) { try { java.lang.reflect.Method m = MainActivity.class.getDeclaredMethod(name); m.setAccessible(true); m.invoke(activity); } catch (Exception e) { throw new RuntimeException(e); } }
-    private static Object read(Object object, String name) { try { Field f = object.getClass().getDeclaredField(name); f.setAccessible(true); return f.get(object); } catch (Exception e) { throw new RuntimeException(e); } }
     private static void set(Object object, String name, Object value) { try { Field field = object.getClass().getDeclaredField(name); field.setAccessible(true); field.set(object, value); } catch (Exception e) { throw new RuntimeException(e); } }
     private void await(BooleanSupplier condition, long timeout, String label) {
         long end = SystemClock.elapsedRealtime() + timeout;
