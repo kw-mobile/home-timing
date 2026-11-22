@@ -2,7 +2,9 @@ package com.kwmobile.hometiming.ui.main;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 
@@ -55,6 +57,23 @@ final class AccountScreens {
             ui.box(R.id.auth_options).addView(row);
         }
         MaterialButton submit = screen.findViewById(R.id.auth_submit);
+        if (submit == null) return;
+        EditText lastField = mode.equals("signup")
+                ? screen.findViewById(R.id.auth_confirm)
+                : (mode.equals("reset") ? screen.findViewById(R.id.auth_email) : screen.findViewById(R.id.auth_password));
+        if (lastField != null) {
+            lastField.setOnEditorActionListener((v, actionId, event) -> {
+                if (actionId == EditorInfo.IME_ACTION_DONE
+                        || actionId == EditorInfo.IME_ACTION_GO
+                        || (mode.equals("login") && actionId == EditorInfo.IME_ACTION_NEXT)
+                        || (event != null && event.getKeyCode() == KeyEvent.KEYCODE_ENTER
+                                && event.getAction() == KeyEvent.ACTION_DOWN)) {
+                    submit.performClick();
+                    return true;
+                }
+                return false;
+            });
+        }
         View change = screen.findViewById(R.id.auth_switch);
         if (change != null)
             change.setOnClickListener(v -> host.go(mode.equals("login") ? "signup" : "login"));
