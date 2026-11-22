@@ -84,7 +84,7 @@ final class ItemScreens {
                     d.chore = value.equals(context.getString(R.string.preview_copy_088));
                     d.cycle = d.chore ? "7" : "60";
                     d.cycleEdited = false;
-                    CategoryDialog categories = new CategoryDialog(context, vm, ui);
+                    CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
                     d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore),
                             context.getString(d.chore
                                     ? R.string.preview_copy_089 : R.string.preview_copy_053));
@@ -107,7 +107,7 @@ final class ItemScreens {
         int[] categories = {R.string.preview_copy_023, R.string.preview_copy_052,
                 R.string.preview_copy_023, R.string.preview_copy_053};
         int[] days = {90, 30, 60, 7};
-        CategoryDialog categoryDialog = new CategoryDialog(context, vm, ui);
+        CategoryDialog categoryDialog = new CategoryDialog(context, vm, ui, host.mvp());
         for (int i = 0; i < labels.length; i++) {
             final int index = i;
             MaterialButton button = ui.smallAction(context.getString(labels[i]), () -> {
@@ -159,7 +159,7 @@ final class ItemScreens {
     }
 
     private void bindEditorCategory(DesignPreviewViewModel.Draft d) {
-        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
         d.category = vm.defaultCategory(d.chore, categories.defaults(d.chore), d.category);
         LinearLayout category = ui.box(R.id.editor_category);
         ui.gap(category, 16);

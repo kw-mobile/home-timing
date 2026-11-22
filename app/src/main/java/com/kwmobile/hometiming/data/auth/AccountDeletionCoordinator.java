@@ -223,6 +223,8 @@ final class AccountDeletionCoordinator {
             }
             tx.delete(memberRef);
             if (house != null) {
+                tx.delete(houseRef.collection("categoryCatalogs").document("item"));
+                tx.delete(houseRef.collection("categoryCatalogs").document("chore"));
                 tx.delete(houseRef);
             }
             tx.delete(userRef);

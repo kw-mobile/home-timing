@@ -207,6 +207,7 @@ public final class ChoreRepository {
         DocumentReference ref = chores(firestore, houseId).document();
         Chore chore = ChoreSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
         return ItemTasks.commit(firestore, scope, this::currentUid, tx -> {
+            CategoryRepository.assignment(tx, firestore, houseId, true, draft.categoryId, draft.category);
             tx.set(ref, ChoreDocuments.choreFields(chore, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.CHORE_COUNT, FieldValue.increment(1),
@@ -240,6 +241,7 @@ public final class ChoreRepository {
             DocumentSnapshot snapshot = tx.get(ref);
             Chore stored = requireStored(snapshot);
             rejectConflict(stored, shown.occurrenceId, shown.revision);
+            CategoryRepository.assignment(tx, firestore, houseId, true, draft.categoryId, draft.category);
             Chore next = ChoreSchedule.edit(stored, draft, today);
             Map<String, Object> fields = ChoreDocuments.choreFields(next, uid, createdAt(snapshot),
                     FieldValue.serverTimestamp());

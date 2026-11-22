@@ -112,6 +112,7 @@ public final class DesignPreviewViewModel extends ViewModel {
     }
 
     public List<String> categories(boolean chore, String[] defaults) {
+        if (state.live) return new ArrayList<>(chore ? state.choreCategories : state.itemCategories);
         LinkedHashSet<String> result = new LinkedHashSet<>(java.util.Arrays.asList(defaults));
         result.removeAll(removedCategories(chore));
         result.addAll(chore ? state.choreCategories : state.itemCategories);
@@ -155,7 +156,7 @@ public final class DesignPreviewViewModel extends ViewModel {
 
     public String defaultCategory(boolean chore, String[] defaults, String preferred) {
         List<String> names = categories(chore, defaults);
-        return names.contains(preferred) ? preferred : names.get(0);
+        return names.contains(preferred) ? preferred : names.isEmpty() ? preferred : names.get(0);
     }
 
     public boolean renameCategory(

@@ -16,6 +16,26 @@ service cloud.firestore {
     function memberDoc(houseId, userId) {
       return /databases/$(database)/documents/houses/$(houseId)/members/$(userId);
     }
+    function catalogDoc(houseId, kind) {
+      return /databases/$(database)/documents/houses/$(houseId)/categoryCatalogs/$(kind);
+    }
+
+    function validCategoryName(name) {
+      return isText(name, 30) && name.trim() == name && name != '전체';
+    }
+
+    function categoryAssignment(houseId, kind, d) {
+      let id = d.get('categoryId', '');
+      return id == '' || (isId(id) && existsAfter(catalogDoc(houseId, kind))
+          && getAfter(catalogDoc(houseId, kind)).data.labels.get(id, '') == d.category);
+    }
+
+    function validCategoryChange(houseId, kind) {
+      return !changed().hasAny(['categoryId', 'category'])
+          || ((!('categoryId' in resource.data) || 'categoryId' in request.resource.data)
+              && categoryAssignment(houseId, kind, request.resource.data));
+    }
+
     function itemDoc(houseId, itemId) {
       return /databases/$(database)/documents/houses/$(houseId)/items/$(itemId);
     }
@@ -296,7 +316,71 @@ service cloud.firestore {
           && resource.data.itemCount == 0
           && resource.data.choreCount == 0
           && !existsAfter(memberDoc(houseId, me()))
+          && !existsAfter(catalogDoc(houseId, 'item'))
+          && !existsAfter(catalogDoc(houseId, 'chore'))
           && (!existsAfter(userDoc(me())) || getAfter(userDoc(me())).data.currentHouseId != houseId);
+
+      // Exactly two known catalogs. Immutable redirects resolve old records without changing history.
+      match /categoryCatalogs/{kind} {
+        function knownKind() { return kind in ['item', 'chore']; }
+
+        function defaults() {
+          return kind == 'item'
+              ? {'default_bathroom': '욕실', 'default_kitchen': '주방', 'default_other': '기타'}
+              : {'default_bedding': '세탁', 'default_dry': '건조', 'default_ventilation': '환기',
+                 'default_cleaning': '청소', 'default_other': '기타'};
+        }
+
+        function validCatalog(d) {
+          return hasExactly(d, ['labels', 'redirects', 'revision', 'operation', 'source',
+                  'target', 'updatedBy', 'updatedAt'])
+              && d.labels is map && d.redirects is map
+              && d.labels.size() >= 1 && d.labels.size() + d.redirects.size() <= 1000
+              && d.revision is int && d.revision >= 1
+              && d.operation in ['INIT', 'ADD', 'RENAME', 'DELETE', 'ALIAS']
+              && d.source is string && d.source.size() <= 64
+              && d.target is string && d.target.size() <= 64
+              && d.updatedBy == me() && d.updatedAt == request.time;
+        }
+
+        function applyCatalogChange(d, before) {
+          let id = d.source;
+          let labels = d.labels.diff(before.labels);
+          let redirects = d.redirects.diff(before.redirects);
+          let newId = !(id in before.labels) && !(id in before.redirects);
+          let unique = d.labels.values().toSet().size() == d.labels.size();
+          return d.revision == before.revision + 1 && unique
+              && ((d.operation == 'ADD' && newId && d.target == ''
+                      && id.matches('(c_|legacy_)[0-9a-f]{32}')
+                      && labels.addedKeys() == [id].toSet()
+                      && labels.affectedKeys().hasOnly([id]) && redirects.affectedKeys().size() == 0
+                      && validCategoryName(d.labels[id]))
+                  || (d.operation == 'RENAME' && id in before.labels && d.target == ''
+                      && labels.changedKeys() == [id].toSet()
+                      && labels.affectedKeys().hasOnly([id]) && redirects.affectedKeys().size() == 0
+                      && validCategoryName(d.labels[id]))
+                  || (d.operation == 'DELETE' && id in before.labels && d.target in d.labels
+                      && labels.removedKeys() == [id].toSet() && labels.affectedKeys().hasOnly([id])
+                      && redirects.addedKeys() == [id].toSet() && redirects.affectedKeys().hasOnly([id])
+                      && d.redirects[id] == d.target)
+                  || (d.operation == 'ALIAS' && newId && id.matches('legacy_[0-9a-f]{32}')
+                      && d.target in d.labels && labels.affectedKeys().size() == 0
+                      && redirects.addedKeys() == [id].toSet() && redirects.affectedKeys().hasOnly([id])
+                      && d.redirects[id] == d.target));
+        }
+
+        allow get: if knownKind() && isMember(houseId);
+        allow create: if knownKind() && isMember(houseId) && normalWrite(houseId)
+            && validCatalog(request.resource.data)
+            && request.resource.data.operation == 'INIT' && request.resource.data.revision == 1
+            && request.resource.data.source == '' && request.resource.data.target == ''
+            && request.resource.data.labels == defaults() && request.resource.data.redirects.size() == 0;
+        allow update: if knownKind() && isMember(houseId) && normalWrite(houseId)
+            && validCatalog(request.resource.data)
+            && applyCatalogChange(request.resource.data, resource.data);
+        allow delete: if knownKind() && isOwner(houseId) && cleanupWrite(houseId)
+            && !existsAfter(houseDoc(houseId));
+      }
 
       // ---- members/{uid} ----
       match /members/{memberId} {
@@ -364,10 +448,11 @@ service cloud.firestore {
                   'createdAt', 'updatedAt', 'recordCount', 'deleting'])
               && d.keys().hasOnly(['name', 'category', 'startDate', 'cycleDays', 'lastReplacedDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'productName', 'location', 'memo'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'productName', 'location', 'memo', 'categoryId'])
               && validRecords(d)
               && isText(d.name, 60)
               && isText(d.category, 30)
+              && (!('categoryId' in d) || isId(d.categoryId))
               && isDate(d.startDate) && notFuture(d.startDate)
               && d.cycleDays is int && d.cycleDays >= 1 && d.cycleDays <= 730
               && isDate(d.lastReplacedDate) && notFuture(d.lastReplacedDate)
@@ -438,6 +523,7 @@ service cloud.firestore {
 
         allow create: if isMember(houseId) && normalWrite(houseId)
             && validItem(request.resource.data)
+            && categoryAssignment(houseId, 'item', request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
             && request.resource.data.revision == 1
@@ -449,6 +535,7 @@ service cloud.firestore {
         allow update: if isMember(houseId) && cleanupWrite(houseId)
             && validRecords(resource.data)
             && validItem(request.resource.data)
+            && validCategoryChange(houseId, 'item')
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
             && ((normalWrite(houseId) && (isEdit() || isCompletion())) || isDeletionStep());
@@ -504,10 +591,12 @@ service cloud.firestore {
                   'createdAt', 'updatedAt', 'recordCount', 'deleting'])
               && d.keys().hasOnly(['name', 'type', 'weatherSensitive', 'weekday', 'plannedDueDate',
                   'nextDueDate', 'occurrenceId', 'revision', 'createdBy', 'updatedBy',
-                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'dismissedOccurrenceId', 'lastDoneDate', 'location', 'memo'])
+                  'createdAt', 'updatedAt', 'recordCount', 'deleting', 'recordMutationId', 'dismissedOccurrenceId', 'lastDoneDate', 'location', 'memo', 'categoryId', 'category'])
               && validRecords(d)
               && isText(d.name, 60)
               && d.type in ['BEDDING_WASH', 'OUTDOOR_DRY', 'VENTILATION', 'CLEANING', 'ETC']
+              && (('categoryId' in d) == ('category' in d))
+              && (!('categoryId' in d) || (isId(d.categoryId) && validCategoryName(d.category)))
               && d.weatherSensitive is bool
               && d.weekday is int && d.weekday >= 1 && d.weekday <= 7
               && isDate(d.plannedDueDate)
@@ -602,6 +691,7 @@ service cloud.firestore {
 
         allow create: if isMember(houseId) && normalWrite(houseId)
             && validChore(request.resource.data)
+            && categoryAssignment(houseId, 'chore', request.resource.data)
             && request.resource.data.createdBy == me()
             && request.resource.data.createdAt == request.time
             && request.resource.data.revision == 1
@@ -616,6 +706,7 @@ service cloud.firestore {
         allow update: if isMember(houseId) && cleanupWrite(houseId)
             && validRecords(resource.data)
             && validChore(request.resource.data)
+            && validCategoryChange(houseId, 'chore')
             && request.resource.data.createdBy == resource.data.createdBy
             && request.resource.data.createdAt == resource.data.createdAt
             && ((normalWrite(houseId) && (isSameOccurrence() || isCompletion())) || isDeletionStep());

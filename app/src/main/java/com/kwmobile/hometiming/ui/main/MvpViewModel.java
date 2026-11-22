@@ -23,6 +23,12 @@ public final class MvpViewModel extends AndroidViewModel {
     private final ItemRepository items = ItemRepository.getInstance();
     private final ChoreRepository chores = ChoreRepository.getInstance();
     private final HouseRepository houses = HouseRepository.getInstance();
+    private final CategoryRepository categories = CategoryRepository.getInstance();
+    private final CategoryCatalog[] catalogs = new CategoryCatalog[2];
+    private final boolean[] catalogCache = {true, true};
+    private final Set<String> adopting = new HashSet<>();
+    private final Set<String> adoptionFailed = new HashSet<>();
+    public CategoryCatalog catalog(boolean chore) { return catalogs[chore ? 1 : 0]; }
     private final ReminderManager reminders;
     private final com.kwmobile.hometiming.widget.ScheduleWidgetManager widgets;
     private final com.kwmobile.hometiming.data.calendar.DeviceCalendarManager calendars;
@@ -60,6 +66,11 @@ public final class MvpViewModel extends AndroidViewModel {
     public boolean readOnly() {
         return session == null || session.offline || itemCache || choreCache || houseCache;
     }
+    private boolean categoriesReady(boolean chore) {
+        return !catalogCache[chore ? 1 : 0] && catalog(chore) != null
+                && adopting.isEmpty();
+    }
+
     public String takeMessage() { String result = message; message = null; return result; }
     public void attach(DesignPreviewViewModel state) {
         ui = state;
@@ -163,6 +174,25 @@ public final class MvpViewModel extends AndroidViewModel {
                 if (current(token) && error != HouseError.PERMISSION_DENIED) say(error.messageRes);
             }
         }));
+        for (boolean chore : new boolean[] {false, true}) {
+            final int index = chore ? 1 : 0;
+            subscriptions.add(categories.listen(value.houseId, chore, new CategoryRepository.Listener() {
+                public void onCatalog(CategoryCatalog catalog, boolean cache) {
+                    if (!current(token)) return;
+                    catalogCache[index] = cache || catalog == null;
+                    if (catalog == null && !cache) {
+                        categories.initialize(value.houseId, chore).addOnFailureListener(error -> {
+                            if (current(token)) categoryFailure(error);
+                        });
+                    } else if (catalog != null) receiveCatalog(catalog);
+                }
+                public void onError(Exception error) {
+                    if (!current(token)) return;
+                    catalogCache[index] = true;
+                    categoryFailure(error);
+                }
+            }));
+        }
         reminders.onSessionStarted(value.houseId);
         calendars.start(value.uid, value.houseId);
         ReminderRepository.getInstance().readFromServer().addOnSuccessListener(settings -> {
@@ -193,8 +223,9 @@ public final class MvpViewModel extends AndroidViewModel {
         if (session != null && itemsLoaded && choresLoaded)
             widgets.publish(session.uid, session.houseId, itemRows, choreRows, itemCache || choreCache);
         ui.state.store.items.clear();
-        for (Item row : itemRows) ui.state.store.items.add(MvpRecords.item(row));
-        for (Chore row : choreRows) ui.state.store.items.add(MvpRecords.chore(row, PreviewStore.today()));
+        adoptLegacy();
+        for (Item row : itemRows) ui.state.store.items.add(MvpRecords.item(row, catalogs[0]));
+        for (Chore row : choreRows) ui.state.store.items.add(MvpRecords.chore(row, PreviewStore.today(), catalogs[1]));
         for (PreviewStore.Item row : ui.state.store.items) {
             List<PreviewStore.History> events = histories.get(row.id);
             if (events != null) row.history.addAll(events);
@@ -209,11 +240,17 @@ public final class MvpViewModel extends AndroidViewModel {
         if (!writable()) return;
         DesignPreviewViewModel.Draft d = ui.state.draft;
         if (d == null) return;
+        if (!categoriesReady(d.chore)) { say(R.string.category_remote_error); return; }
         // Freeze values and the record shown when editing began, before any asynchronous work.
         String houseId = session.houseId;
+        CategoryCatalog catalog = catalog(d.chore);
+        String categoryId = catalog == null ? null : catalog.idForName(d.category);
+        if (categoryId == null) { say(R.string.category_changed); return; }
         if (d.chore) {
-            ChoreDraft draft = new ChoreDraft(d.name, MvpRecords.choreType(d.category), d.weather,
-                    d.weekday, d.date, d.location, d.memo);
+            String type = editing != null && editing.serverChore != null ? editing.serverChore.type
+                    : MvpRecords.choreType(CategoryCatalog.defaults(true).labels.getOrDefault(categoryId, "기타"));
+            ChoreDraft draft = new ChoreDraft(d.name, type, d.weather,
+                    d.weekday, d.date, d.location, d.memo, categoryId, d.category);
             if (!ChoreInputValidator.validateDraft(draft, PreviewStore.today()).isEmpty()) {
                 say(R.string.item_error_invalid_input); return;
             }
@@ -226,7 +263,7 @@ public final class MvpViewModel extends AndroidViewModel {
         } else {
             int cycle;
             try { cycle = Integer.parseInt(d.cycle); } catch (NumberFormatException error) { say(R.string.item_error_invalid_input); return; }
-            ItemDraft draft = new ItemDraft(d.name, d.category, d.date, cycle, d.productName, d.location, d.memo);
+            ItemDraft draft = new ItemDraft(d.name, d.category, d.date, cycle, d.productName, d.location, d.memo, categoryId);
             if (!ItemInputValidator.validateDraft(draft, PreviewStore.today()).isEmpty()) {
                 say(R.string.item_error_invalid_input); return;
             }
@@ -237,6 +274,78 @@ public final class MvpViewModel extends AndroidViewModel {
                 replace(row); saved("item:" + row.id);
             });
         }
+    }
+
+    private void receiveCatalog(CategoryCatalog next) {
+        int index = next.chore ? 1 : 0;
+        CategoryCatalog before = catalogs[index];
+        if (before != null && next.revision < before.revision) return;
+        if (before != null) {
+            for (DesignPreviewViewModel.Draft draft : new DesignPreviewViewModel.Draft[] {ui.state.draft, ui.state.componentDraft}) {
+                if (draft != null && draft.chore == next.chore) {
+                    String id = before.idForName(draft.category);
+                    if (id != null) draft.category = next.label(id, draft.category);
+                }
+            }
+            if (!next.chore) {
+                String id = before.idForName(ui.state.filter);
+                if (id != null) ui.state.filter = next.labels.containsKey(id)
+                        ? next.labels.get(id) : "전체";
+            }
+        }
+        catalogs[index] = next;
+        Set<String> names = next.chore ? ui.state.choreCategories : ui.state.itemCategories;
+        names.clear(); names.addAll(next.labels.values());
+        rebuild();
+    }
+    private void adoptLegacy() {
+        if (session == null) return;
+        for (Item row : itemRows) if (row.categoryId.isEmpty()) adopt(false, row.category);
+        for (Chore row : choreRows) if (row.categoryId.isEmpty()) adopt(true, row.type);
+    }
+    private void adopt(boolean chore, String raw) {
+        CategoryCatalog catalog = catalog(chore);
+        if (catalog == null || catalogCache[chore ? 1 : 0]
+                || !CategoryCatalog.validName(CategoryCatalog.legacyLabel(chore, raw))) return;
+        String id = CategoryCatalog.legacyId(chore, raw), key = (chore ? "chore:" : "item:") + id;
+        if (catalog.resolve(id) != null || adopting.contains(key) || adoptionFailed.contains(key)) return;
+        adopting.add(key);
+        int token = generation;
+        categories.adopt(session.houseId, chore, raw).addOnCompleteListener(done -> {
+            if (!current(token)) return;
+            adopting.remove(key);
+            if (done.isSuccessful()) receiveCatalog(done.getResult());
+            else { adoptionFailed.add(key); categoryFailure(done.getException()); }
+            changed();
+        });
+    }
+    public void changeCategory(CategoryCatalog shown, String oldName, String name, String replacement,
+                               Consumer<Boolean> completion) {
+        if (!writable()) { completion.accept(false); return; }
+        if (shown == null || !categoriesReady(shown.chore)) {
+            say(R.string.category_remote_error);
+            completion.accept(false);
+            return;
+        }
+        String id = oldName == null ? null : shown.idForName(oldName);
+        Task<CategoryCatalog> task = oldName == null ? categories.add(session.houseId, shown.chore, name)
+                : replacement == null ? categories.rename(session.houseId, shown, id, name)
+                : categories.delete(session.houseId, shown, id, shown.idForName(replacement));
+        busy = true; int token = generation; changed();
+        task.addOnCompleteListener(done -> {
+            if (!current(token)) return;
+            busy = false;
+            if (done.isSuccessful()) receiveCatalog(done.getResult());
+            else categoryFailure(done.getException());
+            completion.accept(done.isSuccessful()); changed();
+        });
+    }
+    private void categoryFailure(Exception error) {
+        String code = error instanceof CategoryException ? ((CategoryException) error).code : "";
+        say("DUPLICATE".equals(code) ? R.string.category_duplicate
+                : "LAST".equals(code) ? R.string.category_delete_last
+                : "INVALID".equals(code) ? R.string.category_invalid
+                : "CHANGED".equals(code) ? R.string.category_changed : R.string.category_remote_error);
     }
 
     private void saved(String id) {
@@ -401,6 +510,8 @@ public final class MvpViewModel extends AndroidViewModel {
     private void clearData() {
         itemsLoaded = false; choresLoaded = false;
         itemRows = Collections.emptyList(); choreRows = Collections.emptyList();
+        catalogs[0] = catalogs[1] = null; catalogCache[0] = catalogCache[1] = true;
+        adopting.clear(); adoptionFailed.clear();
         histories.clear(); house = null; members = Collections.emptyList(); editing = null;
         itemCache = choreCache = houseCache = true;
         ui.state.store.items.clear(); ui.state.scrolls.clear(); ui.state.completionDates.clear();

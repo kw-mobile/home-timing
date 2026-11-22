@@ -2,6 +2,7 @@ package com.kwmobile.hometiming.ui.main;
 
 import com.kwmobile.hometiming.data.preview.PreviewStore;
 import com.kwmobile.hometiming.domain.Chore;
+import com.kwmobile.hometiming.domain.CategoryCatalog;
 import com.kwmobile.hometiming.domain.ChoreDraft;
 import com.kwmobile.hometiming.domain.Item;
 import java.time.LocalDate;
@@ -10,9 +11,13 @@ import java.time.LocalDate;
 final class MvpRecords {
     private MvpRecords() { }
 
-    static PreviewStore.Item item(Item item) {
+    static PreviewStore.Item item(Item item) { return item(item, null); }
+
+    static PreviewStore.Item item(Item item, CategoryCatalog catalog) {
         PreviewStore.Item row = new PreviewStore.Item("item:" + item.id, item.name,
-                "ETC".equals(item.category) ? "기타" : item.category, item.location, false,
+                catalog == null ? CategoryCatalog.legacyLabel(false, item.category)
+                        : catalog.label(item.categoryId.isEmpty() ? CategoryCatalog.legacyId(false, item.category)
+                        : item.categoryId, CategoryCatalog.legacyLabel(false, item.category)), item.location, false,
                 item.cycleDays, item.lastReplacedDate, item.nextDueDate);
         row.serverItem = item;
         row.productName = item.productName;
@@ -23,10 +28,15 @@ final class MvpRecords {
         return row;
     }
 
-    static PreviewStore.Item chore(Chore chore, LocalDate today) {
+    static PreviewStore.Item chore(Chore chore, LocalDate today) { return chore(chore, today, null); }
+
+    static PreviewStore.Item chore(Chore chore, LocalDate today, CategoryCatalog catalog) {
         LocalDate start = chore.lastDoneDate == null ? today : chore.lastDoneDate;
         PreviewStore.Item row = new PreviewStore.Item("chore:" + chore.id, chore.name,
-                category(chore.type), chore.location, true, 7, start, chore.nextDueDate);
+                catalog == null ? (chore.category.isEmpty() ? category(chore.type) : chore.category)
+                        : catalog.label(chore.categoryId.isEmpty() ? CategoryCatalog.legacyId(true, chore.type)
+                        : chore.categoryId, chore.category.isEmpty() ? category(chore.type) : chore.category),
+                chore.location, true, 7, start, chore.nextDueDate);
         row.serverChore = chore;
         row.weekday = chore.weekday;
         row.weatherSensitive = chore.weatherSensitive;

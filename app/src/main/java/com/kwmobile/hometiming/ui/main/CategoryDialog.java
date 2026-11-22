@@ -11,6 +11,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.kwmobile.hometiming.R;
+import com.kwmobile.hometiming.domain.CategoryCatalog;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -19,11 +20,13 @@ final class CategoryDialog {
     private final Context context;
     private final DesignPreviewViewModel vm;
     private final PreviewWidgets ui;
+    private final MvpViewModel mvp;
 
-    CategoryDialog(Context context, DesignPreviewViewModel vm, PreviewWidgets ui) {
+    CategoryDialog(Context context, DesignPreviewViewModel vm, PreviewWidgets ui, MvpViewModel mvp) {
         this.context = context;
         this.vm = vm;
         this.ui = ui;
+        this.mvp = mvp;
     }
 
     String[] defaults(boolean chore) {
@@ -37,22 +40,23 @@ final class CategoryDialog {
 
     void choose(boolean chore, String selected, Consumer<String> pick, Runnable changed) {
         List<String> names = vm.categories(chore, defaults(chore));
-        if (!names.contains(selected)) names.add(selected);
-        if (!vm.state.live || !chore) names.add(context.getString(R.string.category_add_option));
+        if (mvp == null && !names.contains(selected)) names.add(selected);
+        names.add(context.getString(R.string.category_add_option));
         MaterialAlertDialogBuilder chooser = new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.preview_copy_091)
                 .setItems(names.toArray(new String[0]), (dialog, index) -> {
-                    if ((!vm.state.live || !chore) && index == names.size() - 1) add(chore, pick);
+                    if (index == names.size() - 1) add(chore, pick);
                     else pick.accept(names.get(index));
                 })
                 .setNegativeButton(R.string.preview_copy_288, null);
-        if (!vm.state.live) chooser.setNeutralButton(R.string.category_edit,
+        chooser.setNeutralButton(R.string.category_edit,
                 (dialog, which) -> editCategories(chore, changed));
         chooser.show();
     }
 
     private void editCategories(boolean chore, Runnable changed) {
         List<String> names = vm.categories(chore, defaults(chore));
+        CategoryCatalog shown = mvp == null ? null : mvp.catalog(chore);
         LinearLayout body = ui.vertical();
         body.setPadding(ui.dp(24), 0, ui.dp(24), 0);
         ScrollView scroll = new ScrollView(context);
@@ -68,6 +72,7 @@ final class CategoryDialog {
                 .setNegativeButton(R.string.category_done, null)
                 .create();
         Runnable refresh = () -> {
+            if (!editor.isShowing()) return;
             editor.dismiss();
             changed.run();
             editCategories(chore, changed);
@@ -85,13 +90,13 @@ final class CategoryDialog {
             android.util.TypedValue feedback = new android.util.TypedValue();
             context.getTheme().resolveAttribute(android.R.attr.selectableItemBackground, feedback, true);
             label.setBackgroundResource(feedback.resourceId);
-            label.setOnClickListener(view -> editName(chore, name, value -> refresh.run()));
+            label.setOnClickListener(view -> editName(chore, name, shown, value -> refresh.run()));
             row.addView(label, new LinearLayout.LayoutParams(0, -2, 1));
-            MaterialButton delete = ui.smallAction(context.getString(R.string.category_delete),
-                    () -> deleteCategory(chore, name, refresh));
+            MaterialButton delete = ui.smallAction(context.getString(R.string.category_delete_symbol),
+                    () -> deleteCategory(chore, name, shown, refresh));
             delete.setContentDescription(context.getString(R.string.category_delete_for, name));
             delete.setPadding(ui.dp(8), 0, ui.dp(8), 0);
-            LinearLayout.LayoutParams deleteSize = new LinearLayout.LayoutParams(-2, ui.dp(48));
+            LinearLayout.LayoutParams deleteSize = new LinearLayout.LayoutParams(ui.dp(48), ui.dp(48));
             deleteSize.leftMargin = ui.dp(4);
             row.addView(delete, deleteSize);
             rows.addView(row);
@@ -99,7 +104,7 @@ final class CategoryDialog {
         editor.show();
     }
 
-    private void deleteCategory(boolean chore, String name, Runnable changed) {
+    private void deleteCategory(boolean chore, String name, CategoryCatalog shown, Runnable changed) {
         List<String> targets = vm.categories(chore, defaults(chore));
         targets.remove(name);
         if (targets.isEmpty()) {
@@ -108,20 +113,20 @@ final class CategoryDialog {
                     .setMessage(R.string.category_delete_last)
                     .setPositiveButton(android.R.string.ok, null)
                     .show();
-        } else if (vm.categoryInUse(chore, name)) {
+        } else if (mvp != null || vm.categoryInUse(chore, name)) {
             new MaterialAlertDialogBuilder(context)
                     .setTitle(R.string.category_move_title)
                     .setItems(targets.toArray(new String[0]), (dialog, index) ->
-                            confirmDelete(chore, name, targets.get(index), changed))
+                            confirmDelete(chore, name, targets.get(index), shown, changed))
                     .setNegativeButton(R.string.preview_copy_288, null)
                     .show();
         } else {
-            confirmDelete(chore, name, null, changed);
+            confirmDelete(chore, name, null, shown, changed);
         }
     }
 
     private void confirmDelete(
-            boolean chore, String name, String replacement, Runnable changed) {
+            boolean chore, String name, String replacement, CategoryCatalog shown, Runnable changed) {
         new MaterialAlertDialogBuilder(context)
                 .setTitle(R.string.category_delete_title)
                 .setMessage(replacement == null
@@ -129,6 +134,12 @@ final class CategoryDialog {
                         : context.getString(R.string.category_delete_move_message, name, replacement))
                 .setNegativeButton(R.string.preview_copy_288, null)
                 .setPositiveButton(R.string.category_delete, (dialog, which) -> {
+                    if (mvp != null) {
+                        mvp.changeCategory(shown, name, null, replacement, success -> {
+                            if (success) changed.run();
+                        });
+                        return;
+                    }
                     if (vm.deleteCategory(chore, name, replacement, defaults(chore),
                             context.getString(R.string.preview_copy_051))) {
                         changed.run();
@@ -143,10 +154,10 @@ final class CategoryDialog {
     }
 
     void add(boolean chore, Consumer<String> added) {
-        editName(chore, null, added);
+        editName(chore, null, mvp == null ? null : mvp.catalog(chore), added);
     }
 
-    private void editName(boolean chore, String oldName, Consumer<String> saved) {
+    private void editName(boolean chore, String oldName, CategoryCatalog shown, Consumer<String> saved) {
         LinearLayout body = ui.vertical();
         body.setPadding(ui.dp(24), ui.dp(8), ui.dp(24), 0);
         EditText input = new androidx.appcompat.widget.AppCompatEditText(context);
@@ -168,6 +179,24 @@ final class CategoryDialog {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
                 String name = input.getText().toString().trim();
                 String allLabel = context.getString(R.string.preview_copy_051);
+                if (mvp != null) {
+                    if (!CategoryCatalog.validName(name)) {
+                        input.setError(context.getString(R.string.category_invalid));
+                        return;
+                    }
+                    view.setEnabled(false);
+                    mvp.changeCategory(shown, oldName, name, null, success -> {
+                        if (!dialog.isShowing()) return;
+                        view.setEnabled(true);
+                        if (success) {
+                            dialog.dismiss();
+                            saved.accept(name);
+                        } else {
+                            input.setError(context.getString(R.string.category_changed));
+                        }
+                    });
+                    return;
+                }
                 boolean success = oldName == null
                         ? vm.addCategory(chore, name, defaults(chore), allLabel)
                         : vm.renameCategory(chore, oldName, name, defaults(chore), allLabel);

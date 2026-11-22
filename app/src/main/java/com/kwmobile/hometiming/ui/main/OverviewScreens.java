@@ -271,7 +271,7 @@ final class OverviewScreens {
                 ui.smallAction(context.getString(R.string.preview_copy_037), () -> host.edit("")));
         controls.addView(add);
         ui.gap(controls, 16);
-        CategoryDialog categories = new CategoryDialog(context, vm, ui);
+        CategoryDialog categories = new CategoryDialog(context, vm, ui, host.mvp());
         List<String> filters = vm.categories(false, categories.defaults(false));
         filters.add(0, context.getString(R.string.preview_copy_051));
         if (!filters.contains(preview.filter)) preview.filter = filters.get(0);

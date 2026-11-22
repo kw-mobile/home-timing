@@ -15,6 +15,8 @@ public final class ChoreDraft {
 
     public final String name;
     public final String type;
+    public final String categoryId;
+    public final String category;
     public final boolean weatherSensitive;
     /** 1 = Monday … 7 = Sunday; null until chosen. */
     public final Integer weekday;
@@ -25,6 +27,13 @@ public final class ChoreDraft {
 
     public ChoreDraft(String name, String type, boolean weatherSensitive, Integer weekday,
                       LocalDate startDate, String location, String memo) {
+        this(name, type, weatherSensitive, weekday, startDate, location, memo, "", "");
+    }
+
+    public ChoreDraft(String name, String type, boolean weatherSensitive, Integer weekday,
+                      LocalDate startDate, String location, String memo, String categoryId, String category) {
+        this.categoryId = trim(categoryId);
+        this.category = trim(category);
         this.name = trim(name);
         String picked = trim(type);
         this.type = picked.isEmpty() ? TYPE_ETC : picked;

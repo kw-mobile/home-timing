@@ -53,6 +53,8 @@ adb -s emulator-5572 shell am instrument -w -e role member -e runId mvp-unique-r
 
 두 역할은 새 테스트 계정의 빈 집에서 시작해 용품 등록/완료/이력·공유 수정·오래된 revision 거부·집안일 등록/이번 회차 변경/다음 주 회차·개인 알림 설정·공용 지역·집 이동·재로그인·자신의 계정 정리를 확인합니다. 실패하면 마지막 step과 앱 로그를 확인하고, adb 프로세스 종료 코드 0만으로 통과 처리하지 않습니다. 테스트 계정은 성공 시 정리되지만 실패 시 남을 수 있습니다. 공용 프로젝트나 다른 작업의 데이터를 일괄 초기화하지 않습니다.
 
+공유 분류는 전용 Android AVD와 demo Firebase에서 같은 runner에 `-e role categories -e runId categories-unique-run`을 넘깁니다. 테스트 계정으로 분류 추가, 실제 항목 등록 화면 저장, ViewModel을 통한 이름 변경·삭제 후 항목 이동, 계정·집 정리를 검증합니다. `MVP categories PASS`가 필요합니다. 분류 편집 창의 이름과 ×를 터치하는 기기 화면 확인은 별도입니다.
+
 공용 Firebase를 확인할 때만 `-e service configured -e projectId <의도한-공용-project-id>`와 `mvp-production-`로 시작하는 새 runId를 명시합니다. 이 모드는 Firebase 기본 앱을 교체하지 않습니다. 프로젝트 ID가 다르거나 기존 로그인 계정이 있으면 작업 전에 거부하므로 **본인 개인 설치 대신 새 전용 테스트 설치에서만** 실행합니다. 테스트는 자신이 만든 두 계정·초대·집만 사용합니다. 모의 Firebase 성공과 공용 Firebase 성공을 따로 기록합니다.
 
 물리 기기의 알림 도착·재부팅·동시 완료 경쟁·release 업데이트 설치, 비밀번호 재설정 메일 수신, 글자 크기/다크/가로 화면은 해당 기기에서 별도 확인하고 미실행 상태를 유지합니다.

@@ -208,6 +208,7 @@ public final class ItemRepository {
         DocumentReference ref = items(firestore, houseId).document();
         Item item = ItemSchedule.register(ref.getId(), draft, uid, newOccurrenceId());
         return ItemTasks.commit(firestore, scope, this::currentUid, tx -> {
+            CategoryRepository.assignment(tx, firestore, houseId, false, draft.categoryId, draft.category);
             tx.set(ref, ItemDocuments.itemFields(item, uid, FieldValue.serverTimestamp(),
                     FieldValue.serverTimestamp()));
             tx.update(houseRef(firestore, houseId), Schema.Houses.ITEM_COUNT, FieldValue.increment(1),
@@ -243,6 +244,7 @@ public final class ItemRepository {
             if (!ItemSchedule.startDateFits(stored, draft.startDate)) {
                 throw new ItemException.Rejection(ItemError.INVALID_INPUT);
             }
+            CategoryRepository.assignment(tx, firestore, houseId, false, draft.categoryId, draft.category);
             Item next = ItemSchedule.edit(stored, draft);
             Map<String, Object> fields = ItemDocuments.itemFields(next, uid, createdAt(snapshot),
                     FieldValue.serverTimestamp());
