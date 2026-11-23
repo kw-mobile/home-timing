@@ -1,5 +1,7 @@
 # 코드 구조와 책임
 
+이 문서는 **코드 책임과 의존 방향**을 설명합니다. [문서 안내](README.md) · [데이터 모델](DATA_MODEL.md) · [제품 규칙](MVP.md)
+
 ## 구현 상태와 구조 기준
 
 앱 진입점은 [MainActivity](../app/src/main/java/com/kwmobile/hometiming/ui/main/MainActivity.java)입니다. 아래 계층은 기능을 배치할 기준이며 실제 파일 목록이나 구현 완료 목록이 아닙니다. 실제 구현은 `app/src/`에서 확인합니다.

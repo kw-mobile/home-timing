@@ -1,30 +1,57 @@
-# 프로젝트 문서 안내
+# 때맞춤 문서 안내
 
-처음 참여하면 [환경 설정](SETUP.md) → [MVP](MVP.md) → [아키텍처](ARCHITECTURE.md) 순서로 읽고, 작업 전 [검증 기준](TESTING.md)과 [기여 기록](report/README.md)을 확인합니다.
+[앱 소개](../README.md) · [APK 다운로드](https://github.com/kw-mobile/home-timing/releases/latest) · [개발 기록](report/WORKLOG.md)
 
-## 문서별 역할
+앱을 둘러보려는 사람, 개발에 참여하는 사람, 결과를 검토하는 사람이 각자 필요한 문서부터 읽을 수 있도록 정리했습니다.
 
-| 알고 싶은 것 | 기준 위치 |
+## 어디서 시작하면 될까요?
+
+| 목적 | 추천 경로 |
 | --- | --- |
-| 확정 화면 JPG | [라이트 요약](design-jpg/overview-light.jpg) · [다크 요약](design-jpg/overview-dark.jpg) · [전체 보드](design-jpg) |
-| 팀 공유용 전체 화면 HTML | [오프라인 화면 갤러리](design-review.html) |
-| PRD 의도·화면별 대응·업그레이드 기준 | [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) |
-| 전체 앱 흐름의 UI·취소·오류 점검 | [전체 흐름 점검](report/UI_FLOW_REVIEW.md) |
-| 컬러·로고·글자·컴포넌트 규격 | [디자인 시스템](DESIGN_SYSTEM.md) |
-| 현재 화면 시안을 어떻게 확인하는가 | [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) |
-| 무엇을 제출하고 무엇을 제외하는가 | [MVP.md](MVP.md) |
-| 코드·화면·데이터 책임을 어디에 두는가 | [ARCHITECTURE.md](ARCHITECTURE.md) |
-| 전체 구조 점검·리팩터링에서 무엇을 바꾸고 유지했는가 | [리팩터링 점검 기록](report/REFACTOR_REVIEW.md) |
-| Firestore에 무엇을 어떤 구조로 저장하는가 | [DATA_MODEL.md](DATA_MODEL.md) |
-| 어떻게 같은 환경으로 빌드하는가 | [SETUP.md](SETUP.md) |
-| 변경 후 무엇을 확인하고 어떤 근거를 남기는가 | [TESTING.md](TESTING.md) |
-| 누가 무엇을 했는지, 보고서 근거를 어떻게 모으는가 | [report/README.md](report/README.md) |
-| GitHub 개발 기록·Notion 중단 | [report/NOTION_SYNC.md](report/NOTION_SYNC.md) |
-| 운영 보안 설정·잠금 의존성 점검 | [운영 보안 확인](report/SECURITY_OPERATIONS.md) |
-| 실제 작업과 참여자 기록 | [report/WORKLOG.md](report/WORKLOG.md) |
-| 최초 환경 설정·작업 시작·완료 스킬 | [SKILLS.md](SKILLS.md) |
-| 브랜치·리뷰·PR 절차 | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| AI 도구가 반드시 지킬 지침 | [AGENTS.md](../AGENTS.md) |
+| 앱이 궁금해요 | [앱 소개와 기능](../README.md) → [화면 JPG](design-jpg/overview-light.jpg) → [MVP 제품 규칙](MVP.md) |
+| 처음 개발에 참여해요 | [환경 설정](SETUP.md) → [MVP](MVP.md) → [아키텍처](ARCHITECTURE.md) → [협업 규칙](../CONTRIBUTING.md) |
+| 화면을 구현·수정해요 | [디자인 시스템](DESIGN_SYSTEM.md) → [오프라인 화면 갤러리](design-review.html) → [변경별 검증](TESTING.md) |
+| 저장·권한을 수정해요 | [데이터 모델](DATA_MODEL.md) → [아키텍처](ARCHITECTURE.md) → [검증 기준](TESTING.md) |
+| 결과·참여 내역을 확인해요 | [기여 기록 기준](report/README.md) → [개발 기록](report/WORKLOG.md) → 연결된 PR의 검증 근거 |
+
+## 개발 기준
+
+| 문서 | 여기서 확인할 것 |
+| --- | --- |
+| [MVP](MVP.md) | 제출 범위·사용자 흐름·날짜·회차·권한 등 제품 계약 |
+| [디자인 시스템](DESIGN_SYSTEM.md) | 로고·컬러·타이포그래피·컴포넌트·화면 상태 |
+| [아키텍처](ARCHITECTURE.md) | UI·ViewModel·Repository·domain의 책임과 의존 방향 |
+| [데이터 모델](DATA_MODEL.md) | Firestore 경로·공유 분류·필드·트랜잭션 |
+| [환경 설정](SETUP.md) | JDK·SDK·개인 설정·Firebase·기상청·서명·업데이트 배포 |
+| [검증 기준](TESTING.md) | 변경별 필수 확인·테스트 실행·실제 결과 기록 |
+| [협업 규칙](../CONTRIBUTING.md) | 이슈·브랜치·PR·리뷰·게시 단위 |
+| [스킬 안내](SKILLS.md) · [에이전트 지침](../AGENTS.md) | 최초 설정과 AI 도구의 작업 시작·완료 절차 |
+
+## 화면과 브랜드 자료
+
+| 자료 | 쓰임새 |
+| --- | --- |
+| [로고 PNG](design-assets/app-icon.png) · [SVG](design-assets/app-icon.svg) | 소개·발표 자료에 사용할 기존 앱 심볼. 사용 규격은 [로고](DESIGN_SYSTEM.md#로고) 참고 |
+| [라이트 요약](design-jpg/overview-light.jpg) · [다크 요약](design-jpg/overview-dark.jpg) | 화면 구성을 한 장으로 확인 |
+| [전체 JPG 보드](design-jpg) | 인증·설정 하위 화면을 포함한 화면 자료 |
+| [오프라인 HTML 갤러리](design-review.html) | 내려받아 브라우저에서 여는 테마·상태별 확대 갤러리 |
+| [Android 미리보기 실행](DESIGN_SYSTEM.md#미리보기-실행) | debug APK에서 예시 상태를 직접 확인 |
+| [캡처 명세](report/evidence/component-system/manifest.json) | 이미지별 앱 SHA·시나리오·테마 |
+
+화면 자료는 캡처 당시의 디자인·예시 상태입니다. 최신 앱에서 달라진 배치와 실제 기능의 검증 여부는 기준 문서와 PR을 함께 확인합니다.
+
+## 작업 기록과 검토 근거
+
+| 기록 | 확인할 것 |
+| --- | --- |
+| [기여 기록 기준](report/README.md) · [개발 기록](report/WORKLOG.md) | 실제 참여자·역할·작업 결과와 이슈/PR 색인 |
+| [디자인 정합성 점검](report/PRD_DESIGN_AUDIT.md) | PRD 의도·화면별 대응·개선 기준 |
+| [전체 흐름 점검](report/UI_FLOW_REVIEW.md) | 화면 이동·취소·오류 흐름의 점검 결과 |
+| [리팩터링 점검](report/REFACTOR_REVIEW.md) | 구조 정리에서 바꾸거나 유지한 책임 |
+| [운영 보안 확인](report/SECURITY_OPERATIONS.md) | 운영 설정·잠금 의존성의 확인 범위 |
+| [GitHub 기록 전환](report/NOTION_SYNC.md) | 기존 Notion 보존과 신규 기록 위치 |
+
+날짜·커밋이 있는 보고서는 **당시의 검증 스냅샷**입니다. 현재 제품·구조·디자인의 기준 문서와 역할을 구분합니다.
 
 ## 구조
 

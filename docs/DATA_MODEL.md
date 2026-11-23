@@ -1,5 +1,7 @@
 # Firestore 데이터 모델
 
+이 문서는 **Firestore 저장 구조와 데이터 계약**의 기준입니다. [문서 안내](README.md) · [아키텍처](ARCHITECTURE.md) · [검증 기준](TESTING.md)
+
 [MVP의 데이터·권한·완료 계약](MVP.md#데이터권한-계약)을 Firestore 문서로 옮긴 설계 기준입니다. 구현 완료 목록이 아니며, 실제 저장·권한 동작은 `firestore.rules`·Repository 코드와 그 테스트로 확인합니다. 결정 경위는 [#22](https://github.com/kw-mobile/home-timing/issues/22)에 있습니다.
 
 모든 제품 데이터는 **집(house)** 에 속합니다. 사용자 문서는 현재 집을 가리키는 포인터와 개인 설정만 가집니다. 서버 코드 없이(Spark 요금제) 권한과 불변식을 Firestore 보안 규칙과 트랜잭션·일괄 쓰기로 보장할 수 있는 구조를 택했습니다.
