@@ -1,6 +1,20 @@
 # 운영 보안 확인 결과
 
-이슈 [#59](https://github.com/kw-mobile/home-timing/issues/59)의 읽기 전용 확인 결과입니다. 코드·규칙 흐름 검증과 운영 서비스 설정의 확인 범위를 구분합니다. 기준 소스는 `da35612`, 의존성 기준은 그 시점의 `app/gradle.lockfile`입니다. 후속 변경은 해당 PR의 최종 검증 결과를 따릅니다.
+초기 이슈 [#59](https://github.com/kw-mobile/home-timing/issues/59)의 읽기 전용 확인 결과입니다. 코드·규칙 흐름 검증과 운영 서비스 설정의 확인 범위를 구분합니다. 기준 소스는 `da35612`, 의존성 기준은 그 시점의 `app/gradle.lockfile`입니다. 후속 변경은 해당 PR의 최종 검증 결과를 따릅니다.
+
+## 2026-11-23 공유 분류 규칙과 배포 준비
+
+[배포·정리 이슈 #119](https://github.com/kw-mobile/home-timing/issues/119), 앱·규칙 기준 `0499a9049b01b2bd1ae9155671c2eacdfa5bd0c5`입니다. 기존 프로젝트용 Firebase CLI 계정으로 운영 규칙을 조회하고 `deploy --only firestore:rules --dry-run`의 서버 컴파일을 확인했습니다. 기본 계정의 규칙 컴파일 HTTP403은 별도로 기록하며, 계정 기본값·IAM을 바꾸지 않고 기존 등록 계정을 명령별로 선택했습니다.
+
+| 확인 | 결과 |
+| --- | --- |
+| main 규칙 원문 SHA-256 (LF) | `3163b9b328e8c076d679b692787385b1e21b156caa8cb3dcd6eab442168f9ac1` |
+| 운영 규칙 원문 SHA-256 (CRLF) | `a4d33dc93b35ecab0a2aa35f0ec523f0bc08ec21d9d494b6114b798bbcdea04e` |
+| 운영 ruleset | `c9a1f76a-79b6-494e-8de7-efb0981b2a30` |
+| 내용 비교 | CRLF를 LF로 바꾸면 byte 단위 일치. 공유 분류 권한 규칙이 이미 게시되어 있음 |
+| 서버 컴파일 | 기존 프로젝트용 계정의 dry-run 성공. 실배포는 실행하지 않음 |
+
+동일한 규칙이 이미 운영 중이므로 재게시하지 않습니다. 사용자·집 데이터 변경, 무결성 백필, IAM·App Check·키 제한·결제 설정 변경도 실행하지 않았습니다. 최종 커밋의 [권한 CI](https://github.com/kw-mobile/home-timing/actions/runs/45196714830), APK 릴리스·체크섬·설치 검증의 최종 결과는 #119에 남깁니다. 규칙 일치나 컴파일 성공을 실제 두 휴대폰의 공유 동작 성공으로 대신하지 않습니다.
 
 ## 2026-11-14 규칙 게시와 실제 MVP 확인
 
