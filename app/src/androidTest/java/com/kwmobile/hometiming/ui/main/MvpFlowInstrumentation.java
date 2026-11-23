@@ -137,15 +137,15 @@ public final class MvpFlowInstrumentation extends Instrumentation {
             ui.state.draft.category = original;
         });
         recreate(); click(R.id.edit_submit);
-        await(() -> ui.state.draft == null && ui.state.store.items.size() == 1, "item saved with category");
+        await(() -> !live.busy() && ui.state.draft == null && ui.state.store.items.size() == 1, "item saved with category");
         String itemId = main(() -> ui.state.store.items.get(0).id);
 
         mainAction(() -> live.changeCategory(live.catalog(false), original, renamed, null,
                 saved -> check(saved, "rename accepted")));
-        await(() -> renamed.equals(ui.state.store.find(itemId).category), "rename reflected on saved item");
+        await(() -> !live.busy() && renamed.equals(ui.state.store.find(itemId).category), "rename reflected on saved item");
         mainAction(() -> live.changeCategory(live.catalog(false), renamed, null, other,
                 saved -> check(saved, "delete accepted")));
-        await(() -> other.equals(ui.state.store.find(itemId).category)
+        await(() -> !live.busy() && other.equals(ui.state.store.find(itemId).category)
                         && live.catalog(false).idForName(renamed) == null,
                 "category deleted and item moved");
 

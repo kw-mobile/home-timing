@@ -1,0 +1,22 @@
+INSTRUMENTATION_STATUS: step=categories: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: signup form visible
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: signup/house/online
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: shared catalogs loaded
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: new category acknowledged
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: activity recreate
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: item saved with category
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: rename reflected on saved item
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: category deleted and item moved
+INSTRUMENTATION_STATUS_CODE: 0
+INSTRUMENTATION_STATUS: step=categories: demo account and its catalogs removed
+INSTRUMENTATION_STATUS_CODE: 0
+MVP categories PASS (demo Firebase emulator; Android emulator)
+
