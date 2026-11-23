@@ -1,0 +1,9 @@
+{
+  "versionName": "0.5.2",
+  "versionCode": 13,
+  "releaseSha": "0514e4d44c55fbc362e2ea364bef106ca0c13cf2",
+  "sha256": "547ad73cbdd77e72a2365cdda5f77b33a6701b6152301411c28ee69f149ca616",
+  "certificateSha256": "4ac2a383150ceb372fd5e3f0e028201cc12d186ad6977c3a23cc87a66031dffa",
+  "sizeBytes": 87527468,
+  "checks": "PASS: downloaded checksum, metadata, same signer, package/version, non-debuggable, shared category repository, widget provider"
+}
