@@ -1,5 +1,7 @@
 # 제출 MVP 실행 기준
 
+이 문서는 **제품 범위와 동작 규칙**의 기준입니다. [문서 안내](README.md) · [화면 규격](DESIGN_SYSTEM.md) · [검증 기준](TESTING.md)
+
 ## 목적과 기준
 
 생활용품 교체를 잊지 않게 하고, 세탁일을 날씨에 맞춰 조정합니다. 교체 예정일은 날짜·주기로만 계산하며 날씨는 집안일에만 적용합니다. 앱 이름은 때맞춤, Android applicationId와 namespace는 `com.kwmobile.hometiming`입니다.
