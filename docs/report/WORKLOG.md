@@ -6,7 +6,7 @@
 
 | 날짜 | 실제 참여자·역할 | 작업 내용 | 근거 |
 | --- | --- | --- | --- |
-| 2026-11-23 | 사용자(성명 확인 필요): 최신 코드 배포·관련 기록 정리 지시 / Codex(도구): 검증·배포 준비·문서 정리 | v0.5.2 정식 배포 준비, 운영 공유 분류 규칙과 main의 줄바꿈 정규화 일치·dry-run 확인. 릴리스/서명/메타데이터/설치의 최종 결과는 연결 이슈에서 기록 | [이슈 #119](https://github.com/kw-mobile/home-timing/issues/119) |
+| 2026-11-23 | 사용자(성명 확인 필요): 최신 코드 배포·관련 기록 정리 지시 / Codex(도구): 검증·배포 준비·문서 정리 | v0.5.2 정식 배포 준비, 운영 공유 분류 규칙과 main의 줄바꿈 정규화 일치·dry-run 확인. 릴리스/서명/메타데이터/설치의 최종 결과는 연결 이슈에서 기록 | [이슈 #119](https://github.com/kw-mobile/home-timing/issues/119), [PR #120](https://github.com/kw-mobile/home-timing/pull/120) |
 | 2026-11-23 | 사용자(성명 확인 필요): 로고·화면·기술 소개와 문서 접근성 개선 요청 / Codex(도구): 문서 설계·작성·검증 | README 앱 소개·기존 화면/위젯·기술 구성 정리, 목적별 문서 안내와 기준 문서 탐색 링크 추가. GitHub GFM 렌더링·상대 링크/앵커·이미지 경로 확인 | [이슈 #117](https://github.com/kw-mobile/home-timing/issues/117), [PR #118](https://github.com/kw-mobile/home-timing/pull/118) |
 | 2026-11-23 | 사용자(성명 확인 필요): 분류 추가 버튼 위치 지정 / Codex(도구): 구현·검증 | 분류 선택에서 ‘+ 직접 입력’을 편집 목록 끝으로 이동. Android 빌드·Lint 통과 | [이슈 #115](https://github.com/kw-mobile/home-timing/issues/115), [PR #116](https://github.com/kw-mobile/home-timing/pull/116) |
 | 2026-11-22 | 사용자(성명 확인 필요): 일반 앱 분류 편집과 × 버튼 요청 / Codex(도구): 설계·구현·검증 | 가족 공용 분류 등록·이름 변경·삭제 연결, 삭제 항목과 이력 보존, Firestore 구성원 규칙과 테스트 | [이슈 #88](https://github.com/kw-mobile/home-timing/issues/88), [PR #114](https://github.com/kw-mobile/home-timing/pull/114) |
