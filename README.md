@@ -16,7 +16,7 @@
 
 ## 실행 영상과 APK 설치
 
-[원본 실행 영상 다운로드](https://github.com/kw-mobile/home-timing/releases/download/v0.5.2/home-timing-demo-raw.mp4) · [시연 방식과 한계](docs/media/presentation/README.md)
+[실제 연동 실행 영상 다운로드](https://github.com/kw-mobile/home-timing/releases/download/v0.5.2/home-timing-demo-live-v0.5.2.mp4) · [시연 방식과 한계](docs/media/presentation/README.md)
 
 아래 QR을 휴대폰으로 스캔하면 **v0.5.2 APK**를 직접 내려받습니다.
 
