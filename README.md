@@ -14,6 +14,14 @@
 
 ---
 
+## 실행 영상과 APK 설치
+
+[원본 실행 영상 다운로드](https://github.com/kw-mobile/home-timing/releases/download/v0.5.2/home-timing-demo-raw.mp4) · [시연 방식과 한계](docs/media/presentation/README.md)
+
+아래 QR을 휴대폰으로 스캔하면 **v0.5.2 APK**를 직접 내려받습니다.
+
+<img src="docs/media/apk-download-v0.5.2-qr.png" width="200" height="200" alt="때맞춤 v0.5.2 APK 직접 다운로드 QR 코드">
+
 ## 어떤 앱인가요?
 
 칫솔을 언제 바꿨는지, 이번 주 세탁은 언제 하면 좋을지, 가족 중 누가 집안일을 마쳤는지 한곳에서 확인합니다. 생활용품은 시작일과 교체 주기로, 집안일은 반복 요일과 날씨로 관리합니다.

@@ -6,6 +6,7 @@
 
 | 날짜 | 실제 참여자·역할 | 작업 내용 | 근거 |
 | --- | --- | --- | --- |
+| 2026-11-24 | 사용자(성명 확인 필요): 발표용 영상·빠른 원본 녹화·APK QR 요청 / Codex(도구): 녹화·QR 생성·검증·게시 | 편집 없는 Android 실행 원본과 APK 직접 다운로드 QR, README 연결 및 예시/실물 검증 구분 | [이슈 #122](https://github.com/kw-mobile/home-timing/issues/122) |
 | 2026-11-23 | 사용자(성명 확인 필요): 최신 코드 배포·관련 기록 정리 지시 / Codex(도구): 검증·배포·문서 정리 | v0.5.2/code13 정식 배포, 기존 서명·체크섬·latest 메타데이터·AVD 업데이트 설치 확인. 운영 규칙 정규화 일치·dry-run 및 권한 CI 성공. 공유 분류 테스트의 서버 응답 대기 보완 후 계정 정리까지 PASS. [검증 근거](evidence/release-052/apk-verification.json)·상세 한계는 연결 이슈 참고 | [이슈 #119](https://github.com/kw-mobile/home-timing/issues/119), [PR #120](https://github.com/kw-mobile/home-timing/pull/120) |
 | 2026-11-23 | 사용자(성명 확인 필요): 로고·화면·기술 소개와 문서 접근성 개선 요청 / Codex(도구): 문서 설계·작성·검증 | README 앱 소개·기존 화면/위젯·기술 구성 정리, 목적별 문서 안내와 기준 문서 탐색 링크 추가. GitHub GFM 렌더링·상대 링크/앵커·이미지 경로 확인 | [이슈 #117](https://github.com/kw-mobile/home-timing/issues/117), [PR #118](https://github.com/kw-mobile/home-timing/pull/118) |
 | 2026-11-23 | 사용자(성명 확인 필요): 분류 추가 버튼 위치 지정 / Codex(도구): 구현·검증 | 분류 선택에서 ‘+ 직접 입력’을 편집 목록 끝으로 이동. Android 빌드·Lint 통과 | [이슈 #115](https://github.com/kw-mobile/home-timing/issues/115), [PR #116](https://github.com/kw-mobile/home-timing/pull/116) |
