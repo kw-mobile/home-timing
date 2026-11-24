@@ -1,11 +1,13 @@
-# 앱 원본 실행 영상
+# 실제 연동 앱 원본 실행 영상
 
-[MP4 다운로드](https://github.com/kw-mobile/home-timing/releases/download/v0.5.2/home-timing-demo-raw.mp4) · [APK 다운로드 QR](../apk-download-v0.5.2-qr.png)
+[MP4 다운로드](https://github.com/kw-mobile/home-timing/releases/download/v0.5.2/home-timing-demo-live-v0.5.2.mp4) · [APK 다운로드 QR](../apk-download-v0.5.2-qr.png)
 
-사용자 요청에 따라 자막·편집·음성 없이 한 번에 녹화한 Android 실행 원본입니다. 제품 소스는 `f35d335535b6f3b1ccea7623c87c737a2940187d`이며 v0.5.2의 제품 코드와 같습니다. 일반 화면은 debug 디자인 미리보기의 예시 데이터이고 실제 계정 가입·운영 날씨·가족 서버 동기화 시연은 아닙니다.
+공식 서명 v0.5.2/code13 APK를 전용 Android AVD에서 실행한 **170.01초·720×1600 H.264 원본**입니다. 자막·편집·음성을 추가하지 않았습니다. Firebase·기상청 키가 포함된 정식 APK를 사용하며 debug 디자인 미리보기나 테스트 예보를 사용하지 않습니다.
 
-홈·용품 목록·상세·등록·날씨·가족·알림 설정을 탐색합니다. 사진 구간은 전용 테스트 코드로 파일 또는 합성 문구를 실제 기기 내 인식기에 전달하고 결과를 기존 후보 UI에 표시합니다. 물리 카메라 촬영·실물 정확도 검증이 아닙니다. 공개 칫솔 사진의 인식 실패도 원본에서 제거하지 않았습니다. OCR 합성 문구 입력은 별도 경로입니다. 상세 결과와 영상 검증은 [이슈 #122](https://github.com/kw-mobile/home-timing/issues/122)에 기록합니다.
+전용 테스트 계정의 실제 가입·집 지역 저장을 마친 뒤 녹화했습니다. 영상에는 용품 등록·교체 완료·완료 이력, 실제 기상청 예보와 가족 관리 화면이 포함됩니다. 테스트 계정과 그 집의 항목·이력은 촬영 후 앱 탈퇴 절차로 정리했습니다. 두 물리 기기의 공유나 사진 인식 장면은 이 영상에 포함하지 않습니다.
 
-입력 사진은 [Steve Buissinne의 Toothbrush, Toothpaste, Dental Care](https://commons.wikimedia.org/wiki/File:Toothbrush,_Toothpaste,_Dental_Care_(571741).jpg), CC0입니다. 원본의 사진 노출과 기기 내 추론 외에 운영 사용자 데이터 쓰기는 없습니다.
+녹화 준비 중 같은 기존 로컬 키의 진단은 HTTP200 / KMA_00 / 예보871건이었고, 공식 APK에서도 강남구2°C·맑음·예보 출처/조회 시각을 확인했습니다. 날씨 상세의 저장된 예보 표시는 실제 기상청 응답의 캐시 출처입니다. 키 값·요청 URL·개인 계정은 영상과 저장소에 기록하지 않습니다.
 
-QR은 v0.5.2의 고정 APK URL을 담은 PNG이고 생성 후 Apple Vision으로 해독해 동일 주소임을 확인했습니다. 향후 새 버전은 새 QR이 필요합니다. 영상은 Git 이력에 대용량 MP4를 누적하지 않도록 기존 릴리스의 별도 자산으로 게시합니다. APK·체크섬·update.json은 변경하지 않습니다.
+앞서 게시한 미리보기 원본은 사용자 요구와 달라 GitHub 릴리스에서 제거하고 이 실제 연동 영상으로 정정했습니다. 기존 APK·체크섬·update.json과 QR은 변경하지 않았습니다. 상세 기록은 [이슈 #122](https://github.com/kw-mobile/home-timing/issues/122)를 따릅니다.
+
+QR은 고정 v0.5.2 APK URL을 담은816×816 PNG이고 Apple Vision으로 해독해 일치를 확인했습니다. 새 버전은 새 QR이 필요합니다. 대용량 MP4는 Git 이력에 누적하지 않고 릴리스의 별도 자산으로 게시합니다.
